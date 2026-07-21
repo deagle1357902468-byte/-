@@ -1,0 +1,53 @@
+{
+  "captured_kst": "2026-07-21T09:31:19+09:00",
+  "indices": [
+    {
+      "captured_kst": "2026-07-21T09:31:19+09:00",
+      "index": "Nasdaq Composite",
+      "symbol": ".IXIC",
+      "close": 25508.072,
+      "previous_close": 25520.244,
+      "change": -12.171,
+      "change_pct": -0.05,
+      "open": 25720.871,
+      "day_high": 25815.6,
+      "day_low": 25501.096,
+      "market_time_et": "5:15 PM EDT",
+      "market_status": "REG_MKT",
+      "currency": "USD",
+      "source": "cnbc"
+    },
+    {
+      "captured_kst": "2026-07-21T09:31:19+09:00",
+      "index": "S&P 500",
+      "symbol": ".SPX",
+      "close": 7443.28,
+      "previous_close": 7457.69,
+      "change": -14.41,
+      "change_pct": -0.19,
+      "open": 7489.18,
+      "day_high": 7513.23,
+      "day_low": 7440.53,
+      "market_time_et": "5:08 PM EDT",
+      "market_status": "REG_MKT",
+      "currency": "USD",
+      "source": "cnbc"
+    },
+    {
+      "captured_kst": "2026-07-21T09:31:19+09:00",
+      "index": "Dow Jones Industrial Average",
+      "symbol": ".DJI",
+      "close": 51839.26,
+      "previous_close": 52146.42,
+      "change": -307.16,
+      "change_pct": -0.59,
+      "open": 52154.57,
+      "day_high": 52411.9,
+      "day_low": 51781.9,
+      "market_time_et": "5:08 PM EDT",
+      "market_status": "REG_MKT",
+      "currency": "USD",
+      "source": "cnbc"
+    }
+  ]
+}

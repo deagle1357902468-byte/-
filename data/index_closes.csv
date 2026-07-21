@@ -1,0 +1,4 @@
+captured_kst,index,symbol,close,previous_close,change,change_pct,open,day_high,day_low,market_time_et,market_status,currency,source
+2026-07-21T09:31:19+09:00,Nasdaq Composite,.IXIC,25508.072,25520.244,-12.171,-0.05,25720.871,25815.6,25501.096,5:15 PM EDT,REG_MKT,USD,cnbc
+2026-07-21T09:31:19+09:00,S&P 500,.SPX,7443.28,7457.69,-14.41,-0.19,7489.18,7513.23,7440.53,5:08 PM EDT,REG_MKT,USD,cnbc
+2026-07-21T09:31:19+09:00,Dow Jones Industrial Average,.DJI,51839.26,52146.42,-307.16,-0.59,52154.57,52411.9,51781.9,5:08 PM EDT,REG_MKT,USD,cnbc
