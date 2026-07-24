@@ -199,12 +199,35 @@ def build(months: list[str]):
         ["목표명", "목표금액\n(KRW)", "목표일\n(YYYY-MM)", "월 저축액\n(KRW)", "가정 연복리\n수익률", "비고"],
         [16, 16, 12, 14, 14, 20],
     )
-    goal.cell(row=5, column=1, value="10년 내 5억 만들기")
-    goal.cell(row=5, column=2, value=500_000_000)
-    goal.cell(row=5, column=3, value="2036-07")
+    goal.cell(row=5, column=1, value="1조 만들기")
+    goal.cell(row=5, column=2, value=1_000_000_000_000)   # 기본 목표: 1조원
+    goal.cell(row=5, column=3, value="2055-12")
     goal.cell(row=5, column=4, value=2_000_000)
-    goal.cell(row=5, column=5, value=0.08)
-    goal.cell(row=5, column=6, value="샘플 목표")
+    goal.cell(row=5, column=5, value=0.10)
+    goal.cell(row=5, column=6, value="기본 목표 (샘플)")
+
+    # ── 배당 (분기별, 종목별) ──────────────────────────────────────────
+    dv = wb.create_sheet("배당")
+    write_header(
+        dv, "월별 배당 수령 (선택)", "종목별로 배당 받은 달에 한 줄. 자동수집도 채울 수 있음.",
+        ["기준월\n(YYYY-MM)", "티커", "배당금\n(USD)", "비고"], [14, 10, 14, 18],
+    )
+    # 대략적 연배당수익률
+    dyield = {"VOO": 0.013, "QQQ": 0.006, "AAPL": 0.005, "MSFT": 0.008, "TLT": 0.038}
+    dr = 5
+    for (tkr, nm, qty0, px0, mu, sig, cls) in holdings_def:
+        y = dyield.get(tkr, 0.0)
+        if y <= 0:
+            continue
+        for mi, ym in enumerate(months):
+            if mi % 3 != 2:            # 분기마다(3개월에 한 번)
+                continue
+            # 그 달 대략 평가액 × 분기배당
+            amt = px0 * qty0 * (1 + 0.01 * mi) * (y / 4)
+            dv.cell(row=dr, column=1, value=ym)
+            dv.cell(row=dr, column=2, value=tkr)
+            dv.cell(row=dr, column=3, value=round(amt, 2))
+            dr += 1
 
     # ── 시장지표 (미국채10년·금·WTI) ──────────────────────────────────
     mk = wb.create_sheet("시장지표")
