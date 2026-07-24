@@ -1,0 +1,39 @@
+name: 월별 원장 조립
+
+# 매월 1일, 누적된 일별 데이터에서 월말 값을 뽑아 원장 양식(자동수집_원장.xlsx)을
+# 갱신합니다. '월별스냅샷'·'목표'만 채우면 대시보드에 넣을 수 있는 파일이 됩니다.
+on:
+  schedule:
+    - cron: "0 1 1 * *"      # 매월 1일 UTC 01:00
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+concurrency:
+  group: collect-monthly
+  cancel-in-progress: false
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+      - name: openpyxl 설치
+        run: pip install --quiet openpyxl
+      - name: 원장 조립
+        run: python3 "내투자대시보드/자동화/build_ledger.py"
+      - name: 변경분 커밋
+        run: |
+          git config user.name  "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+          git add "내투자대시보드/자동화/자동수집_원장.xlsx"
+          if git diff --cached --quiet; then
+            echo "변경 없음 — 커밋 생략"
+          else
+            git commit -m "chore(auto): 월별 원장 조립 $(date -u +%Y-%m)"
+            git push
+          fi
