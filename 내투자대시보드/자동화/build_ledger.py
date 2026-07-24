@@ -161,6 +161,18 @@ def main():
            ["목표명", "목표금액\n(KRW)", "목표일\n(YYYY-MM)", "월 저축액\n(KRW)", "가정 연복리\n수익률", "비고"],
            [16, 16, 12, 14, 14, 20])
 
+    # 시장지표 (자동)
+    mkt = month_end_map(read_csv("시장지표_일별.csv"), ["us10y", "gold", "wti"])
+    if mkt:
+        mks = wb.create_sheet("시장지표")
+        header(mks, "월말 시장지표 (자동수집)", "미국채10년·금·WTI.",
+               ["기준월\n(YYYY-MM)", "미국채10년\n(%)", "금\n(USD/oz)", "WTI\n(USD/bbl)"], [14, 12, 12, 12])
+        for i, ym in enumerate(sorted(mkt)):
+            mks.cell(row=5 + i, column=1, value=ym)
+            mks.cell(row=5 + i, column=2, value=_num(mkt[ym]["us10y"]))
+            mks.cell(row=5 + i, column=3, value=_num(mkt[ym]["gold"]))
+            mks.cell(row=5 + i, column=4, value=_num(mkt[ym]["wti"]))
+
     wb.save(OUT)
     print(f"생성: {OUT}  (환율 {len(fx)}개월 · 벤치마크 {len(bm)}개월 · 종목 {len(tickers)}개)")
 

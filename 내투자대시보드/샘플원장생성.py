@@ -206,6 +206,22 @@ def build(months: list[str]):
     goal.cell(row=5, column=5, value=0.08)
     goal.cell(row=5, column=6, value="샘플 목표")
 
+    # ── 시장지표 (미국채10년·금·WTI) ──────────────────────────────────
+    mk = wb.create_sheet("시장지표")
+    write_header(
+        mk, "월말 시장지표 (자동수집 대상)", "미국채 10년 금리 · 금 · WTI 원유 월말 값.",
+        ["기준월\n(YYYY-MM)", "미국채10년\n(%)", "금\n(USD/oz)", "WTI\n(USD/bbl)"], [14, 12, 12, 12],
+    )
+    y10, gold, wti = 4.2, 2300.0, 78.0
+    for i, ym in enumerate(months):
+        y10 = min(6.0, max(2.5, y10 + random.gauss(0, 0.08)))
+        gold *= 1 + random.gauss(0.004, 0.03)
+        wti = min(120.0, max(45.0, wti * (1 + random.gauss(0.0, 0.06))))
+        mk.cell(row=5 + i, column=1, value=ym)
+        mk.cell(row=5 + i, column=2, value=round(y10, 2))
+        mk.cell(row=5 + i, column=3, value=round(gold))
+        mk.cell(row=5 + i, column=4, value=round(wti, 2))
+
     return wb
 
 

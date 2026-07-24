@@ -150,6 +150,18 @@ def main():
             upsert_csv(os.path.join(DATA_DIR, "시세_일별.csv"), ["date", "ticker", "close"], [0, 1], [r[0], tk, r[1]])
             print(f"  시세 {tk} {r[0]}={r[1]}")
         time.sleep(0.4)  # 예의상 간격
+    # 시장지표 (미국채10년·금·WTI)
+    mk = {}
+    for name, sym in [("us10y", "^TNX"), ("gold", "GC=F"), ("wti", "CL=F")]:
+        r = yahoo_daily_close(sym)
+        if r:
+            mk[name] = r
+        time.sleep(0.3)
+    if mk:
+        d = next(iter(mk.values()))[0]
+        upsert_csv(os.path.join(DATA_DIR, "시장지표_일별.csv"), ["date", "us10y", "gold", "wti"], 0,
+                   [d, mk.get("us10y", ("", ""))[1], mk.get("gold", ("", ""))[1], mk.get("wti", ("", ""))[1]])
+        print(f"  시장지표 {d} {mk}")
     # Fear & Greed
     fg = cnn_fear_greed()
     if fg:
