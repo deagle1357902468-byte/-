@@ -165,25 +165,32 @@ def build(months: list[str]):
         ["기준월\n(YYYY-MM)", "티커", "종목명", "수량", "종가\n(USD)", "평가액\n(USD)", "자산군"],
         [14, 10, 26, 10, 12, 14, 12],
     )
-    holdings = [
-        ("VOO", "Vanguard S&P 500 ETF", 30, "해외ETF"),
-        ("QQQ", "Invesco QQQ Trust", 14, "해외ETF"),
-        ("AAPL", "Apple Inc.", 60, "해외주식"),
-        ("MSFT", "Microsoft Corp.", 25, "해외주식"),
-        ("TLT", "iShares 20+ Yr Treasury", 130, "미국장기채"),
+    # (티커, 종목명, 시작수량, 시작가, 월평균수익률, 월변동성, 자산군)
+    holdings_def = [
+        ("VOO", "Vanguard S&P 500 ETF", 30, 560, 0.011, 0.040, "해외ETF"),
+        ("QQQ", "Invesco QQQ Trust", 14, 470, 0.013, 0.052, "해외ETF"),
+        ("AAPL", "Apple Inc.", 60, 210, 0.010, 0.055, "해외주식"),
+        ("MSFT", "Microsoft Corp.", 25, 430, 0.012, 0.048, "해외주식"),
+        ("TLT", "iShares 20+ Yr Treasury", 130, 92, 0.001, 0.030, "미국장기채"),
     ]
     hr = 5
-    last_ym = months[-1]
-    for (tkr, nm, qty, cls) in holdings:
-        px = round(random.uniform(80, 620), 2)
-        hold.cell(row=hr, column=1, value=last_ym)
-        hold.cell(row=hr, column=2, value=tkr)
-        hold.cell(row=hr, column=3, value=nm)
-        hold.cell(row=hr, column=4, value=qty)
-        hold.cell(row=hr, column=5, value=px)
-        hold.cell(row=hr, column=6, value=round(px * qty, 2))
-        hold.cell(row=hr, column=7, value=cls)
-        hr += 1
+    for (tkr, nm, qty0, px0, mu, sig, cls) in holdings_def:
+        px = float(px0)
+        qty = qty0
+        for mi, ym in enumerate(months):   # 매월 한 줄씩 (종목 수익률·기여도 계산용)
+            if mi > 0:
+                px *= 1 + random.gauss(mu, sig)
+                if random.random() < 0.15:
+                    qty += random.randint(1, 4)   # 가끔 추가 매수
+            px_r = round(px, 2)
+            hold.cell(row=hr, column=1, value=ym)
+            hold.cell(row=hr, column=2, value=tkr)
+            hold.cell(row=hr, column=3, value=nm)
+            hold.cell(row=hr, column=4, value=qty)
+            hold.cell(row=hr, column=5, value=px_r)
+            hold.cell(row=hr, column=6, value=round(px_r * qty, 2))
+            hold.cell(row=hr, column=7, value=cls)
+            hr += 1
 
     # ── 목표 ────────────────────────────────────────────────────────────
     goal = wb.create_sheet("목표")
