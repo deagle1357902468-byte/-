@@ -173,6 +173,17 @@ def main():
             mks.cell(row=5 + i, column=3, value=_num(mkt[ym]["gold"]))
             mks.cell(row=5 + i, column=4, value=_num(mkt[ym]["wti"]))
 
+    # 심리 (자동: 실제 CNN Fear&Greed 일별)
+    fgrows = read_csv("fear_greed_일별.csv")
+    if fgrows:
+        fgs = wb.create_sheet("심리")
+        header(fgs, "CNN Fear & Greed (자동수집)", "일별 score·rating. 대시보드는 최근 값을 사용.",
+               ["기준일\n(YYYY-MM-DD)", "score", "rating"], [16, 10, 14])
+        for i, r in enumerate(sorted(fgrows, key=lambda x: x.get("date", ""))):
+            fgs.cell(row=5 + i, column=1, value=r.get("date"))
+            fgs.cell(row=5 + i, column=2, value=_num(r.get("score")))
+            fgs.cell(row=5 + i, column=3, value=r.get("rating"))
+
     wb.save(OUT)
     print(f"생성: {OUT}  (환율 {len(fx)}개월 · 벤치마크 {len(bm)}개월 · 종목 {len(tickers)}개)")
 

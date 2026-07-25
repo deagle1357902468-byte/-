@@ -34,10 +34,14 @@ Actions 탭에서 **Run workflow**로 즉시 실행도 가능합니다.
 
 | 항목 | 출처 |
 |---|---|
-| 환율 USD/KRW | Yahoo Finance (`KRW=X`) |
-| 벤치마크 | Yahoo Finance (`^GSPC`·`^IXIC`·`^DJI`) |
-| 종목 시세 | Yahoo Finance (티커별) |
-| Fear & Greed | CNN Business (실패 시 그날은 건너뜀) |
+| 환율 USD/KRW | Naver 금융 (`marketindex/exchange/FX_USDKRW`) |
+| 벤치마크 | Naver 금융 (`index/.INX`·`.IXIC`·`.DJI`) |
+| 종목 시세 | Naver 금융 (`stock/{티커}.O` 등) |
+| 시장지표 | Naver 금융 (미국채10년 `bond/US10YT=RR` · 국제금 `metals/GCcv1` · WTI `energy/CLcv1`) |
+| Fear & Greed | CNN Business (실제 지수, 실패 시 그날은 건너뜀) |
+
+> Yahoo가 rate-limit(429)으로 막혀 **Naver 금융 API로 교체**했습니다. Naver·CNN은 이 수집
+> 환경에서 실동작을 확인했습니다(환율·지수·종목·미국채/금/WTI·CNN F&G 모두 실값 수신).
 
 ## 회사 PC로 전달
 
@@ -45,7 +49,5 @@ Actions 탭에서 **Run workflow**로 즉시 실행도 가능합니다.
 데이터를 넣어 다시 구운 오프라인 대시보드)를 **회사에서 받을 수 있는 경로**(이 채팅·이메일·
 허용된 클라우드)로 전달하는 방식이 현실적입니다. 자세한 건 대시보드 **개발기록** 탭 참고.
 
-> ⚠️ 로컬(이 개발 샌드박스)에서는 Yahoo/CNN이 rate-limit(429/418)으로 막혀 fetch를 실전
-> 검증하지 못했습니다. 스크립트는 저장소의 기존 지수 수집 루틴과 동일한 방식이며, GitHub
-> Actions 러너(정상 egress)에서 동작하도록 작성했습니다. 파싱·누적·월별 조립 로직은 합성
-> 데이터로 검증했습니다.
+> ✅ Naver 시세와 CNN Fear & Greed는 이 수집 환경에서 **실제로 fetch됨**을 확인했습니다.
+> 다만 회사 PC 자체는 GitHub/시세가 막혀 있으니, 완성 파일을 위 '회사 PC로 전달' 경로로 받으세요.

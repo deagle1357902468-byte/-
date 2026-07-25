@@ -369,7 +369,7 @@ input[type=range]{width:100%;accent-color:var(--accent);height:4px}
             <span><i style="background:#aab2c2"></i>중립</span><span><i style="background:#7bc96f"></i>탐욕</span><span><i style="background:#12a150"></i>극단적 탐욕</span>
           </div>
         </div>
-        <div class="note" style="text-align:center">※ 실제 CNN Fear &amp; Greed 지수는 매월 말 자동수집으로 교체할 수 있습니다(회사 PC에선 실시간 조회 불가).</div>
+        <div class="note" id="fg-note" style="text-align:center">※ 원장에 '심리' 시트(자동수집)가 있으면 실제 CNN 지수로 자동 교체됩니다.</div>
       </div>
       <div class="card pad">
         <div class="blocktitle"><div><h3>내 포트폴리오 낙폭</h3><div class="sub">고점 대비 얼마나 내려갔었나 — 하락과 회복의 기록</div></div></div>
@@ -436,7 +436,7 @@ input[type=range]{width:100%;accent-color:var(--accent);height:4px}
       <div class="card pad">
         <div class="blocktitle"><div><h3>자동화 (일별 수집 · 연별 입력)</h3><div class="sub">공개 데이터(환율·지수·시세·심리)는 매일 자동, 개인 성과는 연 1회만 입력</div></div></div>
         <ul style="color:var(--ink2);font-size:.88rem;line-height:1.9;margin:4px 0 0;padding-left:18px">
-          <li><b>매일 자동 수집</b>: 환율 · 벤치마크(S&amp;P·NASDAQ·다우) · 보유 종목 시세 · 시장지표 · Fear&amp;Greed (오후 9시 KST)</li>
+          <li><b>매일 자동 수집(Naver + CNN)</b>: 환율 · 벤치마크(S&amp;P·NASDAQ·다우) · 보유 종목 시세 · 시장지표 · <b>실제</b> Fear&amp;Greed (오후 9시 KST)</li>
           <li><b>자동 계산</b>: 보유(티커+수량)로 평가액까지</li>
           <li><b>당신이 줄 것(연 1회)</b>: 자산군별 <b>연말 평가액</b> · 그해 <b>순입금</b> · 티커 없는 현금성 잔고(MMF·RP·현금)</li>
         </ul>
@@ -451,7 +451,8 @@ input[type=range]{width:100%;accent-color:var(--accent);height:4px}
         <div class="card pad">
           <div class="blocktitle"><div><h3>변경 이력</h3></div></div>
           <div class="tl">
-            <div class="tl__i done"><h4>v6 — 월별 → 연별 전환<span class="tag">현재</span></h4><ul><li>개인 성과 입력을 <b>연 1회</b>로 축소(연별스냅샷): 수익률·TWR·XIRR·기여·낙폭 모두 연 단위</li><li>연율화·표본 기준(≥3년), 라벨·워터폴·배당·캐러셀 전부 연 단위로</li><li>환율·벤치마크·시장지표·Fear&amp;Greed는 <b>일별/월별 그대로</b>(세밀 유지) — 심리 게이지는 월별 벤치마크로 계산</li><li>일별 공개데이터 자동수집 시각 오후 9시(KST)</li></ul></div>
+            <div class="tl__i done"><h4>v7 — 실데이터 연동 (Naver 시세 · 실제 CNN F&amp;G)<span class="tag">현재</span></h4><ul><li>환율·지수·시세·시장지표를 <b>Naver 금융 API</b>로 수집(Yahoo 429 대체) — 이 환경에서 실동작 확인</li><li>시장 심리를 <b>실제 CNN Fear &amp; Greed 지수</b>로 연결(원장 '심리' 시트), 없으면 자체 근사치로 폴백</li><li>일별 공개데이터 수집 매일 21:00 KST</li></ul></div>
+            <div class="tl__i done"><h4>v6 — 월별 → 연별 전환<span class="tag">완료</span></h4><ul><li>개인 성과 입력을 <b>연 1회</b>로 축소(연별스냅샷): 수익률·TWR·XIRR·기여·낙폭 모두 연 단위</li><li>연율화·표본 기준(≥3년), 라벨·워터폴·배당·캐러셀 전부 연 단위로</li><li>환율·벤치마크·시장지표·Fear&amp;Greed는 <b>일별/월별 그대로</b>(세밀 유지) — 심리 게이지는 월별 벤치마크로 계산</li><li>일별 공개데이터 자동수집 시각 오후 9시(KST)</li></ul></div>
             <div class="tl__i done"><h4>v5 — 배당 · 리포트 · 성장곡선 슬라이드<span class="tag">완료</span></h4><ul><li>배당 트래킹(수령액·배당수익률), 리포트 저장(인쇄/PDF)</li><li>요약 성장곡선 분리 + 하단 캐러셀(VOO비교·연도별손익·누적손익)</li><li>워터폴 커넥터·라벨로 0부터 명확히, 복리 예측 2060년까지·기본 목표 1조</li></ul></div>
             <div class="tl__i done"><h4>v4 — 시장지표 · 만다라트 · 워터폴<span class="tag">완료</span></h4><ul><li>시장지표 탭(미국채10년·금·WTI), 만다라트(마음가짐) 탭</li><li>손익 분해 워터폴, "VOO였다면"(수수료 0.03%) 비교선</li><li>일별/월별 자동수집 파이프라인(환율·벤치마크·시세·Fear&amp;Greed)</li><li>탭별 명언(4대 투자자·원문+번역), 툴팁 잘림 수정</li></ul></div>
             <div class="tl__i done"><h4>v3 — 탭 구조 · 시장심리 · 상세 복리<span class="tag">완료</span></h4><ul><li>한 화면 스크롤 → 버튼으로 넘기는 탭 구조</li><li>학술 리스크지표 → Fear&amp;Greed 시장심리 게이지</li><li>복리 시뮬: 상한 35%·저축 증가율·물가(실질가치)·명목/실질 토글</li><li>종목별 표(평가액·비중·수익률·기여도), 벤치마크 누적 비교</li></ul></div>
@@ -463,7 +464,7 @@ input[type=range]{width:100%;accent-color:var(--accent);height:4px}
           <div class="blocktitle"><div><h3>로드맵</h3></div></div>
           <div class="tl">
             <div class="tl__i plan"><h4>일별/월별 자동수집 파이프라인<span class="tag">스크립트 준비됨</span></h4><ul><li>환율·벤치마크·종목시세·Fear&amp;Greed를 매 거래일 GitHub Actions로 수집(<code>자동화/</code>)</li><li>매년 초 보유(티커+수량)×연말가로 원장 자동 조립</li><li>남은 일: Actions 활성화 + tickers.txt에 실제 보유 입력</li></ul></div>
-            <div class="tl__i plan"><h4>실제 Fear &amp; Greed 매일 연동<span class="tag">예정</span></h4><ul><li>참고용 자체계산 → 공식 CNN 지수 값(일별)으로 교체</li></ul></div>
+            <div class="tl__i done"><h4>실제 Fear &amp; Greed 매일 연동<span class="tag">완료</span></h4><ul><li>참고용 자체계산 → 공식 CNN 지수 값(일별)으로 교체(원장 '심리' 시트)</li></ul></div>
             <div class="tl__i plan"><h4>종목별 히스토리 정밀화<span class="tag">예정</span></h4><ul><li>일별 시세 누적 → 종목 수익률·기여도 정확도↑</li></ul></div>
             <div class="tl__i plan"><h4>자동 전달<span class="tag">검토</span></h4><ul><li>완성 파일을 회사에서 받는 경로(채팅·이메일·클라우드)로</li></ul></div>
           </div>
@@ -621,9 +622,14 @@ function parseWorkbook(wb){
   const dividends=[];
   if(wb.Sheets["배당"])for(const r of rowsFrom(wb.Sheets["배당"])){const ym=toYM(r[0]);if(!ym)continue;const amt=Number(r[2]);if(!isNum(amt))continue;
     dividends.push({ym,ticker:(r[1]??"").toString(),amt});}
+  // 심리 (선택): 실제 CNN Fear&Greed — 기준일·score·rating. 가장 최근 행을 사용
+  let fgReal=null;
+  if(wb.Sheets["심리"])for(const r of rowsFrom(wb.Sheets["심리"])){
+    const d=(r[0]==null?"":String(r[0])).trim(),sc=Number(r[1]);if(!d||!isNum(sc))continue;
+    if(!fgReal||d>fgReal.date)fgReal={date:d,score:sc,rating:(r[2]??"").toString()};}
   const years=[]; for(const y of [...new Set(Object.keys(snap))].sort()){if(fxY[y]!=null)years.push(y);else warn.missingFx.push(y);}
   // months=연도 토큰, fx=연말환율, bm=연말지수 → 기존 엔진 그대로 동작
-  return {months:years,fx:fxY,fxM,snap,bm:bmY,bmM,bmMonths,holdings,goal,market,dividends,warn};
+  return {months:years,fx:fxY,fxM,snap,bm:bmY,bmM,bmMonths,holdings,goal,market,dividends,fgReal,warn};
 }
 
 /* ─── §3 계산 엔진 (v1 검증본 그대로) ─── */
@@ -685,12 +691,16 @@ function fearGreed(D,bmKey){
   const v=sampleStd(rr.slice(-6)); const s3=isNum(v)?clamp(100-v*1000):50; // 변동성(역): 높으면 공포
   const up6=rr.slice(-6); const s4=up6.length?clamp(up6.filter(x=>x>0).length/up6.length*100):50; // 상승 개월 비율
   const score=Math.round((s1+s2+s3+s4)/4);
-  const band = score<25?["극단적 공포","#e5484d","지금은 시장이 겁에 질린 구간. 역사적으로는 기회가 될 때가 많았습니다."]
+  const band=fgBand(score);
+  return {score,label:band[0],color:band[1],desc:band[2]};
+}
+// score(0~100) → [라벨, 색, 설명]. 실제 CNN 값과 자체 근사치가 같은 밴드를 공유
+function fgBand(score){
+  return score<25?["극단적 공포","#e5484d","지금은 시장이 겁에 질린 구간. 역사적으로는 기회가 될 때가 많았습니다."]
     : score<45?["공포","#f0932b","투자심리가 위축돼 있습니다. 겁먹고 파는 건 대개 손해였어요."]
     : score<=55?["중립","#aab2c2","특별한 과열도 공포도 아닌 구간."]
     : score<=74?["탐욕","#7bc96f","분위기가 좋습니다. 다만 이럴 때일수록 규칙을 지키세요."]
     : ["극단적 탐욕","#12a150","과열 구간. 수익을 당연하게 여기기 쉬운 때 — 리스크 관리를 점검하세요."];
-  return {score,label:band[0],color:band[1],desc:band[2]};
 }
 
 /* ─── 종목별(가격 기준) 집계 ─── */
@@ -961,8 +971,14 @@ function renderCompose(){
 /* 리스크·심리 */
 function renderRisk(){
   chDefaults();const{months}=DATA;
-  // Fear & Greed 게이지
-  const fg=fearGreed(DATA,STATE.bmKey);destroy("gauge");
+  // Fear & Greed 게이지: 실제 CNN 값(심리 시트) 우선, 없으면 벤치마크 기반 자체 근사치
+  const fgReal=DATA.fgReal,useReal=!!(fgReal&&isNum(fgReal.score));
+  let fg;
+  if(useReal){const s=Math.round(fgReal.score),bd=fgBand(s);fg={score:s,label:bd[0],color:bd[1],desc:bd[2]};}
+  else fg=fearGreed(DATA,STATE.bmKey);
+  $("#fg-sub").textContent=useReal?`실제 CNN Fear & Greed 지수 · 기준일 ${fgReal.date}`:"벤치마크 모멘텀·변동성 기반 자체 계산 · 참고용";
+  $("#fg-note").textContent=useReal?"CNN Business 공식 Fear & Greed 지수를 매일 자동수집(Naver 시세와 함께)해 반영합니다.":"※ 원장에 '심리' 시트(자동수집)가 있으면 실제 CNN 지수로 자동 교체됩니다.";
+  destroy("gauge");
   if(fg){
     $("#fg-val").textContent=fg.score;$("#fg-val").style.color=fg.color;
     $("#fg-label").textContent=fg.label;$("#fg-label").style.color=fg.color;

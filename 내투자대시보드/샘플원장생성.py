@@ -238,6 +238,25 @@ def build(years: list[int]):
         mk.cell(row=5 + i, column=3, value=round(gold))
         mk.cell(row=5 + i, column=4, value=round(wti, 2))
 
+    # ── 심리 (월별 · CNN Fear & Greed 실값 자리) ────────────────────────
+    fg = wb.create_sheet("심리")
+    write_header(
+        fg, "CNN Fear & Greed (자동수집)", "기준일·score(0~100)·rating. 대시보드는 가장 최근 값을 사용.",
+        ["기준일\n(YYYY-MM-DD)", "score", "rating"], [16, 10, 14],
+    )
+
+    def rating_of(s):
+        return ("Extreme Fear" if s < 25 else "Fear" if s < 45 else
+                "Neutral" if s <= 55 else "Greed" if s <= 74 else "Extreme Greed")
+
+    score = 50.0
+    for i, ym in enumerate(months):
+        score = min(90.0, max(10.0, score + random.gauss(0, 12)))
+        s = round(score)
+        fg.cell(row=5 + i, column=1, value=f"{ym}-28")   # 대략 월말
+        fg.cell(row=5 + i, column=2, value=s)
+        fg.cell(row=5 + i, column=3, value=rating_of(s))
+
     return wb
 
 
