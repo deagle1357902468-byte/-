@@ -4,7 +4,7 @@ name: 일별 공개데이터 수집
 # 모아 커밋합니다. 개인 데이터는 다루지 않습니다.
 on:
   schedule:
-    - cron: "0 22 * * 1-5"   # UTC 22:00 (미국장 마감 후) · 월~금
+    - cron: "0 12 * * *"     # UTC 12:00 = 21:00 KST · 매일
   workflow_dispatch:
 
 permissions:
