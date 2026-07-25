@@ -251,6 +251,10 @@ input[type=range]{width:100%;accent-color:var(--accent);height:4px}
       <input id="fileinput" type="file" accept=".xlsx,.xls" class="hidden" />
       <div class="drop__err" id="droperr"></div>
     </div>
+    <div id="market-entry" class="hidden" style="margin-top:14px">
+      <button class="btn" type="button" id="market-only-btn">📈 오늘의 시장만 보기 <span class="dim" style="font-weight:500">(원장 없이)</span></button>
+      <div class="drop__hint" id="market-entry-sub" style="margin-top:6px"></div>
+    </div>
     <div class="drop__privacy">🔒 데이터는 이 브라우저 안에서만 계산되고 <b>어디에도 전송되지 않습니다.</b></div>
   </div>
 </div>
@@ -263,7 +267,7 @@ input[type=range]{width:100%;accent-color:var(--accent);height:4px}
       <div class="brand__logo">📈</div>
       <div>
         <h1>개인 투자 대시보드</h1>
-        <div class="brand__meta">마지막 <b id="m-lastmonth">—</b> · 기록 <b id="m-nobs">—</b>년</div>
+        <div class="brand__meta" id="brand-meta">마지막 <b id="m-lastmonth">—</b> · 기록 <b id="m-nobs">—</b>년</div>
       </div>
     </div>
     <div class="top-actions">
@@ -402,11 +406,17 @@ input[type=range]{width:100%;accent-color:var(--accent);height:4px}
     <!-- 시장지표 -->
     <section class="panel-page" data-page="market">
       <div class="quote mb" data-qt="market"></div>
-      <div class="card pad">
-        <div class="blocktitle"><div><h3>시장 지표</h3><div class="sub">미국채 10년 금리 · 금 · WTI 원유 — 거시 환경 한눈에</div></div></div>
+      <div class="card pad mb">
+        <div class="blocktitle"><div><h3>오늘의 시장</h3><div class="sub" id="market-asof">매일 자동 갱신 · 원장 파일과 무관</div></div></div>
         <div class="kpi-grid mb" id="market-cards"></div>
-        <div class="chartbox h-mid"><canvas id="c-market"></canvas></div>
-        <div class="note" id="market-note">각 지표를 시작=100으로 맞춘 상대 추이입니다. (금리는 수준 %)</div>
+        <div class="kpi-grid" id="market-cards2"></div>
+        <div class="note" id="market-note"></div>
+      </div>
+      <div class="card pad">
+        <div class="blocktitle"><div><h3>미국 기준금리</h3><div class="sub">연준 목표범위와 실효금리(EFFR) — 유일하게 흐름을 쌓아 보는 지표</div></div></div>
+        <div class="kpi-grid mb" id="rate-cards"></div>
+        <div class="chartbox h-mid"><canvas id="c-rate"></canvas></div>
+        <div class="note" id="rate-note"></div>
       </div>
     </section>
 
@@ -434,10 +444,11 @@ input[type=range]{width:100%;accent-color:var(--accent);height:4px}
         <div class="set-row"><div class="k">데이터<small id="data-status"></small></div><button class="btn" id="reload-btn2">다른 파일 열기</button></div>
       </div>
       <div class="card pad">
-        <div class="blocktitle"><div><h3>자동화 (일별 수집 · 연별 입력)</h3><div class="sub">공개 데이터(환율·지수·시세·심리)는 매일 자동, 개인 성과는 연 1회만 입력</div></div></div>
+        <div class="blocktitle"><div><h3>자동화 (시장=매일 · 원장=연 1회)</h3><div class="sub">시장 데이터는 이 파일 안에 매일 새로 심겨 옵니다 — 원장 파일과 완전히 분리</div></div></div>
         <ul style="color:var(--ink2);font-size:.88rem;line-height:1.9;margin:4px 0 0;padding-left:18px">
-          <li><b>매일 자동 수집(Naver + CNN)</b>: 환율 · 벤치마크(S&amp;P·NASDAQ·다우) · 보유 종목 시세 · 시장지표 · <b>실제</b> Fear&amp;Greed (오후 9시 KST)</li>
-          <li><b>자동 계산</b>: 보유(티커+수량)로 평가액까지</li>
+          <li><b>매일 21시(KST) 자동</b>: 환율 · 지수 · 보유 종목 시세 · 시장지표 · 실제 Fear&amp;Greed · 미국 기준금리를 모아 <b>이 HTML을 새로 구워</b> 보내줍니다</li>
+          <li><b>시장지표는 그날 값만</b> 표시(누적 없음). 흐름을 쌓아 보는 건 <b>미국 기준금리</b> 하나뿐</li>
+          <li><b>원장 없이도</b> '오늘의 시장' 탭은 열립니다(첫 화면의 "오늘의 시장만 보기")</li>
           <li><b>당신이 줄 것(연 1회)</b>: 자산군별 <b>연말 평가액</b> · 그해 <b>순입금</b> · 티커 없는 현금성 잔고(MMF·RP·현금)</li>
         </ul>
       </div>
@@ -451,7 +462,8 @@ input[type=range]{width:100%;accent-color:var(--accent);height:4px}
         <div class="card pad">
           <div class="blocktitle"><div><h3>변경 이력</h3></div></div>
           <div class="tl">
-            <div class="tl__i done"><h4>v7 — 실데이터 연동 (Naver 시세 · 실제 CNN F&amp;G)<span class="tag">현재</span></h4><ul><li>환율·지수·시세·시장지표를 <b>Naver 금융 API</b>로 수집(Yahoo 429 대체) — 이 환경에서 실동작 확인</li><li>시장 심리를 <b>실제 CNN Fear &amp; Greed 지수</b>로 연결(원장 '심리' 시트), 없으면 자체 근사치로 폴백</li><li>일별 공개데이터 수집 매일 21:00 KST</li></ul></div>
+            <div class="tl__i done"><h4>v8 — 시장 데이터를 원장에서 분리 (매일 갱신)<span class="tag">현재</span></h4><ul><li>시장 스냅샷을 <b>HTML 안에 직접 내장</b> — 원장 파일과 무관하게 매일 그날 값으로 갱신</li><li>시장지표는 <b>그날 값만</b>(누적 제거), 누적은 <b>미국 기준금리</b>(연준 목표범위·EFFR, 뉴욕 연준 API) 하나만</li><li>원장 없이 '오늘의 시장'만 열람 가능 · F&amp;G도 매일 최신값 우선</li></ul></div>
+            <div class="tl__i done"><h4>v7 — 실데이터 연동 (Naver 시세 · 실제 CNN F&amp;G)<span class="tag">완료</span></h4><ul><li>환율·지수·시세·시장지표를 <b>Naver 금융 API</b>로 수집(Yahoo 429 대체) — 이 환경에서 실동작 확인</li><li>시장 심리를 <b>실제 CNN Fear &amp; Greed 지수</b>로 연결(원장 '심리' 시트), 없으면 자체 근사치로 폴백</li><li>일별 공개데이터 수집 매일 21:00 KST</li></ul></div>
             <div class="tl__i done"><h4>v6 — 월별 → 연별 전환<span class="tag">완료</span></h4><ul><li>개인 성과 입력을 <b>연 1회</b>로 축소(연별스냅샷): 수익률·TWR·XIRR·기여·낙폭 모두 연 단위</li><li>연율화·표본 기준(≥3년), 라벨·워터폴·배당·캐러셀 전부 연 단위로</li><li>환율·벤치마크·시장지표·Fear&amp;Greed는 <b>일별/월별 그대로</b>(세밀 유지) — 심리 게이지는 월별 벤치마크로 계산</li><li>일별 공개데이터 자동수집 시각 오후 9시(KST)</li></ul></div>
             <div class="tl__i done"><h4>v5 — 배당 · 리포트 · 성장곡선 슬라이드<span class="tag">완료</span></h4><ul><li>배당 트래킹(수령액·배당수익률), 리포트 저장(인쇄/PDF)</li><li>요약 성장곡선 분리 + 하단 캐러셀(VOO비교·연도별손익·누적손익)</li><li>워터폴 커넥터·라벨로 0부터 명확히, 복리 예측 2060년까지·기본 목표 1조</li></ul></div>
             <div class="tl__i done"><h4>v4 — 시장지표 · 만다라트 · 워터폴<span class="tag">완료</span></h4><ul><li>시장지표 탭(미국채10년·금·WTI), 만다라트(마음가짐) 탭</li><li>손익 분해 워터폴, "VOO였다면"(수수료 0.03%) 비교선</li><li>일별/월별 자동수집 파이프라인(환율·벤치마크·시세·Fear&amp;Greed)</li><li>탭별 명언(4대 투자자·원문+번역), 툴팁 잘림 수정</li></ul></div>
@@ -480,6 +492,15 @@ input[type=range]{width:100%;accent-color:var(--accent);height:4px}
 <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js"></script>
 <script>
 "use strict";
+/* ============================================================================
+   시장 스냅샷 — 원장(xlsx)과 **완전히 분리**된 공개 시장 데이터.
+   매일 21시(KST) 자동수집이 이 블록을 통째로 갈아끼웁니다(자동화/build_dashboard.py).
+   · 시장지표·환율·지수는 **그날 값만** 담습니다(누적 없음).
+   · 기준금리(policyRate)만 히스토리를 함께 담습니다.
+   비어 있으면(null) 대시보드는 "—"로 표시하고 가짜 값을 만들지 않습니다(§7).
+   ========================================================================== */
+const MARKET_DATA = /*__MARKET_DATA__*/ null /*__END_MARKET_DATA__*/;
+
 /* ============================================================================
    §5 명언 — 검증된 문구만 (원문+번역). 여기에 좋아하는 문구를 추가하세요.
    출처가 불확실한 문장은 넣지 마세요.
@@ -843,25 +864,47 @@ function renderWaterfall(){
 }
 /* 시장 지표 (미국채10년·금·WTI) */
 function renderMarket(){
-  destroy("market");chDefaults();
-  const rows=DATA.market||[];const months=rows.map(r=>r.ym);
-  const cardsEl=$("#market-cards");
-  if(!rows.length){cardsEl.innerHTML=`<div class="empty" style="grid-column:1/-1">시장지표 데이터가 없습니다. 원장에 <code>시장지표</code> 시트(기준월·미국채10년·금·WTI)가 있으면 표시됩니다. 자동수집이 채워줍니다.</div>`;return;}
-  const last=rows[rows.length-1],prev=rows.length>1?rows[rows.length-2]:null;
-  const card=(name,val,unit,cur,pv,digits)=>{const dv=(isNum(cur)&&isNum(pv))?cur-pv:null;
-    return `<div class="kpi"><div class="kpi__label">${name}</div><div class="kpi__val tnum" style="font-size:1.5rem">${isNum(cur)?val:"—"}</div><div class="kpi__sub ${signClass(dv)}">${isNum(dv)?(dv>=0?"▲ +":"▼ −")+Math.abs(dv).toFixed(digits)+unit:""}</div></div>`;};
+  destroy("rate");chDefaults();
+  const M=MARKET_DATA,cardsEl=$("#market-cards"),cards2El=$("#market-cards2");
+  if(!M){
+    cardsEl.innerHTML=`<div class="empty" style="grid-column:1/-1">시장 데이터가 아직 심어지지 않았습니다.<br>매일 21시 자동수집이 이 파일에 그날 값을 넣어 다시 만들어 보내줍니다.</div>`;
+    cards2El.innerHTML="";$("#market-asof").textContent="—";$("#rate-cards").innerHTML="";return;
+  }
+  $("#market-asof").textContent=`${M.asOf} 기준 · 매일 자동 갱신 · 원장 파일과 무관`;
+  // 오늘 값만 (누적 없음)
+  const c=(name,val,sub)=>`<div class="kpi"><div class="kpi__label">${name}</div><div class="kpi__val tnum" style="font-size:1.5rem">${val}</div><div class="kpi__sub dim">${sub||""}</div></div>`;
+  const fx=M.fx||{},ix=M.index||{},id=M.indicators||{},fgv=M.fg||{};
   cardsEl.innerHTML=
-    card("미국채 10년",isNum(last.us10y)?last.us10y.toFixed(2)+"%":"—","%p",last.us10y,prev&&prev.us10y,2)+
-    card("금 (USD/oz)",isNum(last.gold)?"$"+nfKRW.format(last.gold):"—","",last.gold,prev&&prev.gold,0)+
-    card("WTI 원유 (USD)",isNum(last.wti)?"$"+last.wti.toFixed(2):"—","",last.wti,prev&&prev.wti,2)+
-    `<div class="kpi"><div class="kpi__label">기준월</div><div class="kpi__val tnum" style="font-size:1.4rem">${fmtMonthKo(last.ym)}</div><div class="kpi__sub dim">${rows.length}개월 기록</div></div>`;
-  const norm=(key)=>{const base=rows.find(r=>isNum(r[key]));if(!base)return null;const b0=base[key];return rows.map(r=>isNum(r[key])?r[key]/b0*100:null);};
-  CHARTS.market=new Chart($("#c-market"),{type:"line",data:{labels:months.map(m=>m.slice(2)),datasets:[
-    {label:"미국채10년",data:norm("us10y"),borderColor:cssVar("--d1"),borderWidth:2,pointRadius:0,tension:.15},
-    {label:"금",data:norm("gold"),borderColor:cssVar("--d4"),borderWidth:2,pointRadius:0,tension:.15},
-    {label:"WTI원유",data:norm("wti"),borderColor:cssVar("--d3"),borderWidth:2,pointRadius:0,tension:.15}]},
-    options:{responsive:true,maintainAspectRatio:false,interaction:{mode:"index",intersect:false},plugins:{legend:{position:"top",labels:{boxWidth:14,usePointStyle:true},onClick:null}},
-      scales:{y:{grid:{color:gridClr()},title:{display:true,text:"시작=100"}},x:{grid:{display:false},ticks:{maxTicksLimit:12}}}}});
+    c("USD/KRW",isNum(fx.usdkrw)?nfKRW.format(fx.usdkrw)+"원":"—",fx.date||"")+
+    c("S&P 500",isNum(ix.sp)?nfUSD.format(ix.sp):"—",ix.date||"")+
+    c("NASDAQ",isNum(ix.nasdaq)?nfUSD.format(ix.nasdaq):"—",ix.date||"")+
+    c("다우존스",isNum(ix.dow)?nfUSD.format(ix.dow):"—",ix.date||"");
+  const fgBd=isNum(fgv.score)?fgBand(Math.round(fgv.score)):null;
+  cards2El.innerHTML=
+    c("미국채 10년",isNum(id.us10y)?id.us10y.toFixed(2)+"%":"—",id.date||"")+
+    c("금 (USD/oz)",isNum(id.gold)?"$"+nfKRW.format(id.gold):"—",id.date||"")+
+    c("WTI 원유",isNum(id.wti)?"$"+id.wti.toFixed(2):"—",id.date||"")+
+    (fgBd?`<div class="kpi"><div class="kpi__label">Fear &amp; Greed</div><div class="kpi__val tnum" style="font-size:1.5rem;color:${fgBd[1]}">${Math.round(fgv.score)} <span style="font-size:.9rem">${fgBd[0]}</span></div><div class="kpi__sub dim">${fgv.date||""}</div></div>`
+          :c("Fear & Greed","—",""));
+  $("#market-note").textContent="그날 값만 보여줍니다(누적 없음). 흐름을 쌓아 보는 건 아래 기준금리 하나입니다.";
+  // 기준금리 — 유일한 누적 지표
+  const pr=M.policyRate,rc=$("#rate-cards");
+  if(!pr||!pr.current){rc.innerHTML=`<div class="empty" style="grid-column:1/-1">기준금리 데이터 없음</div>`;$("#rate-note").textContent="";return;}
+  const cur=pr.current,hist=(pr.history||[]).filter(h=>isNum(h.target_to));
+  const first=hist.length?hist[0]:null,chg=(first&&isNum(cur.target_to))?cur.target_to-first.target_to:null;
+  rc.innerHTML=
+    c("현재 목표범위",(isNum(cur.target_from)&&isNum(cur.target_to))?`${cur.target_from.toFixed(2)}~${cur.target_to.toFixed(2)}%`:"—",cur.date||"")+
+    c("실효금리 EFFR",isNum(cur.effr)?cur.effr.toFixed(2)+"%":"—","실제 거래 금리")+
+    `<div class="kpi"><div class="kpi__label">기간 변동</div><div class="kpi__val tnum ${signClass(chg)}" style="font-size:1.5rem">${isNum(chg)?(chg>=0?"+":"−")+Math.abs(chg).toFixed(2)+"%p":"—"}</div><div class="kpi__sub dim">${first?first.date+" 대비":""}</div></div>`+
+    c("기록",hist.length?hist.length+"개월":"—",first?`${first.date.slice(0,7)} ~ ${cur.date.slice(0,7)}`:"");
+  CHARTS.rate=new Chart($("#c-rate"),{type:"line",data:{labels:hist.map(h=>h.date.slice(0,7)),datasets:[
+    {label:"목표 상단",data:hist.map(h=>h.target_to),borderColor:cssVar("--d1"),backgroundColor:hex2rgba(cssVar("--d1"),.10),fill:"+1",borderWidth:2,pointRadius:0,stepped:true},
+    {label:"목표 하단",data:hist.map(h=>h.target_from),borderColor:cssVar("--d1"),borderWidth:1.4,borderDash:[4,3],pointRadius:0,stepped:true},
+    {label:"EFFR(실효)",data:hist.map(h=>h.effr),borderColor:cssVar("--d3"),borderWidth:2,pointRadius:0,tension:.1}]},
+    options:{responsive:true,maintainAspectRatio:false,interaction:{mode:"index",intersect:false},
+      plugins:{legend:{position:"top",labels:{boxWidth:14,usePointStyle:true},onClick:null},tooltip:{callbacks:{label:x=>`${x.dataset.label} ${isNum(x.raw)?x.raw.toFixed(2)+"%":"—"}`}}},
+      scales:{y:{grid:{color:gridClr()},ticks:{callback:v=>v+"%"}},x:{grid:{display:false},ticks:{maxTicksLimit:12}}}}});
+  $("#rate-note").textContent="연준 목표범위(계단식)와 실효금리. 금리 방향은 채권·성장주 밸류에이션에 직접 영향을 줍니다.";
 }
 /* 만다라트 (개인 마음가짐 · localStorage) */
 const MANDALA_KEY="dash_mandala_v1";
@@ -925,13 +968,17 @@ function renderCompose(){
 /* 리스크·심리 */
 function renderRisk(){
   chDefaults();const{months}=DATA;
-  // Fear & Greed 게이지: 실제 CNN 값(심리 시트) 우선, 없으면 벤치마크 기반 자체 근사치
-  const fgReal=DATA.fgReal,useReal=!!(fgReal&&isNum(fgReal.score));
+  // Fear & Greed: ①매일 갱신되는 시장 스냅샷 > ②원장 '심리' 시트 > ③벤치마크 기반 근사치
+  const fgSnap=(MARKET_DATA&&MARKET_DATA.fg&&isNum(MARKET_DATA.fg.score))?MARKET_DATA.fg:null;
+  const fgSheet=(DATA&&DATA.fgReal&&isNum(DATA.fgReal.score))?DATA.fgReal:null;
+  const fgSrc=fgSnap||fgSheet;
   let fg;
-  if(useReal){const s=Math.round(fgReal.score),bd=fgBand(s);fg={score:s,label:bd[0],color:bd[1],desc:bd[2]};}
-  else fg=fearGreed(DATA,STATE.bmKey);
-  $("#fg-sub").textContent=useReal?`실제 CNN Fear & Greed 지수 · 기준일 ${fgReal.date}`:"벤치마크 모멘텀·변동성 기반 자체 계산 · 참고용";
-  $("#fg-note").textContent=useReal?"CNN Business 공식 Fear & Greed 지수를 매일 자동수집(Naver 시세와 함께)해 반영합니다.":"※ 원장에 '심리' 시트(자동수집)가 있으면 실제 CNN 지수로 자동 교체됩니다.";
+  if(fgSrc){const s=Math.round(fgSrc.score),bd=fgBand(s);fg={score:s,label:bd[0],color:bd[1],desc:bd[2]};}
+  else fg=DATA?fearGreed(DATA,STATE.bmKey):null;
+  $("#fg-sub").textContent=fgSnap?`실제 CNN Fear & Greed 지수 · ${fgSnap.date} (매일 자동 갱신)`
+    :fgSheet?`실제 CNN Fear & Greed 지수 · 기준일 ${fgSheet.date} (원장 기준)`
+    :"벤치마크 모멘텀·변동성 기반 자체 계산 · 참고용";
+  $("#fg-note").textContent=fgSrc?"CNN Business 공식 Fear & Greed 지수입니다.":"※ 매일 자동수집본을 쓰면 실제 CNN 지수로 자동 교체됩니다.";
   destroy("gauge");
   if(fg){
     $("#fg-val").textContent=fg.score;$("#fg-val").style.color=fg.color;
@@ -1007,8 +1054,15 @@ function renderSim(){
 }
 
 /* ─── 탭 전환 ─── */
+// 원장(xlsx)이 있어야 의미 있는 탭들. 시장지표·만다라트·관리·개발기록은 원장 없이도 열람 가능.
+const DATA_TABS=["overview","perf","risk","sim"];
+function applyTabVisibility(){
+  const has=!!DATA;
+  $$("#tabnav .tab").forEach(b=>b.classList.toggle("hidden",!has&&DATA_TABS.includes(b.dataset.tab)));
+}
 function renderActive(){
   const t=STATE.tab;
+  if(!DATA&&DATA_TABS.includes(t))return;   // 원장 없으면 계산 탭은 그리지 않음
   if(t==="overview")renderOverview();
   else if(t==="perf")renderPerf();
   else if(t==="risk")renderRisk();
@@ -1034,6 +1088,7 @@ function renderBanners(w){const box=$("#banners");box.innerHTML="";const add=(c,
 function loadData(D){
   DATA=D;MODEL=computeModel(D);
   const last=D.months[D.months.length-1];
+  $("#brand-meta").innerHTML=`마지막 <b id="m-lastmonth">—</b> · 기록 <b id="m-nobs">—</b>년`;
   $("#m-lastmonth").textContent=last?fmtY(last):"—";$("#m-nobs").textContent=D.months.length;
   $("#data-status").textContent=`${last?fmtY(last):"—"} 기준 · ${D.months.length}년 · 종목 ${new Set(D.holdings.map(h=>h.ticker)).size}개`;
   if(D.goal){if(isNum(D.goal.g)){STATE.g=D.goal.g;$("#s-g").value=(D.goal.g*100).toFixed(1);}if(isNum(D.goal.pmt)){STATE.pmt=D.goal.pmt;$("#s-pmt").value=Math.round(D.goal.pmt/10000/10)*10;}}
@@ -1041,11 +1096,18 @@ function loadData(D){
   const ty=D.goal&&D.goal.targetYm?+D.goal.targetYm.slice(0,4):sy+10;
   STATE.simEndYear=Math.min(2060,Math.max(sy+15,ty+2));
   $("#s-endyr").min=sy+5;$("#s-endyr").max=2060;$("#s-endyr").value=STATE.simEndYear;
-  syncSim();fillQuotes();renderBanners(D.warn);
+  syncSim();fillQuotes();renderBanners(D.warn);applyTabVisibility();
   $("#dropscreen").classList.add("hidden");$("#app").classList.remove("hidden");
   switchTab(STATE.tab);
   if($("#optin").checked)saveCache("현재 파일");
   window.__DASH={DATA,MODEL,STATE,fearGreed:()=>fearGreed(DATA,STATE.bmKey),holdingStats:()=>holdingStats(DATA,STATE.basis)};
+}
+/* 원장 없이 '오늘의 시장'만 보기 — MARKET_DATA는 xlsx와 완전히 분리돼 있어 가능 */
+function enterMarketOnly(){
+  fillQuotes();applyTabVisibility();
+  $("#brand-meta").innerHTML=`시장 <b>${MARKET_DATA?MARKET_DATA.asOf:"—"}</b> · <span class="dim">원장 미로드 — ⟳로 불러오기</span>`;
+  $("#dropscreen").classList.add("hidden");$("#app").classList.remove("hidden");
+  switchTab("market");
 }
 function handleFile(file){$("#droperr").textContent="";const rd=new FileReader();
   rd.onload=e=>{try{const wb=XLSX.read(new Uint8Array(e.target.result),{type:"array"});const D=parseWorkbook(wb);
@@ -1112,6 +1174,17 @@ matchMedia("(prefers-color-scheme:dark)").addEventListener("change",()=>{if((doc
 
 /* ─── 시작 ─── */
 applyPref();syncSim();
+// 시장 스냅샷이 심어져 있으면 '원장 없이 보기' 입구를 노출
+(function initMarketEntry(){
+  if(!MARKET_DATA)return;
+  $("#market-entry").classList.remove("hidden");
+  const fg=MARKET_DATA.fg,pr=MARKET_DATA.policyRate&&MARKET_DATA.policyRate.current;
+  const bits=[`${MARKET_DATA.asOf} 기준`];
+  if(fg&&isNum(fg.score))bits.push(`F&G ${Math.round(fg.score)}`);
+  if(pr&&isNum(pr.target_to))bits.push(`기준금리 ${pr.target_from}~${pr.target_to}%`);
+  $("#market-entry-sub").textContent=bits.join(" · ");
+})();
+$("#market-only-btn").addEventListener("click",enterMarketOnly);
 (function initOptin(){const on=localStorage.getItem(OPT)==="1";$("#optin").checked=on;
   if(on){const raw=localStorage.getItem(CACHE);if(raw){try{const c=JSON.parse(raw);if(c&&c.data&&c.data.months){loadData(c.data);$("#optin-note").textContent="저장된 데이터 복원됨.";}}catch(e){}}}
 })();

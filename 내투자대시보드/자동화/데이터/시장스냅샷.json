@@ -1,0 +1,350 @@
+{
+ "asOf": "2026-07-25",
+ "fx": {
+  "date": "2026-07-25",
+  "usdkrw": 1463.1
+ },
+ "index": {
+  "date": "2026-07-24",
+  "sp": 7411.98,
+  "nasdaq": 24975.82,
+  "dow": 51947.25
+ },
+ "quotes": {
+  "VOO": {
+   "date": "2026-07-24",
+   "close": 679.14
+  },
+  "QQQ": {
+   "date": "2026-07-24",
+   "close": 684.23
+  },
+  "AAPL": {
+   "date": "2026-07-24",
+   "close": 333.02
+  },
+  "MSFT": {
+   "date": "2026-07-24",
+   "close": 381.7
+  },
+  "TLT": {
+   "date": "2026-07-24",
+   "close": 83.25
+  }
+ },
+ "indicators": {
+  "date": "2026-07-24",
+  "us10y": 4.681,
+  "gold": 4070.8,
+  "wti": 89.31
+ },
+ "policyRate": {
+  "current": {
+   "date": "2026-07-23",
+   "target_from": 3.5,
+   "target_to": 3.75,
+   "effr": 3.63
+  },
+  "history": [
+   {
+    "date": "2022-07-29",
+    "target_from": 2.25,
+    "target_to": 2.5,
+    "effr": 2.32
+   },
+   {
+    "date": "2022-08-31",
+    "target_from": 2.25,
+    "target_to": 2.5,
+    "effr": 2.33
+   },
+   {
+    "date": "2022-09-30",
+    "target_from": 3.0,
+    "target_to": 3.25,
+    "effr": 3.08
+   },
+   {
+    "date": "2022-10-31",
+    "target_from": 3.0,
+    "target_to": 3.25,
+    "effr": 3.08
+   },
+   {
+    "date": "2022-11-30",
+    "target_from": 3.75,
+    "target_to": 4.0,
+    "effr": 3.83
+   },
+   {
+    "date": "2022-12-30",
+    "target_from": 4.25,
+    "target_to": 4.5,
+    "effr": 4.33
+   },
+   {
+    "date": "2023-01-31",
+    "target_from": 4.25,
+    "target_to": 4.5,
+    "effr": 4.33
+   },
+   {
+    "date": "2023-02-28",
+    "target_from": 4.5,
+    "target_to": 4.75,
+    "effr": 4.57
+   },
+   {
+    "date": "2023-03-31",
+    "target_from": 4.75,
+    "target_to": 5.0,
+    "effr": 4.83
+   },
+   {
+    "date": "2023-04-28",
+    "target_from": 4.75,
+    "target_to": 5.0,
+    "effr": 4.83
+   },
+   {
+    "date": "2023-05-31",
+    "target_from": 5.0,
+    "target_to": 5.25,
+    "effr": 5.08
+   },
+   {
+    "date": "2023-06-30",
+    "target_from": 5.0,
+    "target_to": 5.25,
+    "effr": 5.08
+   },
+   {
+    "date": "2023-07-31",
+    "target_from": 5.25,
+    "target_to": 5.5,
+    "effr": 5.33
+   },
+   {
+    "date": "2023-08-31",
+    "target_from": 5.25,
+    "target_to": 5.5,
+    "effr": 5.33
+   },
+   {
+    "date": "2023-09-29",
+    "target_from": 5.25,
+    "target_to": 5.5,
+    "effr": 5.33
+   },
+   {
+    "date": "2023-10-31",
+    "target_from": 5.25,
+    "target_to": 5.5,
+    "effr": 5.33
+   },
+   {
+    "date": "2023-11-30",
+    "target_from": 5.25,
+    "target_to": 5.5,
+    "effr": 5.33
+   },
+   {
+    "date": "2023-12-29",
+    "target_from": 5.25,
+    "target_to": 5.5,
+    "effr": 5.33
+   },
+   {
+    "date": "2024-01-31",
+    "target_from": 5.25,
+    "target_to": 5.5,
+    "effr": 5.33
+   },
+   {
+    "date": "2024-02-29",
+    "target_from": 5.25,
+    "target_to": 5.5,
+    "effr": 5.33
+   },
+   {
+    "date": "2024-03-29",
+    "target_from": 5.25,
+    "target_to": 5.5,
+    "effr": 5.33
+   },
+   {
+    "date": "2024-04-30",
+    "target_from": 5.25,
+    "target_to": 5.5,
+    "effr": 5.33
+   },
+   {
+    "date": "2024-05-31",
+    "target_from": 5.25,
+    "target_to": 5.5,
+    "effr": 5.33
+   },
+   {
+    "date": "2024-06-28",
+    "target_from": 5.25,
+    "target_to": 5.5,
+    "effr": 5.33
+   },
+   {
+    "date": "2024-07-31",
+    "target_from": 5.25,
+    "target_to": 5.5,
+    "effr": 5.33
+   },
+   {
+    "date": "2024-08-30",
+    "target_from": 5.25,
+    "target_to": 5.5,
+    "effr": 5.33
+   },
+   {
+    "date": "2024-09-30",
+    "target_from": 4.75,
+    "target_to": 5.0,
+    "effr": 4.83
+   },
+   {
+    "date": "2024-10-31",
+    "target_from": 4.75,
+    "target_to": 5.0,
+    "effr": 4.83
+   },
+   {
+    "date": "2024-11-29",
+    "target_from": 4.5,
+    "target_to": 4.75,
+    "effr": 4.58
+   },
+   {
+    "date": "2024-12-31",
+    "target_from": 4.25,
+    "target_to": 4.5,
+    "effr": 4.33
+   },
+   {
+    "date": "2025-01-31",
+    "target_from": 4.25,
+    "target_to": 4.5,
+    "effr": 4.33
+   },
+   {
+    "date": "2025-02-28",
+    "target_from": 4.25,
+    "target_to": 4.5,
+    "effr": 4.33
+   },
+   {
+    "date": "2025-03-31",
+    "target_from": 4.25,
+    "target_to": 4.5,
+    "effr": 4.33
+   },
+   {
+    "date": "2025-04-30",
+    "target_from": 4.25,
+    "target_to": 4.5,
+    "effr": 4.33
+   },
+   {
+    "date": "2025-05-30",
+    "target_from": 4.25,
+    "target_to": 4.5,
+    "effr": 4.33
+   },
+   {
+    "date": "2025-06-30",
+    "target_from": 4.25,
+    "target_to": 4.5,
+    "effr": 4.33
+   },
+   {
+    "date": "2025-07-31",
+    "target_from": 4.25,
+    "target_to": 4.5,
+    "effr": 4.33
+   },
+   {
+    "date": "2025-08-29",
+    "target_from": 4.25,
+    "target_to": 4.5,
+    "effr": 4.33
+   },
+   {
+    "date": "2025-09-30",
+    "target_from": 4.0,
+    "target_to": 4.25,
+    "effr": 4.09
+   },
+   {
+    "date": "2025-10-31",
+    "target_from": 3.75,
+    "target_to": 4.0,
+    "effr": 3.86
+   },
+   {
+    "date": "2025-11-28",
+    "target_from": 3.75,
+    "target_to": 4.0,
+    "effr": 3.89
+   },
+   {
+    "date": "2025-12-31",
+    "target_from": 3.5,
+    "target_to": 3.75,
+    "effr": 3.64
+   },
+   {
+    "date": "2026-01-30",
+    "target_from": 3.5,
+    "target_to": 3.75,
+    "effr": 3.64
+   },
+   {
+    "date": "2026-02-27",
+    "target_from": 3.5,
+    "target_to": 3.75,
+    "effr": 3.64
+   },
+   {
+    "date": "2026-03-31",
+    "target_from": 3.5,
+    "target_to": 3.75,
+    "effr": 3.64
+   },
+   {
+    "date": "2026-04-30",
+    "target_from": 3.5,
+    "target_to": 3.75,
+    "effr": 3.64
+   },
+   {
+    "date": "2026-05-29",
+    "target_from": 3.5,
+    "target_to": 3.75,
+    "effr": 3.62
+   },
+   {
+    "date": "2026-06-30",
+    "target_from": 3.5,
+    "target_to": 3.75,
+    "effr": 3.63
+   },
+   {
+    "date": "2026-07-23",
+    "target_from": 3.5,
+    "target_to": 3.75,
+    "effr": 3.63
+   }
+  ]
+ },
+ "fg": {
+  "date": "2026-07-25",
+  "score": 39.4,
+  "rating": "fear"
+ }
+}

@@ -7,8 +7,13 @@
 
 ```
 [매일 12:00 UTC = 21:00 KST]  collect.py
-   환율(USD/KRW) · 벤치마크(S&P·NASDAQ·다우) · 종목시세 · 시장지표 · Fear&Greed
-        └─►  데이터/*.csv 에 누적 (같은 날짜는 덮어쓰기)
+   환율 · 지수(S&P·NASDAQ·다우) · 종목시세 · 시장지표 · Fear&Greed · 미국 기준금리
+        └─►  데이터/시장스냅샷.json  (그날 값 / 기준금리만 히스토리)
+                     │
+                     ▼
+                build_dashboard.py
+   스냅샷을 대시보드.html 에 심고 라이브러리 인라인 → 대시보드_오프라인.html
+   (개인 원장과 무관 — 원장 없이도 '오늘의 시장' 탭이 열립니다)
 
 [매년 초 / 필요 시]  build_ledger.py
    데이터/*.csv 의 월말 값 →  자동수집_원장.xlsx
@@ -39,6 +44,15 @@ Actions 탭에서 **Run workflow**로 즉시 실행도 가능합니다.
 | 종목 시세 | Naver 금융 (`stock/{티커}.O` 등) |
 | 시장지표 | Naver 금융 (미국채10년 `bond/US10YT=RR` · 국제금 `metals/GCcv1` · WTI `energy/CLcv1`) |
 | Fear & Greed | CNN Business (실제 지수, 실패 시 그날은 건너뜀) |
+| **미국 기준금리** | 뉴욕 연준 공식 API (`markets.newyorkfed.org` EFFR — 목표범위 + 실효금리) |
+
+## 시장 데이터는 원장과 분리돼 있습니다
+
+`대시보드.html` 안의 `MARKET_DATA` 블록에 그날 값이 **직접 심깁니다**. 그래서
+
+- 원장(xlsx)이 없어도 **'오늘의 시장' 탭**이 열립니다.
+- 원장은 1년에 한 번만 손대면 되고, 시장 화면은 **매일 최신**입니다.
+- 시장지표는 **그날 값만** 보여줍니다(누적 없음). 흐름을 쌓는 건 **미국 기준금리** 하나뿐입니다.
 
 > Yahoo가 rate-limit(429)으로 막혀 **Naver 금융 API로 교체**했습니다. Naver·CNN은 이 수집
 > 환경에서 실동작을 확인했습니다(환율·지수·종목·미국채/금/WTI·CNN F&G 모두 실값 수신).

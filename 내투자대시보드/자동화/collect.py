@@ -135,6 +135,44 @@ def cnn_fear_greed():
         return None
 
 
+def fed_policy_rate(years_back: int = 4):
+    """미국 기준금리 — 뉴욕 연준 공식 API.
+
+    유일하게 **히스토리를 쌓는** 지표입니다(나머지 시장지표는 당일 값만 씁니다).
+    반환: (최신 dict, 월별 히스토리 list) — 각 항목 {date, target_from, target_to, effr}
+    """
+    today = datetime.now(timezone.utc).date()
+    start = today.replace(year=today.year - years_back)
+    url = ("https://markets.newyorkfed.org/api/rates/unsecured/effr/search.json"
+           f"?startDate={start}&endDate={today}&type=rate")
+    try:
+        d = _get_json(url)
+        rows = d.get("refRates") or []
+    except Exception as exc:  # noqa: BLE001
+        print(f"  기준금리 실패(건너뜀): {exc}", file=sys.stderr)
+        return None, []
+    recs = []
+    for r in rows:
+        dt = r.get("effectiveDate")
+        if not dt:
+            continue
+        recs.append({
+            "date": dt,
+            "target_from": _price(r.get("targetRateFrom")),
+            "target_to": _price(r.get("targetRateTo")),
+            "effr": _price(r.get("percentRate")),
+        })
+    recs.sort(key=lambda x: x["date"])
+    if not recs:
+        return None, []
+    # 히스토리는 월말값으로 솎아냄(차트용, 가벼움)
+    by_month = {}
+    for r in recs:
+        by_month[r["date"][:7]] = r
+    hist = [by_month[k] for k in sorted(by_month)]
+    return recs[-1], hist
+
+
 def read_tickers() -> list[str]:
     out = []
     if os.path.exists(TICKERS):
@@ -176,10 +214,12 @@ def upsert_csv(path: str, header: list[str], key_idx, row: list):
 
 def main():
     print("== 일별 수집 시작 (Naver) ==")
+    snap = {"asOf": datetime.now(timezone.utc).strftime("%Y-%m-%d")}
     # 환율
     fx = fx_usdkrw()
     if fx:
         upsert_csv(os.path.join(DATA_DIR, "환율_일별.csv"), ["date", "usdkrw"], 0, [fx[0], fx[1]])
+        snap["fx"] = {"date": fx[0], "usdkrw": fx[1]}
         print(f"  환율 {fx[0]} USD/KRW={fx[1]}")
     else:
         print("  환율 실패", file=sys.stderr)
@@ -193,16 +233,21 @@ def main():
         d = (bm.get("sp") or next(iter(bm.values())))[0]
         upsert_csv(os.path.join(DATA_DIR, "벤치마크_일별.csv"), ["date", "sp", "nasdaq", "dow"], 0,
                    [d, bm.get("sp", ("", ""))[1], bm.get("nasdaq", ("", ""))[1], bm.get("dow", ("", ""))[1]])
+        snap["index"] = {"date": d, **{k: v[1] for k, v in bm.items()}}
         print(f"  벤치마크 {d} sp={bm.get('sp')} nasdaq={bm.get('nasdaq')} dow={bm.get('dow')}")
     # 종목 시세
+    quotes = {}
     for tk in read_tickers():
         r = stock_close(tk)
         if r:
             upsert_csv(os.path.join(DATA_DIR, "시세_일별.csv"), ["date", "ticker", "close"], [0, 1], [r[0], tk, r[1]])
+            quotes[tk] = {"date": r[0], "close": r[1]}
             print(f"  시세 {tk} {r[0]}={r[1]}")
         else:
             print(f"  시세 {tk} 실패(코드 확인)", file=sys.stderr)
         time.sleep(0.3)  # 예의상 간격
+    if quotes:
+        snap["quotes"] = quotes
     # 시장지표 (미국채10년·국제금·WTI)
     mk = {}
     for name, path in [("us10y", "/marketindex/bond/US10YT=RR"),
@@ -216,12 +261,28 @@ def main():
         d = next(iter(mk.values()))[0]
         upsert_csv(os.path.join(DATA_DIR, "시장지표_일별.csv"), ["date", "us10y", "gold", "wti"], 0,
                    [d, mk.get("us10y", ("", ""))[1], mk.get("gold", ("", ""))[1], mk.get("wti", ("", ""))[1]])
+        snap["indicators"] = {"date": d, **{k: v[1] for k, v in mk.items()}}
         print(f"  시장지표 {d} {mk}")
+    # 미국 기준금리 (유일하게 히스토리를 쌓는 지표)
+    latest, hist = fed_policy_rate()
+    if latest:
+        for h in hist:
+            upsert_csv(os.path.join(DATA_DIR, "기준금리_월별.csv"),
+                       ["date", "target_from", "target_to", "effr"], 0,
+                       [h["date"], h["target_from"], h["target_to"], h["effr"]])
+        snap["policyRate"] = {"current": latest, "history": hist}
+        print(f"  기준금리 {latest['date']} 목표 {latest['target_from']}~{latest['target_to']}% · EFFR {latest['effr']}% (히스토리 {len(hist)}개월)")
     # Fear & Greed (실제 CNN 지수)
     fg = cnn_fear_greed()
     if fg:
         upsert_csv(os.path.join(DATA_DIR, "fear_greed_일별.csv"), ["date", "score", "rating"], 0, list(fg))
+        snap["fg"] = {"date": fg[0], "score": fg[1], "rating": fg[2]}
         print(f"  Fear&Greed {fg[0]} score={fg[1]} ({fg[2]})")
+    # 당일 스냅샷 저장 — build_dashboard.py 가 이 값을 HTML에 심습니다
+    os.makedirs(DATA_DIR, exist_ok=True)
+    with open(os.path.join(DATA_DIR, "시장스냅샷.json"), "w", encoding="utf-8") as f:
+        json.dump(snap, f, ensure_ascii=False, indent=1)
+    print(f"  스냅샷 저장: 데이터/시장스냅샷.json (asOf {snap['asOf']})")
     print("== 완료 ==")
 
 
