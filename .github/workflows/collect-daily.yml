@@ -1,7 +1,11 @@
 name: 일별 공개데이터 수집
 
-# 매 거래일(월~금) 미국장 마감 후 공개 데이터(환율·벤치마크·종목시세·Fear&Greed)를
-# 모아 커밋합니다. 개인 데이터는 다루지 않습니다.
+# ⚠️ 백업 경로입니다. 평소에는 Claude 루틴이 매일 21:00 KST 에 같은 일을 하고,
+#    완성된 대시보드를 채팅으로 전달합니다. 이 워크플로는 그게 멈췄을 때를 위한 예비용
+#    (Actions를 켜면 동작합니다).
+#
+# 공개 데이터만 수집합니다 — 환율·지수·종목시세·시장지표·Fear&Greed·미국 기준금리.
+# 개인 데이터(투자원장)는 다루지 않습니다.
 on:
   schedule:
     - cron: "0 12 * * *"     # UTC 12:00 = 21:00 KST · 매일
@@ -24,14 +28,16 @@ jobs:
           python-version: "3.11"
       - name: 수집 실행
         run: python3 "내투자대시보드/자동화/collect.py"
+      - name: 대시보드 빌드 (그날 시장 데이터 심기)
+        run: python3 "내투자대시보드/자동화/build_dashboard.py"
       - name: 변경분 커밋
         run: |
           git config user.name  "github-actions[bot]"
           git config user.email "github-actions[bot]@users.noreply.github.com"
-          git add "내투자대시보드/자동화/데이터"
+          git add "내투자대시보드/자동화/데이터" "내투자대시보드/대시보드_오프라인.html"
           if git diff --cached --quiet; then
             echo "변경 없음 — 커밋 생략"
           else
-            git commit -m "chore(auto): 일별 공개데이터 수집 $(date -u +%Y-%m-%d)"
+            git commit -m "chore(auto): 시장데이터 갱신 $(date -u +%Y-%m-%d)"
             git push
           fi

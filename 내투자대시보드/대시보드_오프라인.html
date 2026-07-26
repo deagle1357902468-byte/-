@@ -476,10 +476,12 @@ input[type=range]{width:100%;accent-color:var(--accent);height:4px}
         <div class="card pad">
           <div class="blocktitle"><div><h3>로드맵</h3></div></div>
           <div class="tl">
-            <div class="tl__i plan"><h4>일별/월별 자동수집 파이프라인<span class="tag">스크립트 준비됨</span></h4><ul><li>환율·벤치마크·종목시세·Fear&amp;Greed를 매 거래일 GitHub Actions로 수집(<code>자동화/</code>)</li><li>매년 초 보유(티커+수량)×연말가로 원장 자동 조립</li><li>남은 일: Actions 활성화 + tickers.txt에 실제 보유 입력</li></ul></div>
-            <div class="tl__i done"><h4>실제 Fear &amp; Greed 매일 연동<span class="tag">완료</span></h4><ul><li>참고용 자체계산 → 공식 CNN 지수 값(일별)으로 교체(원장 '심리' 시트)</li></ul></div>
-            <div class="tl__i plan"><h4>종목별 히스토리 정밀화<span class="tag">예정</span></h4><ul><li>일별 시세 누적 → 종목 수익률·기여도 정확도↑</li></ul></div>
-            <div class="tl__i plan"><h4>자동 전달<span class="tag">검토</span></h4><ul><li>완성 파일을 회사에서 받는 경로(채팅·이메일·클라우드)로</li></ul></div>
+            <div class="tl__i done"><h4>일별 자동수집 파이프라인<span class="tag">완료</span></h4><ul><li>GitHub Actions 대신 <b>Claude 루틴</b>으로 해결 — 매일 21시(KST) 서버에서 자동 실행</li><li>Naver 금융(환율·지수·종목시세·미국채/금/WTI) + 뉴욕 연준(기준금리) + CNN(F&amp;G)</li><li>Yahoo가 429로 막혀 Naver로 교체 · Actions 워크플로는 백업으로만 남겨둠</li></ul></div>
+            <div class="tl__i done"><h4>실제 Fear &amp; Greed 매일 연동<span class="tag">완료</span></h4><ul><li>참고용 자체계산 → <b>공식 CNN 지수</b>로 교체. 원장이 아니라 <b>HTML에 매일 직접</b> 심김</li></ul></div>
+            <div class="tl__i done"><h4>자동 전달<span class="tag">완료</span></h4><ul><li>매일 21시에 <b>그날 시장이 반영된 HTML을 채팅으로 자동 전달</b> — 회사 PC에선 받아서 열기만</li></ul></div>
+            <div class="tl__i done"><h4>원장 최소화<span class="tag">완료</span></h4><ul><li>9시트 약 800줄 → <b>6시트 약 120줄</b>. 직접 채우는 건 <b>연별스냅샷·목표</b> 둘뿐</li></ul></div>
+            <div class="tl__i plan"><h4>종목별 히스토리 정밀화<span class="tag">제외</span></h4><ul><li>연 단위로 충분하다고 판단해 접음 — 필요해지면 일별 시세 누적으로 되살릴 수 있음</li></ul></div>
+            <div class="tl__i plan"><h4>남은 일 (딱 하나)<span class="tag">사용자</span></h4><ul><li><code>자동화/tickers.txt</code> 가 아직 <b>예시 종목</b>(VOO·QQQ·AAPL·MSFT·TLT)입니다 — 실제 보유로 바꾸면 종목 시세·평가액이 내 것으로 채워집니다</li></ul></div>
           </div>
         </div>
       </div>
