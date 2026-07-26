@@ -343,7 +343,7 @@ input[type=range]{width:100%;accent-color:var(--accent);height:4px}
           <div style="overflow-x:auto"><table class="table" id="t-class"></table></div>
         </div>
         <div id="holdings-wrap" class="hidden">
-          <div class="blocktitle"><div><h3 style="font-size:.95rem">종목별</h3><div class="sub">월말보유 기준 · 수익률은 시세(가격) 기준</div></div></div>
+          <div class="blocktitle"><div><h3 style="font-size:.95rem">종목별</h3><div class="sub">연말보유 기준 · 수익률은 시세(가격) 기준</div></div></div>
           <div class="cols">
             <div><div class="chartbox h-mid"><canvas id="c-donut-hold"></canvas></div></div>
             <div style="overflow-x:auto"><table class="table" id="t-hold"></table></div>
@@ -462,7 +462,8 @@ input[type=range]{width:100%;accent-color:var(--accent);height:4px}
         <div class="card pad">
           <div class="blocktitle"><div><h3>변경 이력</h3></div></div>
           <div class="tl">
-            <div class="tl__i done"><h4>v8 — 시장 데이터를 원장에서 분리 (매일 갱신)<span class="tag">현재</span></h4><ul><li>시장 스냅샷을 <b>HTML 안에 직접 내장</b> — 원장 파일과 무관하게 매일 그날 값으로 갱신</li><li>시장지표는 <b>그날 값만</b>(누적 제거), 누적은 <b>미국 기준금리</b>(연준 목표범위·EFFR, 뉴욕 연준 API) 하나만</li><li>원장 없이 '오늘의 시장'만 열람 가능 · F&amp;G도 매일 최신값 우선</li></ul></div>
+            <div class="tl__i done"><h4>v9 — 원장 간소화 (9시트 → 6시트)<span class="tag">현재</span></h4><ul><li>시장 데이터가 HTML로 빠진 만큼 원장에서 <b>시장지표·심리 시트 제거</b></li><li>월별 <code>환율</code>+<code>벤치마크</code>(168줄) → <b><code>연말시장</code> 한 장</b>(연 1줄)</li><li><code>월말보유</code>→<code>연말보유</code>, 배당도 연 단위 → 약 800줄에서 <b>약 120줄</b>로</li><li>직접 채우는 건 <b>연별스냅샷·목표</b> 둘뿐. 옛 월별 원장도 그대로 읽힙니다(폴백)</li></ul></div>
+            <div class="tl__i done"><h4>v8 — 시장 데이터를 원장에서 분리 (매일 갱신)<span class="tag">완료</span></h4><ul><li>시장 스냅샷을 <b>HTML 안에 직접 내장</b> — 원장 파일과 무관하게 매일 그날 값으로 갱신</li><li>시장지표는 <b>그날 값만</b>(누적 제거), 누적은 <b>미국 기준금리</b>(연준 목표범위·EFFR, 뉴욕 연준 API) 하나만</li><li>원장 없이 '오늘의 시장'만 열람 가능 · F&amp;G도 매일 최신값 우선</li></ul></div>
             <div class="tl__i done"><h4>v7 — 실데이터 연동 (Naver 시세 · 실제 CNN F&amp;G)<span class="tag">완료</span></h4><ul><li>환율·지수·시세·시장지표를 <b>Naver 금융 API</b>로 수집(Yahoo 429 대체) — 이 환경에서 실동작 확인</li><li>시장 심리를 <b>실제 CNN Fear &amp; Greed 지수</b>로 연결(원장 '심리' 시트), 없으면 자체 근사치로 폴백</li><li>일별 공개데이터 수집 매일 21:00 KST</li></ul></div>
             <div class="tl__i done"><h4>v6 — 월별 → 연별 전환<span class="tag">완료</span></h4><ul><li>개인 성과 입력을 <b>연 1회</b>로 축소(연별스냅샷): 수익률·TWR·XIRR·기여·낙폭 모두 연 단위</li><li>연율화·표본 기준(≥3년), 라벨·워터폴·배당·캐러셀 전부 연 단위로</li><li>환율·벤치마크·시장지표·Fear&amp;Greed는 <b>일별/월별 그대로</b>(세밀 유지) — 심리 게이지는 월별 벤치마크로 계산</li><li>일별 공개데이터 자동수집 시각 오후 9시(KST)</li></ul></div>
             <div class="tl__i done"><h4>v5 — 배당 · 리포트 · 성장곡선 슬라이드<span class="tag">완료</span></h4><ul><li>배당 트래킹(수령액·배당수익률), 리포트 저장(인쇄/PDF)</li><li>요약 성장곡선 분리 + 하단 캐러셀(VOO비교·연도별손익·누적손익)</li><li>워터폴 커넥터·라벨로 0부터 명확히, 복리 예측 2060년까지·기본 목표 1조</li></ul></div>
@@ -560,10 +561,29 @@ function quantile(arr,p){const x=arr.filter(isNum).slice().sort((a,b)=>a-b);cons
 function rowsFrom(ws){return XLSX.utils.sheet_to_json(ws,{header:1,raw:true,defval:null,blankrows:true}).slice(4);}
 function parseWorkbook(wb){
   const warn={examples:[],badClass:[],missingFx:[]};
-  for(const s of ["연별스냅샷","환율","벤치마크","목표"]) if(!wb.Sheets[s]) throw new Error(`시트 '${s}' 를 찾을 수 없습니다. SPEC §2 원장 양식(연별)인지 확인하세요.`);
-  // 환율: 월별 원본(fxM) + 연말 샘플(fxY) — 개인 성과는 연말 환율로 환산
-  const fxM={}; for(const r of rowsFrom(wb.Sheets["환율"])){const ym=toYM(r[0]);if(!ym)continue;if(isNum(r[1]))fxM[ym]=r[1];}
-  const fxY={},fxYm={}; for(const ym in fxM){const y=ym.slice(0,4);if(!fxYm[y]||ym>fxYm[y]){fxY[y]=fxM[ym];fxYm[y]=ym;}}
+  const num=v=>{if(v==null||v==="")return null;const n=Number(v);return isFinite(n)?n:null;};
+  for(const s of ["연별스냅샷","목표"]) if(!wb.Sheets[s]) throw new Error(`시트 '${s}' 를 찾을 수 없습니다. SPEC §2 원장 양식(연별)인지 확인하세요.`);
+  if(!wb.Sheets["연말시장"]&&!wb.Sheets["환율"]) throw new Error("시트 '연말시장' 을 찾을 수 없습니다. (연도·USD/KRW·S&P500·NASDAQ·다우 한 줄씩)");
+  /* 시장 기준값 — '연말시장'(연 1줄) 우선, 없으면 옛 '환율'+'벤치마크'(월별) 폴백.
+     fxM/bmM 은 "키가 연(YYYY)일 수도, 월(YYYY-MM)일 수도" 있으며 rateAt()이 흡수합니다. */
+  const fxM={},fxY={},bmM={},bmY={},bmMonths=[];
+  if(wb.Sheets["연말시장"]){
+    for(const r of rowsFrom(wb.Sheets["연말시장"])){
+      const y=toY(r[0]);if(!y)continue;
+      const fx=num(r[1]);if(fx!=null)fxY[y]=fx;
+      const sp=num(r[2]),nq=num(r[3]),dj=num(r[4]);
+      if(sp!=null||nq!=null||dj!=null)bmY[y]={sp,nq,dj};
+    }
+    Object.assign(fxM,fxY);Object.assign(bmM,bmY);bmMonths.push(...Object.keys(bmY).sort());
+  }else{
+    for(const r of rowsFrom(wb.Sheets["환율"])){const ym=toYM(r[0]);if(!ym)continue;const v=num(r[1]);if(v!=null)fxM[ym]=v;}
+    const fxYm={};for(const ym in fxM){const y=ym.slice(0,4);if(!fxYm[y]||ym>fxYm[y]){fxY[y]=fxM[ym];fxYm[y]=ym;}}
+    if(wb.Sheets["벤치마크"]){
+      for(const r of rowsFrom(wb.Sheets["벤치마크"])){const ym=toYM(r[0]);if(!ym)continue;bmM[ym]={sp:num(r[1]),nq:num(r[2]),dj:num(r[3])};}
+      bmMonths.push(...Object.keys(bmM).sort());
+      const bmYm={};for(const ym of bmMonths){const y=ym.slice(0,4);if(!bmYm[y]||ym>bmYm[y]){bmY[y]=bmM[ym];bmYm[y]=ym;}}
+    }
+  }
   // 연별 스냅샷 (자산군별 연말 평가액 + 그해 순입금)
   const snap={};
   for(const r of rowsFrom(wb.Sheets["연별스냅샷"])){
@@ -575,28 +595,19 @@ function parseWorkbook(wb){
     if(!ASSET_CLASSES.includes(cls))warn.badClass.push(`${y} · "${cls}"`);
     (snap[y]=snap[y]||[]).push({ym:y,cls,cur:cur==="USD"?"USD":"KRW",ev,cf:isNum(cf)?cf:0,note});
   }
-  // 벤치마크: 월별 원본(bmM·심리게이지용) + 연말 샘플(bmY·비교용)
-  const bmM={},bmMonths=[]; for(const r of rowsFrom(wb.Sheets["벤치마크"])){const ym=toYM(r[0]);if(!ym)continue;bmM[ym]={sp:Number(r[1]),nq:Number(r[2]),dj:Number(r[3])};}
-  for(const ym of Object.keys(bmM).sort())bmMonths.push(ym);
-  const bmY={},bmYm={}; for(const ym of bmMonths){const y=ym.slice(0,4);if(!bmYm[y]||ym>bmYm[y]){bmY[y]=bmM[ym];bmYm[y]=ym;}}
-  // 월말보유 (선택·월별 유지: 종목 현재비중·가격수익률용)
-  const holdings=[];
-  if(wb.Sheets["월말보유"])for(const r of rowsFrom(wb.Sheets["월말보유"])){
-    const ym=toYM(r[0]);if(!ym)continue;const val=Number(r[5]),qty=Number(r[3]),px=Number(r[4]);
-    const v=isNum(val)?val:(isNum(qty)&&isNum(px)?qty*px:null);if(!isNum(v))continue;
-    holdings.push({ym,ticker:(r[1]??"").toString(),name:(r[2]??"").toString(),qty,px,val:v,cls:(r[6]??"").toString().trim()});
+  // 보유 (선택) — '연말보유'(연 1줄) 우선, 옛 '월말보유'도 그대로 읽힘
+  const holdings=[],holdSheet=wb.Sheets["연말보유"]||wb.Sheets["월말보유"];
+  if(holdSheet)for(const r of rowsFrom(holdSheet)){
+    const p=toYM(r[0])||toY(r[0]);if(!p)continue;const val=num(r[5]),qty=num(r[3]),px=num(r[4]);
+    const v=(val!=null)?val:((qty!=null&&px!=null)?qty*px:null);if(v==null)continue;
+    holdings.push({ym:p,ticker:(r[1]??"").toString(),name:(r[2]??"").toString(),qty,px,val:v,cls:(r[6]??"").toString().trim()});
   }
   let goal=null;
   for(const r of rowsFrom(wb.Sheets["목표"])){if(!r[0])continue;goal={name:r[0].toString(),target:Number(r[1]),targetYm:toYM(r[2]),pmt:Number(r[3]),g:Number(r[4]),note:(r[5]??"").toString()};break;}
-  // 시장지표 (선택·일별/월별 유지): 미국채10년(%)·금(USD)·WTI(USD)
-  const market=[];
-  if(wb.Sheets["시장지표"])for(const r of rowsFrom(wb.Sheets["시장지표"])){const ym=toYM(r[0]);if(!ym)continue;
-    market.push({ym,us10y:Number(r[1]),gold:Number(r[2]),wti:Number(r[3])});}
-  market.sort((a,b)=>a.ym.localeCompare(b.ym));
-  // 배당 (선택): 기준월·티커·배당금(USD) — 표시는 연 단위 합산
+  // 배당 (선택): 기준연(또는 기준월)·티커·배당금(USD) — 표시는 연 단위 합산
   const dividends=[];
-  if(wb.Sheets["배당"])for(const r of rowsFrom(wb.Sheets["배당"])){const ym=toYM(r[0]);if(!ym)continue;const amt=Number(r[2]);if(!isNum(amt))continue;
-    dividends.push({ym,ticker:(r[1]??"").toString(),amt});}
+  if(wb.Sheets["배당"])for(const r of rowsFrom(wb.Sheets["배당"])){const p=toYM(r[0])||toY(r[0]);if(!p)continue;const amt=num(r[2]);if(amt==null)continue;
+    dividends.push({ym:p,ticker:(r[1]??"").toString(),amt});}
   // 심리 (선택): 실제 CNN Fear&Greed — 기준일·score·rating. 가장 최근 행을 사용
   let fgReal=null;
   if(wb.Sheets["심리"])for(const r of rowsFrom(wb.Sheets["심리"])){
@@ -604,11 +615,18 @@ function parseWorkbook(wb){
     if(!fgReal||d>fgReal.date)fgReal={date:d,score:sc,rating:(r[2]??"").toString()};}
   const years=[]; for(const y of [...new Set(Object.keys(snap))].sort()){if(fxY[y]!=null)years.push(y);else warn.missingFx.push(y);}
   // months=연도 토큰, fx=연말환율, bm=연말지수 → 기존 엔진 그대로 동작
-  return {months:years,fx:fxY,fxM,snap,bm:bmY,bmM,bmMonths,holdings,goal,market,dividends,fgReal,warn};
+  return {months:years,fx:fxY,fxM,snap,bm:bmY,bmM,bmMonths,holdings,goal,dividends,fgReal,warn};
 }
 
 /* ─── §3 계산 엔진 (v1 검증본 그대로) ─── */
 function conv(v,cur,basis,fx){if(!isNum(v))return null;if(basis==="KRW")return cur==="USD"?v*fx:v;else return cur==="KRW"?v/fx:v;}
+/* 보유·배당의 기간 키가 연("2025")이든 월("2025-12")이든 환율을 찾아줍니다. */
+function rateAt(D,period,basis){
+  if(basis!=="KRW")return 1;
+  if(isNum(D.fxM[period]))return D.fxM[period];
+  const y=String(period).slice(0,4);
+  return isNum(D.fx[y])?D.fx[y]:1;
+}
 function seriesFor(D,basis,filterCls){const{months,fx,snap}=D;const ev=[],cf=[];
   for(const ym of months){let e=0,c=0,any=false;for(const row of(snap[ym]||[])){if(filterCls&&!filterCls.includes(row.cls))continue;
     const ce=conv(row.ev,row.cur,basis,fx[ym]),cc=conv(row.cf,row.cur,basis,fx[ym]);if(isNum(ce)){e+=ce;any=true;}if(isNum(cc))c+=cc;}
@@ -681,7 +699,7 @@ function fgBand(score){
 /* ─── 종목별(가격 기준) 집계 ─── */
 function holdingStats(D,basis){
   // 시트 종가·평가액은 USD. basis=KRW면 해당 월 환율로 환산(환율 변동이 수익률에도 반영됨).
-  const rate=ym=>basis==="KRW"?(isNum(D.fxM[ym])?D.fxM[ym]:1):1;   // 월말보유는 월별 환율
+  const rate=ym=>rateAt(D,ym,basis);   // 기간 키가 연이든 월이든 대응
   const byT={};
   for(const h of D.holdings){ (byT[h.ticker]=byT[h.ticker]||[]).push(h); }
   const yms=[...new Set(D.holdings.map(h=>h.ym))].sort();
@@ -823,7 +841,7 @@ function renderDividends(){
   const b=STATE.basis,card=$("#div-card"),divs=DATA.dividends||[];
   if(!divs.length){card.classList.add("hidden");return;}
   card.classList.remove("hidden");chDefaults();
-  const {months,fxM}=DATA;const cv=(ym,usd)=>b==="KRW"?(isNum(fxM[ym])?usd*fxM[ym]:usd):usd;   // 월별 환율로 환산
+  const {months}=DATA;const cv=(p,usd)=>usd*rateAt(DATA,p,b);   // 그 기간 환율로 환산
   const byY={};for(const d of divs){const y=d.ym.slice(0,4);byY[y]=(byY[y]||0)+cv(d.ym,d.amt);}  // 연 단위 합산
   const series=months.map(y=>byY[y]||0);
   const lastYr=months.length?months[months.length-1]:"",ttm=byY[lastYr]||0;
@@ -959,7 +977,7 @@ function renderCompose(){
     CHARTS.donutHold=new Chart($("#c-donut-hold"),{type:"doughnut",data:{labels:H.rows.map(r=>r.ticker||r.name),datasets:[{data:H.rows.map(r=>r.val),backgroundColor:H.rows.map((_,i)=>pal[i%pal.length]),borderColor:cssVar("--card"),borderWidth:2}]},
       options:{responsive:true,maintainAspectRatio:false,cutout:"60%",plugins:{legend:{position:"right",labels:{boxWidth:11,usePointStyle:true,font:{size:11}}},tooltip:{callbacks:{label:c=>`${c.label} ${money(c.raw,b)} (${(c.raw/H.totLast*100).toFixed(1)}%)`}}}},plugins:[center(moneyShort(H.totLast,b))]});
     const retTip=b==="KRW"?"보유 기간 시세(가격) 기준 누적수익률 — 원화 환산(환율 변동 포함). 매매 타이밍은 반영 안 됨.":"보유 기간 시세(가격, USD) 기준 누적수익률. 매매 타이밍은 반영 안 됨.";
-    let h2=`<thead><tr><th>종목</th><th>평가액</th><th>비중</th><th>수익률<span class="help" tabindex="0" style="margin-left:3px">?<span class="help__tip">${retTip}</span></span></th><th>12M 기여</th></tr></thead><tbody>`;
+    let h2=`<thead><tr><th>종목</th><th>평가액</th><th>비중</th><th>수익률<span class="help" tabindex="0" style="margin-left:3px">?<span class="help__tip">${retTip}</span></span></th><th>기여</th></tr></thead><tbody>`;
     H.rows.forEach((r,i)=>{h2+=`<tr><td><span class="sw" style="background:${pal[i%pal.length]}"></span>${r.ticker} <span class="dim" style="font-size:.8em">${(r.name||"").slice(0,14)}</span></td><td>${money(r.val,b)}</td><td>${r.weight==null?"—":(r.weight*100).toFixed(1)+"%"}</td><td class="${signClass(r.cumRet)}">${pct(r.cumRet)}</td><td class="${signClass(r.contrib)}">${pp(r.contrib)}</td></tr>`;});
     h2+=`</tbody>`;$("#t-hold").innerHTML=h2;
   } else $("#holdings-wrap").classList.add("hidden");

@@ -1,18 +1,23 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
-"""샘플 투자원장 생성기 (테스트/데모용) — 연별 버전.
+"""샘플 투자원장 생성기 (테스트/데모용) — 연별·간소화 버전.
 
-SPEC.md §8(개발 환경 규칙)에 따라, 실제 원장 없이 대시보드를 테스트할 수 있도록
-**더미 데이터**를 만들어 `투자원장_샘플.xlsx` 로 저장합니다.
+실제 원장 없이 대시보드를 테스트할 수 있도록 **더미 데이터**를 만들어
+`투자원장_샘플.xlsx` 로 저장합니다.
 
-구조(중요):
-  · 개인 성과는 **연별**입니다 — `연별스냅샷` 시트에 (연도·자산군·연말평가액·그해순입금).
-  · 공개 시장 데이터(환율·벤치마크·시장지표)와 월말보유·배당은 **월별 그대로** 둡니다.
-    → 대시보드가 연말값을 자동 샘플링하고, 심리게이지(Fear&Greed)는 월별 벤치마크로 계산합니다.
+## 원장이 얇아진 이유
 
-- 시트 헤더는 4행, 데이터는 5행부터(§2).
-- 자산군은 §2가 정한 6종만 사용합니다.
-- seed 고정이라 실행할 때마다 동일하게 재현됩니다. 전부 **가짜 값**이라 커밋해도 안전.
+시장 데이터(시장지표·Fear&Greed·기준금리)는 이제 **대시보드 HTML 안에 매일 자동으로
+심깁니다**. 그래서 원장에서 통째로 빠졌습니다. 남은 건 "시장이 대신 알 수 없는 것"뿐입니다.
+
+    연별스냅샷   자산군별 연말평가액 + 그해 순입금   ← 오직 이것만 직접 입력
+    연말시장     연말 USD/KRW·S&P·NASDAQ·다우      ← 자동수집이 채움 (연 1줄)
+    연말보유     티커·수량·종가·평가액              ← 자동수집이 채움 (선택)
+    배당         연도·티커·배당금                   ← 선택
+    목표         목표금액·목표일·월저축액           ← 한 번만
+
+시트 9장·약 800줄 → **6장·약 120줄**. 헤더는 4행, 데이터는 5행부터(§2).
+seed 고정이라 실행할 때마다 동일하게 재현되고, 전부 **가짜 값**이라 커밋해도 안전합니다.
 
 사용법:
     python3 샘플원장생성.py               # 투자원장_샘플.xlsx (7년, 2019~2025)
@@ -41,6 +46,15 @@ ASSETS = [
     ("달러현금",   "USD",      2500,   0.000, 0.003,       0),
 ]
 
+# (티커, 종목명, 시작수량, 시작가, 연평균수익률, 연변동성, 자산군, 배당수익률)
+HOLDINGS = [
+    ("VOO", "Vanguard S&P 500 ETF", 20, 250, 0.125, 0.165, "해외ETF", 0.013),
+    ("QQQ", "Invesco QQQ Trust", 10, 170, 0.150, 0.210, "해외ETF", 0.006),
+    ("AAPL", "Apple Inc.", 40, 55, 0.140, 0.230, "해외주식", 0.005),
+    ("MSFT", "Microsoft Corp.", 18, 110, 0.145, 0.200, "해외주식", 0.008),
+    ("TLT", "iShares 20+ Yr Treasury", 90, 130, -0.020, 0.130, "미국장기채", 0.038),
+]
+
 HEADER_FILL = PatternFill("solid", fgColor="1F2A44")
 HEADER_FONT = Font(color="FFFFFF", bold=True)
 WRAP = Alignment(wrap_text=True, vertical="center")
@@ -48,14 +62,6 @@ WRAP = Alignment(wrap_text=True, vertical="center")
 
 def year_list(n: int, last: int = LAST_YEAR) -> list[int]:
     return list(range(last - n + 1, last + 1))
-
-
-def months_span(years: list[int]) -> list[str]:
-    out = []
-    for y in years:
-        for m in range(1, 13):
-            out.append(f"{y}-{m:02d}")
-    return out
 
 
 def write_header(ws, title, subtitle, headers, widths):
@@ -74,26 +80,42 @@ def write_header(ws, title, subtitle, headers, widths):
 
 
 def build(years: list[int]):
-    months = months_span(years)
     wb = openpyxl.Workbook()
 
     # ── 안내 ────────────────────────────────────────────────────────────
     g = wb.active
     g.title = "안내"
-    g["A1"] = "투자 대시보드 원장 — 샘플(더미) 데이터 · 연별"
+    g["A1"] = "투자 대시보드 원장 — 샘플(더미) 데이터 · 연별 간소화"
     g["A1"].font = Font(bold=True, size=13)
-    g["A2"] = "테스트/데모용 가짜 데이터입니다. 개인 성과는 '연별스냅샷'에 연 1회만 채우면 됩니다."
+    g["A2"] = "직접 채우는 건 '연별스냅샷'과 '목표' 둘뿐입니다. 나머지는 자동수집이 채웁니다."
     g["A2"].font = Font(italic=True, color="666666")
-    g["A5"] = "자산군은 아래 6종만 사용합니다:"
-    for i, (name, *_ ) in enumerate(ASSETS, start=6):
-        g.cell(row=i, column=1, value=name)
-    g.column_dimensions["A"].width = 52
+    guide = [
+        "",
+        "[직접 입력]",
+        "  연별스냅샷 — 자산군별 연말평가액 + 그해 순입금 (연 1회)",
+        "  목표       — 목표금액·목표일·월저축액 (한 번만)",
+        "",
+        "[자동수집이 채움]",
+        "  연말시장   — 연말 USD/KRW·S&P500·NASDAQ·다우",
+        "  연말보유   — 티커·수량·종가·평가액",
+        "  배당       — 연도·티커·배당금",
+        "",
+        "[원장에 없음 — 대시보드 HTML에 매일 자동으로 심깁니다]",
+        "  시장지표(미국채10년·금·WTI) · Fear&Greed · 미국 기준금리",
+        "",
+        "자산군은 아래 6종만 사용합니다:",
+    ]
+    for i, line in enumerate(guide, start=4):
+        g.cell(row=i, column=1, value=line)
+    for i, (name, *_) in enumerate(ASSETS, start=4 + len(guide)):
+        g.cell(row=i, column=1, value="  · " + name)
+    g.column_dimensions["A"].width = 64
 
     # ── 연별스냅샷 (개인 성과 · 직접 입력) ──────────────────────────────
     ws = wb.create_sheet("연별스냅샷")
     write_header(
-        ws, "연별 스냅샷 — 자산군별로 연 1줄",
-        "기준연은 YYYY 텍스트. 금액은 해당 통화 기준 그대로. 연말평가액 + 그해 순입금.",
+        ws, "연별 스냅샷 — 자산군별로 연 1줄 (직접 입력)",
+        "기준연은 YYYY. 금액은 해당 통화 기준 그대로. 연말평가액 + 그해 순입금.",
         ["기준연\n(YYYY)", "자산군", "통화", "연말평가액", "당해순입금", "계좌(선택)", "비고"],
         [12, 12, 8, 15, 15, 12, 26],
     )
@@ -114,71 +136,52 @@ def build(years: list[int]):
                 ev = max(prev_ev[name] * (1 + ret) + cf, 0.0)
             prev_ev[name] = ev
             acct = "미래에셋" if cur == "USD" else "NH투자"
-            ev_v = round(ev, 2) if cur == "USD" else round(ev)
-            cf_v = round(cf, 2) if cur == "USD" else round(cf)
             ws.cell(row=r, column=1, value=str(year))   # 텍스트 "YYYY"
             ws.cell(row=r, column=2, value=name)
             ws.cell(row=r, column=3, value=cur)
-            ws.cell(row=r, column=4, value=ev_v)
-            ws.cell(row=r, column=5, value=cf_v)
+            ws.cell(row=r, column=4, value=round(ev, 2) if cur == "USD" else round(ev))
+            ws.cell(row=r, column=5, value=round(cf, 2) if cur == "USD" else round(cf))
             ws.cell(row=r, column=6, value=acct)
             ws.cell(row=r, column=7, value="첫 해라 순입금=평가액" if yi == 0 else "")
             r += 1
 
-    # ── 환율 (월별 · 자동수집 대상) ─────────────────────────────────────
-    fx_ws = wb.create_sheet("환율")
+    # ── 연말시장 (환율+지수 한 장 · 자동수집) ───────────────────────────
+    mk = wb.create_sheet("연말시장")
     write_header(
-        fx_ws, "월말 환율 (월별 · 자동수집)", "USD/KRW 월말 종가. 성과 환산은 연말값을 자동 사용.",
-        ["기준월\n(YYYY-MM)", "USD/KRW\n(월말 종가)"], [14, 14],
+        mk, "연말 시장 기준값 (자동수집)", "연 1줄. 개인 성과를 환산·비교하는 데만 씁니다.",
+        ["기준연\n(YYYY)", "USD/KRW\n(연말)", "S&P 500", "NASDAQ\n종합", "다우존스\n산업평균"],
+        [12, 14, 12, 12, 14],
     )
-    fx = 1150.0
-    for i, ym in enumerate(months):
-        fx = min(1480.0, max(1050.0, fx + random.gauss(3.0, 16)))
-        fx_ws.cell(row=5 + i, column=1, value=ym)
-        fx_ws.cell(row=5 + i, column=2, value=round(fx))
+    fx, sp, nq, dj = 1160.0, 3230.0, 8970.0, 28540.0
+    for i, year in enumerate(years):
+        if i > 0:
+            fx = min(1480.0, max(1050.0, fx * (1 + random.gauss(0.035, 0.07))))
+            sp *= 1 + random.gauss(0.115, 0.170)
+            nq *= 1 + random.gauss(0.140, 0.220)
+            dj *= 1 + random.gauss(0.090, 0.150)
+        mk.cell(row=5 + i, column=1, value=str(year))
+        mk.cell(row=5 + i, column=2, value=round(fx))
+        mk.cell(row=5 + i, column=3, value=round(sp, 2))
+        mk.cell(row=5 + i, column=4, value=round(nq, 2))
+        mk.cell(row=5 + i, column=5, value=round(dj, 2))
 
-    # ── 벤치마크 (월별 · 심리게이지+비교용) ─────────────────────────────
-    bm = wb.create_sheet("벤치마크")
+    # ── 연말보유 (자동수집 · 선택) ──────────────────────────────────────
+    hold = wb.create_sheet("연말보유")
     write_header(
-        bm, "월말 벤치마크 지수 (월별 · 자동수집)", "월 1줄, 숫자 3개. 심리게이지가 이 월별값을 씁니다.",
-        ["기준월\n(YYYY-MM)", "S&P 500", "NASDAQ\n종합", "다우존스\n산업평균"], [14, 12, 12, 14],
+        hold, "연말 종목별 보유 (자동수집 · 선택)", "종목 비중 도넛·가격수익률용. 연 1줄씩.",
+        ["기준연\n(YYYY)", "티커", "종목명", "수량", "종가\n(USD)", "평가액\n(USD)", "자산군"],
+        [12, 10, 26, 10, 12, 14, 12],
     )
-    sp, nq, dj = 2600.0, 7000.0, 24000.0
-    for i, ym in enumerate(months):
-        sp *= 1 + random.gauss(0.009, 0.040)
-        nq *= 1 + random.gauss(0.011, 0.050)
-        dj *= 1 + random.gauss(0.007, 0.035)
-        bm.cell(row=5 + i, column=1, value=ym)
-        bm.cell(row=5 + i, column=2, value=round(sp, 2))
-        bm.cell(row=5 + i, column=3, value=round(nq, 2))
-        bm.cell(row=5 + i, column=4, value=round(dj, 2))
-
-    # ── 월말보유 (월별 · 종목 비중/가격수익률용) ───────────────────────
-    hold = wb.create_sheet("월말보유")
-    write_header(
-        hold, "월말 종목별 보유 (월별 · 선택)", "종목 비중 도넛·가격수익률용. 자동수집이 채웁니다.",
-        ["기준월\n(YYYY-MM)", "티커", "종목명", "수량", "종가\n(USD)", "평가액\n(USD)", "자산군"],
-        [14, 10, 26, 10, 12, 14, 12],
-    )
-    # (티커, 종목명, 시작수량, 시작가, 월평균수익률, 월변동성, 자산군)
-    holdings_def = [
-        ("VOO", "Vanguard S&P 500 ETF", 20, 250, 0.010, 0.041, "해외ETF"),
-        ("QQQ", "Invesco QQQ Trust", 10, 170, 0.012, 0.053, "해외ETF"),
-        ("AAPL", "Apple Inc.", 40, 55, 0.011, 0.056, "해외주식"),
-        ("MSFT", "Microsoft Corp.", 18, 110, 0.012, 0.048, "해외주식"),
-        ("TLT", "iShares 20+ Yr Treasury", 90, 130, -0.002, 0.031, "미국장기채"),
-    ]
+    dv_rows = []          # 배당 시트에서 재사용
     hr = 5
-    for (tkr, nm, qty0, px0, mu, sig, cls) in holdings_def:
-        px = float(px0)
-        qty = qty0
-        for mi, ym in enumerate(months):
-            if mi > 0:
+    for (tkr, nm, qty0, px0, mu, sig, cls, dy) in HOLDINGS:
+        px, qty = float(px0), qty0
+        for yi, year in enumerate(years):
+            if yi > 0:
                 px = max(px * (1 + random.gauss(mu, sig)), 1.0)
-                if random.random() < 0.12:
-                    qty += random.randint(1, 3)
+                qty += random.randint(0, 6)      # 연중 추가 매수
             px_r = round(px, 2)
-            hold.cell(row=hr, column=1, value=ym)
+            hold.cell(row=hr, column=1, value=str(year))
             hold.cell(row=hr, column=2, value=tkr)
             hold.cell(row=hr, column=3, value=nm)
             hold.cell(row=hr, column=4, value=qty)
@@ -186,6 +189,19 @@ def build(years: list[int]):
             hold.cell(row=hr, column=6, value=round(px_r * qty, 2))
             hold.cell(row=hr, column=7, value=cls)
             hr += 1
+            if dy > 0:
+                dv_rows.append((year, tkr, round(px_r * qty * dy, 2)))
+
+    # ── 배당 (연 단위 · 선택) ───────────────────────────────────────────
+    dv = wb.create_sheet("배당")
+    write_header(
+        dv, "배당 수령 (연 단위 · 선택)", "연도·티커·그해 받은 배당금 합계(USD).",
+        ["기준연\n(YYYY)", "티커", "배당금\n(USD)", "비고"], [12, 10, 14, 18],
+    )
+    for i, (year, tkr, amt) in enumerate(sorted(dv_rows)):
+        dv.cell(row=5 + i, column=1, value=str(year))
+        dv.cell(row=5 + i, column=2, value=tkr)
+        dv.cell(row=5 + i, column=3, value=amt)
 
     # ── 목표 ────────────────────────────────────────────────────────────
     goal = wb.create_sheet("목표")
@@ -201,62 +217,6 @@ def build(years: list[int]):
     goal.cell(row=5, column=5, value=0.10)
     goal.cell(row=5, column=6, value="기본 목표 (샘플)")
 
-    # ── 배당 (월별 · 분기별 · 대시보드가 연 단위로 합산) ────────────────
-    dv = wb.create_sheet("배당")
-    write_header(
-        dv, "배당 수령 (월별 · 선택)", "종목별로 배당 받은 달에 한 줄. 대시보드가 연 단위로 합산합니다.",
-        ["기준월\n(YYYY-MM)", "티커", "배당금\n(USD)", "비고"], [14, 10, 14, 18],
-    )
-    dyield = {"VOO": 0.013, "QQQ": 0.006, "AAPL": 0.005, "MSFT": 0.008, "TLT": 0.038}
-    dr = 5
-    for (tkr, nm, qty0, px0, mu, sig, cls) in holdings_def:
-        y = dyield.get(tkr, 0.0)
-        if y <= 0:
-            continue
-        for mi, ym in enumerate(months):
-            if mi % 3 != 2:            # 분기마다
-                continue
-            amt = px0 * qty0 * (1 + 0.02 * mi / 3) * (y / 4)  # 대략 성장 반영
-            dv.cell(row=dr, column=1, value=ym)
-            dv.cell(row=dr, column=2, value=tkr)
-            dv.cell(row=dr, column=3, value=round(amt, 2))
-            dr += 1
-
-    # ── 시장지표 (월별 · 미국채10년·금·WTI) ────────────────────────────
-    mk = wb.create_sheet("시장지표")
-    write_header(
-        mk, "월말 시장지표 (월별 · 자동수집)", "미국채 10년 금리 · 금 · WTI 원유 월말 값.",
-        ["기준월\n(YYYY-MM)", "미국채10년\n(%)", "금\n(USD/oz)", "WTI\n(USD/bbl)"], [14, 12, 12, 12],
-    )
-    y10, gold, wti = 2.6, 1500.0, 60.0
-    for i, ym in enumerate(months):
-        y10 = min(6.0, max(0.5, y10 + random.gauss(0.01, 0.10)))
-        gold *= 1 + random.gauss(0.006, 0.03)
-        wti = min(130.0, max(20.0, wti * (1 + random.gauss(0.004, 0.07))))
-        mk.cell(row=5 + i, column=1, value=ym)
-        mk.cell(row=5 + i, column=2, value=round(y10, 2))
-        mk.cell(row=5 + i, column=3, value=round(gold))
-        mk.cell(row=5 + i, column=4, value=round(wti, 2))
-
-    # ── 심리 (월별 · CNN Fear & Greed 실값 자리) ────────────────────────
-    fg = wb.create_sheet("심리")
-    write_header(
-        fg, "CNN Fear & Greed (자동수집)", "기준일·score(0~100)·rating. 대시보드는 가장 최근 값을 사용.",
-        ["기준일\n(YYYY-MM-DD)", "score", "rating"], [16, 10, 14],
-    )
-
-    def rating_of(s):
-        return ("Extreme Fear" if s < 25 else "Fear" if s < 45 else
-                "Neutral" if s <= 55 else "Greed" if s <= 74 else "Extreme Greed")
-
-    score = 50.0
-    for i, ym in enumerate(months):
-        score = min(90.0, max(10.0, score + random.gauss(0, 12)))
-        s = round(score)
-        fg.cell(row=5 + i, column=1, value=f"{ym}-28")   # 대략 월말
-        fg.cell(row=5 + i, column=2, value=s)
-        fg.cell(row=5 + i, column=3, value=rating_of(s))
-
     return wb
 
 
@@ -266,7 +226,8 @@ def main():
     years = year_list(n)
     wb = build(years)
     wb.save(out)
-    print(f"생성 완료: {out}  (연별스냅샷 {years[0]}~{years[-1]}, {n}년 · 월별 보조데이터 {n*12}개월)")
+    rows = n * len(ASSETS) + n + n * len(HOLDINGS) + n * sum(1 for h in HOLDINGS if h[7] > 0) + 1
+    print(f"생성 완료: {out}  ({years[0]}~{years[-1]}, {n}년 · 시트 {len(wb.sheetnames)}장 · 데이터 약 {rows}줄)")
 
 
 if __name__ == "__main__":

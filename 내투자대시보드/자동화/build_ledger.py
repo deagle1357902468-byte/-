@@ -1,20 +1,20 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
-"""월별 원장 조립기 (자동화 파이프라인).
+"""연별 원장 조립기 (자동화 파이프라인) — 간소화 버전.
 
-`데이터/`에 누적된 일별 공개 데이터에서 **월말 값**을 뽑아, 대시보드가 읽는 원장 양식
-(§2)의 자동 채움 시트를 만들어 `자동수집_원장.xlsx`로 저장합니다.
+`데이터/`에 누적된 일별 공개 데이터에서 **연말 값**을 뽑아, 대시보드가 읽는 원장 양식의
+자동 채움 시트를 만들어 `자동수집_원장.xlsx`로 저장합니다.
 
 자동으로 채우는 것 (공개 데이터):
-  · 환율      : 월말 USD/KRW
-  · 벤치마크  : 월말 S&P500 / NASDAQ / 다우
-  · 월말보유  : tickers.txt의 (티커, 수량) × 월말 종가 → 평가액USD
+  · 연말시장  : 연말 USD/KRW · S&P500 · NASDAQ · 다우
+  · 연말보유  : tickers.txt의 (티커, 수량) × 연말 종가 → 평가액USD
 
 당신이 채우는 것 (개인 데이터, 연 1회):
   · 연별스냅샷: 자산군별 연말평가액 + 당해순입금 (+ MMF·RP·현금 잔고)
   · 목표      : 목표금액·목표일·월저축액
 
-즉 이 파일을 열어 '연별스냅샷'·'목표'만 채우면 원장이 완성됩니다.
+원장에 **없는 것**: 시장지표(미국채10년·금·WTI)·Fear&Greed·미국 기준금리.
+이것들은 `build_dashboard.py` 가 대시보드 HTML 안에 매일 직접 심습니다.
 """
 from __future__ import annotations
 
@@ -43,20 +43,17 @@ def read_csv(name):
         return list(csv.DictReader(f))
 
 
-def month_end_map(rows, valcols):
-    """{YYYY-MM: {col: value}} — 각 월의 마지막 날짜 값."""
+def year_end_map(rows, valcols):
+    """{YYYY: {col: value}} — 각 연도의 마지막 날짜 값."""
     best = {}
     for r in rows:
         d = r.get("date", "")
-        if len(d) < 7:
+        if len(d) < 4:
             continue
-        ym = d[:7]
-        if ym not in best or d > best[ym]["date"]:
-            best[ym] = r
-    out = {}
-    for ym, r in best.items():
-        out[ym] = {c: r.get(c) for c in valcols}
-    return out
+        y = d[:4]
+        if y not in best or d > best[y]["date"]:
+            best[y] = r
+    return {y: {c: r.get(c) for c in valcols} for y, r in best.items()}
 
 
 def read_tickers():
@@ -86,67 +83,75 @@ def header(ws, title, sub, cols, widths):
     ws.freeze_panes = "A5"
 
 
+def _num(v):
+    try:
+        return float(v)
+    except (TypeError, ValueError):
+        return None
+
+
 def main():
-    fx = month_end_map(read_csv("환율_일별.csv"), ["usdkrw"])
-    bm = month_end_map(read_csv("벤치마크_일별.csv"), ["sp", "nasdaq", "dow"])
-    # 시세는 (ticker별) 월말
+    fx = year_end_map(read_csv("환율_일별.csv"), ["usdkrw"])
+    bm = year_end_map(read_csv("벤치마크_일별.csv"), ["sp", "nasdaq", "dow"])
     px_rows = read_csv("시세_일별.csv")
     by_ticker = defaultdict(list)
     for r in px_rows:
         by_ticker[r.get("ticker", "")].append(r)
-    px_me = {t: month_end_map(rows, ["close"]) for t, rows in by_ticker.items()}
+    px_ye = {t: year_end_map(rows, ["close"]) for t, rows in by_ticker.items()}
     tickers = read_tickers()
 
     wb = openpyxl.Workbook()
     g = wb.active
     g.title = "안내"
-    g["A1"] = "자동수집 원장 (공개 데이터 자동 채움)"
+    g["A1"] = "자동수집 원장 (공개 데이터 자동 채움) · 연별"
     g["A1"].font = Font(bold=True, size=13)
-    g["A2"] = "'연별스냅샷'과 '목표'만 채우면 대시보드에 넣을 수 있습니다. (환율·벤치마크·월말보유·시장지표는 자동)"
-    g["A2"].font = Font(italic=True, color="666666")
-    g.column_dimensions["A"].width = 60
+    for i, line in enumerate([
+        "'연별스냅샷'과 '목표'만 채우면 대시보드에 넣을 수 있습니다.",
+        "",
+        "연말시장·연말보유는 자동으로 채워집니다.",
+        "시장지표·Fear&Greed·미국 기준금리는 원장에 없습니다 — 대시보드 HTML에 매일 자동으로 심깁니다.",
+    ], start=2):
+        c = g.cell(row=i, column=1, value=line)
+        if i == 2:
+            c.font = Font(italic=True, color="666666")
+    g.column_dimensions["A"].width = 78
 
     # 연별스냅샷 — 헤더만 (사용자 입력, 연 1회)
     ws = wb.create_sheet("연별스냅샷")
     header(ws, "연별 스냅샷 — 자산군별로 연 1줄 (직접 입력)",
-           "기준연(YYYY)·자산군·통화·연말평가액·당해순입금. 자산군 6종만. 연 1회만 채우면 됩니다.",
+           "기준연(YYYY)·자산군·통화·연말평가액·당해순입금. 자산군 6종만.",
            ["기준연\n(YYYY)", "자산군", "통화", "연말평가액", "당해순입금", "계좌(선택)", "비고"],
            [12, 12, 8, 15, 15, 12, 24])
 
-    # 환율 (자동)
-    fxs = wb.create_sheet("환율")
-    header(fxs, "월말 환율 (자동수집)", "USD/KRW 월말 종가.",
-           ["기준월\n(YYYY-MM)", "USD/KRW\n(월말 종가)"], [14, 14])
-    for i, ym in enumerate(sorted(fx)):
-        fxs.cell(row=5 + i, column=1, value=ym)
-        fxs.cell(row=5 + i, column=2, value=_num(fx[ym]["usdkrw"]))
+    # 연말시장 (자동) — 환율 + 지수를 한 장에
+    years = sorted(set(fx) | set(bm))
+    mk = wb.create_sheet("연말시장")
+    header(mk, "연말 시장 기준값 (자동수집)", "연 1줄. 개인 성과를 환산·비교하는 데만 씁니다.",
+           ["기준연\n(YYYY)", "USD/KRW\n(연말)", "S&P 500", "NASDAQ\n종합", "다우존스\n산업평균"],
+           [12, 14, 12, 12, 14])
+    for i, y in enumerate(years):
+        mk.cell(row=5 + i, column=1, value=y)
+        mk.cell(row=5 + i, column=2, value=_num((fx.get(y) or {}).get("usdkrw")))
+        mk.cell(row=5 + i, column=3, value=_num((bm.get(y) or {}).get("sp")))
+        mk.cell(row=5 + i, column=4, value=_num((bm.get(y) or {}).get("nasdaq")))
+        mk.cell(row=5 + i, column=5, value=_num((bm.get(y) or {}).get("dow")))
 
-    # 벤치마크 (자동)
-    bms = wb.create_sheet("벤치마크")
-    header(bms, "월말 벤치마크 (자동수집)", "월말 종가.",
-           ["기준월\n(YYYY-MM)", "S&P 500", "NASDAQ\n종합", "다우존스\n산업평균"], [14, 12, 12, 14])
-    for i, ym in enumerate(sorted(bm)):
-        bms.cell(row=5 + i, column=1, value=ym)
-        bms.cell(row=5 + i, column=2, value=_num(bm[ym]["sp"]))
-        bms.cell(row=5 + i, column=3, value=_num(bm[ym]["nasdaq"]))
-        bms.cell(row=5 + i, column=4, value=_num(bm[ym]["dow"]))
-
-    # 월말보유 (자동: 티커×수량×월말가)
-    hs = wb.create_sheet("월말보유")
-    header(hs, "월말 종목별 보유 (자동수집)", "tickers.txt의 수량 × 월말 종가.",
-           ["기준월\n(YYYY-MM)", "티커", "종목명", "수량", "종가\n(USD)", "평가액\n(USD)", "자산군"],
-           [14, 10, 22, 10, 12, 14, 12])
+    # 연말보유 (자동: 티커×수량×연말가)
+    hs = wb.create_sheet("연말보유")
+    header(hs, "연말 종목별 보유 (자동수집)", "tickers.txt의 수량 × 연말 종가.",
+           ["기준연\n(YYYY)", "티커", "종목명", "수량", "종가\n(USD)", "평가액\n(USD)", "자산군"],
+           [12, 10, 22, 10, 12, 14, 12])
     r = 5
-    all_months = sorted(set().union(*[set(px_me.get(t, {})) for t, _, _ in tickers]) if tickers else set())
-    for ym in all_months:
+    all_years = sorted(set().union(*[set(px_ye.get(t, {})) for t, _, _ in tickers]) if tickers else set())
+    for y in all_years:
         for tk, qty, cls in tickers:
-            m = px_me.get(tk, {}).get(ym)
+            m = px_ye.get(tk, {}).get(y)
             if not m:
                 continue
             px = _num(m["close"])
             if px is None:
                 continue
-            hs.cell(row=r, column=1, value=ym)
+            hs.cell(row=r, column=1, value=y)
             hs.cell(row=r, column=2, value=tk)
             hs.cell(row=r, column=3, value="")
             hs.cell(row=r, column=4, value=qty)
@@ -155,44 +160,19 @@ def main():
             hs.cell(row=r, column=7, value=cls)
             r += 1
 
+    # 배당 — 헤더만 (선택 입력)
+    dv = wb.create_sheet("배당")
+    header(dv, "배당 수령 (연 단위 · 선택)", "연도·티커·그해 받은 배당금 합계(USD).",
+           ["기준연\n(YYYY)", "티커", "배당금\n(USD)", "비고"], [12, 10, 14, 18])
+
     # 목표 — 헤더만
     gs = wb.create_sheet("목표")
     header(gs, "재무 목표 (직접 입력)", "목표금액·목표일·월저축액·가정수익률.",
            ["목표명", "목표금액\n(KRW)", "목표일\n(YYYY-MM)", "월 저축액\n(KRW)", "가정 연복리\n수익률", "비고"],
            [16, 16, 12, 14, 14, 20])
 
-    # 시장지표 (자동)
-    mkt = month_end_map(read_csv("시장지표_일별.csv"), ["us10y", "gold", "wti"])
-    if mkt:
-        mks = wb.create_sheet("시장지표")
-        header(mks, "월말 시장지표 (자동수집)", "미국채10년·금·WTI.",
-               ["기준월\n(YYYY-MM)", "미국채10년\n(%)", "금\n(USD/oz)", "WTI\n(USD/bbl)"], [14, 12, 12, 12])
-        for i, ym in enumerate(sorted(mkt)):
-            mks.cell(row=5 + i, column=1, value=ym)
-            mks.cell(row=5 + i, column=2, value=_num(mkt[ym]["us10y"]))
-            mks.cell(row=5 + i, column=3, value=_num(mkt[ym]["gold"]))
-            mks.cell(row=5 + i, column=4, value=_num(mkt[ym]["wti"]))
-
-    # 심리 (자동: 실제 CNN Fear&Greed 일별)
-    fgrows = read_csv("fear_greed_일별.csv")
-    if fgrows:
-        fgs = wb.create_sheet("심리")
-        header(fgs, "CNN Fear & Greed (자동수집)", "일별 score·rating. 대시보드는 최근 값을 사용.",
-               ["기준일\n(YYYY-MM-DD)", "score", "rating"], [16, 10, 14])
-        for i, r in enumerate(sorted(fgrows, key=lambda x: x.get("date", ""))):
-            fgs.cell(row=5 + i, column=1, value=r.get("date"))
-            fgs.cell(row=5 + i, column=2, value=_num(r.get("score")))
-            fgs.cell(row=5 + i, column=3, value=r.get("rating"))
-
     wb.save(OUT)
-    print(f"생성: {OUT}  (환율 {len(fx)}개월 · 벤치마크 {len(bm)}개월 · 종목 {len(tickers)}개)")
-
-
-def _num(v):
-    try:
-        return float(v)
-    except (TypeError, ValueError):
-        return None
+    print(f"생성: {OUT}  (연말시장 {len(years)}년 · 종목 {len(tickers)}개 · 시트 {len(wb.sheetnames)}장)")
 
 
 if __name__ == "__main__":
