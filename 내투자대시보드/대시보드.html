@@ -102,6 +102,15 @@ code{font-family:ui-monospace,SFMono-Regular,Menlo,monospace;font-size:.86em;bac
 .seg button.on{background:var(--card);color:var(--ink);box-shadow:var(--shadow)}
 .iconbtn{width:36px;height:36px;border-radius:10px;border:1px solid var(--line);background:var(--card);color:var(--ink);cursor:pointer;font-size:1rem}
 .iconbtn:hover{border-color:var(--accent)}
+.iconbtn:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
+/* 리포트 메뉴 */
+.report-menu{position:absolute;right:0;top:calc(100% + 8px);z-index:60;width:250px;background:var(--card);
+  border:1px solid var(--line);border-radius:12px;box-shadow:var(--shadow-lg);padding:6px;display:flex;flex-direction:column;gap:2px}
+.report-menu button{display:flex;flex-direction:column;align-items:flex-start;gap:2px;text-align:left;
+  border:0;background:transparent;color:var(--ink);padding:10px 12px;border-radius:8px;cursor:pointer;font-family:inherit}
+.report-menu button:hover{background:var(--accent-weak)}
+.report-menu b{font-size:.88rem;font-weight:750}
+.report-menu small{color:var(--muted);font-size:.75rem;font-weight:500}
 
 /* Tab nav */
 .tabs{position:sticky;top:63px;z-index:20;background:color-mix(in srgb,var(--bg) 82%,transparent);backdrop-filter:blur(10px);border-bottom:1px solid var(--line);overflow-x:auto}
@@ -250,6 +259,27 @@ input[type=range]{width:100%;accent-color:var(--accent);height:4px}
 .mandala .mc.bt{border-top:2px solid var(--axis)}
 .mandala .mc.bl{border-left:2px solid var(--axis)}
 @media(max-width:640px){.mandala .mc{font-size:.48rem;padding:2px;border-radius:4px}}
+/* 커맨드 팔레트 (⌘K / Ctrl+K) */
+#cmdk{position:fixed;inset:0;z-index:100;display:flex;align-items:flex-start;justify-content:center;
+  padding:12vh 16px 16px;background:rgba(8,11,18,.5);backdrop-filter:blur(3px)}
+#cmdk.hidden{display:none}
+.cmdk__box{width:min(560px,100%);background:var(--card);border:1px solid var(--line);border-radius:16px;
+  box-shadow:var(--shadow-lg);overflow:hidden;animation:cmdkIn .14s ease-out}
+@keyframes cmdkIn{from{transform:translateY(-8px)}to{transform:none}}
+.cmdk__in{width:100%;border:0;outline:0;background:transparent;color:var(--ink);font-family:inherit;
+  font-size:1.02rem;padding:17px 20px;border-bottom:1px solid var(--line)}
+.cmdk__in::placeholder{color:var(--muted)}
+.cmdk__list{max-height:min(52vh,420px);overflow:auto;padding:6px}
+.cmdk__i{display:flex;align-items:center;gap:12px;padding:10px 14px;border-radius:10px;cursor:pointer}
+.cmdk__i[aria-selected=true]{background:var(--accent-weak)}
+.cmdk__i .ic{width:26px;text-align:center;font-size:1rem;flex:none}
+.cmdk__i .tx{flex:1;min-width:0}
+.cmdk__i .tt{display:block;font-size:.9rem;font-weight:700;color:var(--ink);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.cmdk__i .ds{display:block;font-size:.75rem;color:var(--muted);margin-top:2px}
+.cmdk__i kbd{font-family:inherit;font-size:.68rem;font-weight:700;color:var(--muted);
+  border:1px solid var(--line);border-bottom-width:2px;border-radius:6px;padding:2px 6px;background:var(--card2)}
+.cmdk__empty{padding:26px;text-align:center;color:var(--muted);font-size:.88rem}
+.cmdk__foot{display:flex;gap:14px;padding:9px 16px;border-top:1px solid var(--line);color:var(--muted);font-size:.72rem}
 .banners{display:flex;flex-direction:column;gap:8px;margin-bottom:14px}
 .banner{border-radius:12px;padding:11px 15px;font-size:.85rem;border:1px solid;display:flex;gap:9px}
 .banner--warn{background:var(--neg-weak);border-color:color-mix(in srgb,var(--neg) 40%,transparent)}
@@ -258,14 +288,36 @@ input[type=range]{width:100%;accent-color:var(--accent);height:4px}
 .foot{color:var(--muted);font-size:.78rem;text-align:center;padding:26px 0 10px}
 @media (prefers-reduced-motion:reduce){*{animation-duration:.001ms!important;transition-duration:.001ms!important}}
 /* 리포트(인쇄/PDF) */
-.print-head{display:none}
+.print-head,.print-cover{display:none}
+/* 전체 리포트 모드: 인쇄 대상 탭을 모두 펼쳐 한 문서로 만듭니다 */
+body.print-all .panel-page[data-report]{display:block!important}
+body.print-all .panel-page:not([data-report]){display:none!important}
 @media print{
-  .topbar,.tabs,.top-actions,.iconbtn,.btn,#ov-prev,#ov-next,.pill-row,.miniseg,.seg,.foot,#mandala-reset,.help,#banners,.sim-grid,.gaugebar,#div-card>.chartbox{display:none!important}
+  .topbar,.tabs,.top-actions,.iconbtn,.btn,#ov-prev,#ov-next,.pill-row,.miniseg,.seg,.foot,
+  #mandala-reset,.help,#banners,.sim-grid,.gaugebar,#div-card>.chartbox,#cmdk,.report-menu{display:none!important}
   body{background:#fff!important;color:#000!important}
   .print-head{display:block!important;text-align:center;border-bottom:2px solid #333;padding-bottom:10px;margin-bottom:14px}
-  .panel-page:not(.on){display:none!important}
-  .card,.kpi{box-shadow:none!important;border:1px solid #ccc!important;break-inside:avoid}
-  .quote{break-inside:avoid} .chartbox{break-inside:avoid}
+  body.print-all .print-head{display:none!important}
+  /* 표지 */
+  body.print-all .print-cover{display:flex!important;flex-direction:column;justify-content:center;
+    min-height:86vh;break-after:page;text-align:left;padding:0 4mm}
+  .print-cover__kicker{font-size:11pt;color:#555;letter-spacing:.04em}
+  .print-cover h1{font-size:26pt;font-weight:800;margin:6px 0 20px;letter-spacing:-.02em}
+  .print-cover__val{font-size:40pt;font-weight:800;letter-spacing:-.02em;line-height:1}
+  .print-cover__meta{margin-top:22px;font-size:10.5pt;color:#444;line-height:1.9;
+    border-top:1px solid #ccc;padding-top:14px}
+  /* 섹션: 새 페이지에서 시작 + 제목 */
+  body.print-all .panel-page[data-report]{break-before:page}
+  body.print-all .panel-page[data-report]:first-of-type{break-before:auto}
+  body.print-all .panel-page[data-report]::before{content:attr(data-title);display:block;
+    font-size:15pt;font-weight:800;letter-spacing:-.02em;margin:0 0 12px;
+    border-bottom:2px solid #333;padding-bottom:7px}
+  .panel-page:not(.on):not([data-report]){display:none!important}
+  body:not(.print-all) .panel-page:not(.on){display:none!important}
+  .card,.kpi,.hero{box-shadow:none!important;border:1px solid #ccc!important;break-inside:avoid}
+  .hero{background:none!important}
+  .quote{break-inside:avoid;background:none!important} .chartbox{break-inside:avoid}
+  .table tbody tr:hover td{background:none!important}
   @page{margin:12mm}
 }
 </style>
@@ -295,6 +347,14 @@ input[type=range]{width:100%;accent-color:var(--accent);height:4px}
 <!-- ── 본문 ── -->
 <div id="app" class="hidden">
   <div class="wrap print-head"><div style="font-size:1.5rem;font-weight:800">개인 투자 대시보드 리포트</div><div id="print-meta" style="color:#555;font-size:.85rem;margin-top:2px"></div></div>
+  <!-- 전체 리포트 표지 (인쇄에서만 보임) -->
+  <div class="wrap print-cover">
+    <div class="print-cover__kicker" id="pc-kicker">개인 투자 리포트</div>
+    <h1>자산 현황 및 성과 보고서</h1>
+    <div class="print-cover__kicker">총평가액</div>
+    <div class="print-cover__val" id="pc-val">—</div>
+    <div class="print-cover__meta" id="pc-meta"></div>
+  </div>
   <header class="topbar"><div class="wrap topbar__in">
     <div class="brand">
       <div class="brand__logo">📈</div>
@@ -305,7 +365,13 @@ input[type=range]{width:100%;accent-color:var(--accent);height:4px}
     </div>
     <div class="top-actions">
       <div class="seg" id="cur-toggle"><button data-cur="KRW" class="on">₩</button><button data-cur="USD">$</button></div>
-      <button class="iconbtn" id="report-btn" title="리포트 저장(인쇄/PDF)">📄</button>
+      <div style="position:relative">
+        <button class="iconbtn" id="report-btn" title="리포트 저장(인쇄/PDF)" aria-haspopup="true" aria-expanded="false">📄</button>
+        <div class="report-menu hidden" id="report-menu" role="menu">
+          <button data-r="all" role="menuitem"><b>전체 리포트</b><small>모든 탭을 표지와 함께 한 문서로</small></button>
+          <button data-r="one" role="menuitem"><b>현재 탭만</b><small>지금 보고 있는 화면만</small></button>
+        </div>
+      </div>
       <button class="iconbtn" id="theme-btn" title="테마">◐</button>
       <button class="iconbtn" id="reload-btn" title="다른 파일 열기">⟳</button>
     </div>
@@ -326,7 +392,7 @@ input[type=range]{width:100%;accent-color:var(--accent);height:4px}
     <div class="banners" id="banners"></div>
 
     <!-- 요약 -->
-    <section class="panel-page on" data-page="overview">
+    <section class="panel-page on" data-page="overview" data-report="1" data-title="요약">
       <div class="quote mb" data-qt="overview"></div>
       <!-- 히어로: 이 화면이 답하는 단 하나의 숫자 -->
       <div class="hero mb">
@@ -362,7 +428,7 @@ input[type=range]{width:100%;accent-color:var(--accent);height:4px}
     </section>
 
     <!-- 성과·구성 -->
-    <section class="panel-page" data-page="perf">
+    <section class="panel-page" data-page="perf" data-report="1" data-title="성과 · 구성">
       <div class="quote mb" data-qt="perf"></div>
       <div class="card pad mb">
         <div class="blocktitle">
@@ -378,12 +444,13 @@ input[type=range]{width:100%;accent-color:var(--accent);height:4px}
         <div class="chartbox h-mid"><canvas id="c-waterfall"></canvas></div>
       </div>
       <div class="card pad">
-        <div class="blocktitle"><div><h3>자산 구성</h3><div class="sub" id="mix-class-sub">자산군 비중과 성과</div></div></div>
-        <div class="chartbox h-bar"><canvas id="c-mix-class"></canvas></div>
+        <div class="blocktitle"><div><h3>자산 구성</h3><div class="sub" id="mix-class-sub">자산군 비중과 성과</div></div>
+          <div class="miniseg" id="mix-mode"><button data-m="bar" class="on">구성 막대</button><button data-m="donut">도넛</button></div></div>
+        <div class="chartbox h-bar" id="box-mix-class"><canvas id="c-mix-class"></canvas></div>
         <div style="overflow-x:auto"><table class="table" id="t-class"></table></div>
         <div id="holdings-wrap" class="hidden" style="margin-top:30px;padding-top:24px;border-top:1px solid var(--line2)">
           <div class="blocktitle"><div><h3 style="font-size:.98rem">종목별</h3><div class="sub" id="mix-hold-sub">연말보유 기준 · 수익률은 시세(가격) 기준</div></div></div>
-          <div class="chartbox h-bar"><canvas id="c-mix-hold"></canvas></div>
+          <div class="chartbox h-bar" id="box-mix-hold"><canvas id="c-mix-hold"></canvas></div>
           <div style="overflow-x:auto"><table class="table" id="t-hold"></table></div>
         </div>
       </div>
@@ -396,7 +463,7 @@ input[type=range]{width:100%;accent-color:var(--accent);height:4px}
     </section>
 
     <!-- 리스크·심리 -->
-    <section class="panel-page" data-page="risk">
+    <section class="panel-page" data-page="risk" data-report="1" data-title="리스크 · 심리">
       <div class="quote mb" data-qt="risk"></div>
       <div class="card pad mb">
         <div class="blocktitle"><div><h3>시장 심리 (Fear &amp; Greed)</h3><div class="sub" id="fg-sub">벤치마크 모멘텀·변동성 기반 자체 계산 · 참고용</div></div></div>
@@ -420,7 +487,7 @@ input[type=range]{width:100%;accent-color:var(--accent);height:4px}
     </section>
 
     <!-- 복리·목표 -->
-    <section class="panel-page" data-page="sim">
+    <section class="panel-page" data-page="sim" data-report="1" data-title="복리 · 목표">
       <div class="quote mb" data-qt="sim"></div>
       <div class="card pad">
         <div class="blocktitle"><div><h3>복리 시뮬레이터</h3><div class="sub">재투자(복리)·저축 증가·물가까지 반영한 미래 자산 궤적</div></div>
@@ -441,7 +508,7 @@ input[type=range]{width:100%;accent-color:var(--accent);height:4px}
     </section>
 
     <!-- 시장지표 -->
-    <section class="panel-page" data-page="market">
+    <section class="panel-page" data-page="market" data-report="1" data-title="시장 지표">
       <div class="quote mb" data-qt="market"></div>
       <div class="card pad mb">
         <div class="blocktitle"><div><h3>오늘의 시장</h3><div class="sub" id="market-asof">매일 자동 갱신 · 원장 파일과 무관</div></div></div>
@@ -458,7 +525,7 @@ input[type=range]{width:100%;accent-color:var(--accent);height:4px}
     </section>
 
     <!-- 만다라트 -->
-    <section class="panel-page" data-page="mandala">
+    <section class="panel-page" data-page="mandala" data-report="1" data-title="만다라트">
       <div class="quote mb" data-qt="mandala"></div>
       <div class="card pad">
         <div class="blocktitle"><div><h3>만다라트 — 투자 마음가짐</h3><div class="sub">가운데=핵심 목표, 둘레 8칸=핵심 실천(자동으로 바깥 블록 중앙에 복사). 클릭해서 채우세요 · 이 브라우저에 저장</div></div>
@@ -499,7 +566,8 @@ input[type=range]{width:100%;accent-color:var(--accent);height:4px}
         <div class="card pad">
           <div class="blocktitle"><div><h3>변경 이력</h3></div></div>
           <div class="tl">
-            <div class="tl__i done"><h4>v10 — 디자인 개편 (색각 검증 · 히어로 · 마크 스펙)<span class="tag">현재</span></h4><ul><li>카테고리 팔레트를 <b>검증기 통과본</b>으로 교체 — 기존 팔레트는 라이트/다크 모두 FAIL이었음(주황↔초록 색각 ΔE 3.5)</li><li>요약에 <b>히어로 넘버</b>(총평가액 + 스파크라인) 도입, 나머지 3개는 보조 타일로 위계 분리</li><li>자산구성 <b>도넛 → 구성 막대</b> — 17.5% vs 17.6% 같은 근접값이 도넛에선 구분 불가였음</li><li>마크 스펙 정리: 막대 ≤24px·데이터끝만 라운드, 마커 r4 + 2px 서피스 링, 영역 10% 워시</li><li>워터폴 커넥터·값 라벨이 <b>등록 누락으로 안 그려지던 버그</b> 수정</li></ul></div>
+            <div class="tl__i done"><h4>v11 — 전체 리포트 · 구성 토글 · 커맨드 팔레트<span class="tag">현재</span></h4><ul><li><b>전체 탭 리포트 인쇄</b> — 표지(총평가액·기간·TWR·XIRR)와 섹션별 페이지 분리로 한 문서 생성. 차트는 canvas라 인쇄 전 모든 탭을 렌더해야 빈 칸이 안 생깁니다</li><li><b>자산구성 도넛 ↔ 구성 막대 토글</b> — 근접값 비교는 막대, 한눈 파악은 도넛. 선택은 저장됩니다</li><li><b>커맨드 팔레트(⌘K / Ctrl+K)</b> — 탭 이동·통화·테마·벤치마크·리포트를 검색해 실행. 숫자키 1–8, ←→ 로도 탭 이동</li></ul></div>
+            <div class="tl__i done"><h4>v10 — 디자인 개편 (색각 검증 · 히어로 · 마크 스펙)<span class="tag">완료</span></h4><ul><li>카테고리 팔레트를 <b>검증기 통과본</b>으로 교체 — 기존 팔레트는 라이트/다크 모두 FAIL이었음(주황↔초록 색각 ΔE 3.5)</li><li>요약에 <b>히어로 넘버</b>(총평가액 + 스파크라인) 도입, 나머지 3개는 보조 타일로 위계 분리</li><li>자산구성 <b>도넛 → 구성 막대</b> — 17.5% vs 17.6% 같은 근접값이 도넛에선 구분 불가였음</li><li>마크 스펙 정리: 막대 ≤24px·데이터끝만 라운드, 마커 r4 + 2px 서피스 링, 영역 10% 워시</li><li>워터폴 커넥터·값 라벨이 <b>등록 누락으로 안 그려지던 버그</b> 수정</li></ul></div>
             <div class="tl__i done"><h4>v9 — 원장 간소화 (9시트 → 6시트)<span class="tag">완료</span></h4><ul><li>시장 데이터가 HTML로 빠진 만큼 원장에서 <b>시장지표·심리 시트 제거</b></li><li>월별 <code>환율</code>+<code>벤치마크</code>(168줄) → <b><code>연말시장</code> 한 장</b>(연 1줄)</li><li><code>월말보유</code>→<code>연말보유</code>, 배당도 연 단위 → 약 800줄에서 <b>약 120줄</b>로</li><li>직접 채우는 건 <b>연별스냅샷·목표</b> 둘뿐. 옛 월별 원장도 그대로 읽힙니다(폴백)</li></ul></div>
             <div class="tl__i done"><h4>v8 — 시장 데이터를 원장에서 분리 (매일 갱신)<span class="tag">완료</span></h4><ul><li>시장 스냅샷을 <b>HTML 안에 직접 내장</b> — 원장 파일과 무관하게 매일 그날 값으로 갱신</li><li>시장지표는 <b>그날 값만</b>(누적 제거), 누적은 <b>미국 기준금리</b>(연준 목표범위·EFFR, 뉴욕 연준 API) 하나만</li><li>원장 없이 '오늘의 시장'만 열람 가능 · F&amp;G도 매일 최신값 우선</li></ul></div>
             <div class="tl__i done"><h4>v7 — 실데이터 연동 (Naver 시세 · 실제 CNN F&amp;G)<span class="tag">완료</span></h4><ul><li>환율·지수·시세·시장지표를 <b>Naver 금융 API</b>로 수집(Yahoo 429 대체) — 이 환경에서 실동작 확인</li><li>시장 심리를 <b>실제 CNN Fear &amp; Greed 지수</b>로 연결(원장 '심리' 시트), 없으면 자체 근사치로 폴백</li><li>일별 공개데이터 수집 매일 21:00 KST</li></ul></div>
@@ -528,6 +596,15 @@ input[type=range]{width:100%;accent-color:var(--accent);height:4px}
 
     <div class="foot">SPEC.md 구현체 · 모든 계산은 브라우저 안에서 · 데이터 외부 전송 없음 · 엑셀 읽기 전용</div>
   </main>
+</div>
+
+<!-- 커맨드 팔레트 -->
+<div id="cmdk" class="hidden" role="dialog" aria-modal="true" aria-label="명령 팔레트">
+  <div class="cmdk__box">
+    <input id="cmdk-in" class="cmdk__in" type="text" placeholder="무엇이든 검색하세요 — 탭 이동, 통화, 테마, 리포트…" autocomplete="off" spellcheck="false">
+    <div id="cmdk-list" class="cmdk__list" role="listbox"></div>
+    <div class="cmdk__foot"><span>↑↓ 이동</span><span>↵ 실행</span><span>Esc 닫기</span><span style="margin-left:auto">숫자키 1–8 로 탭 바로 이동</span></div>
+  </div>
 </div>
 
 <script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"></script>
@@ -776,7 +853,7 @@ function holdingStats(D,basis){
 }
 
 /* ════════════════ 렌더링 ════════════════ */
-const STATE={basis:"KRW",bmKey:"sp",tab:"overview",simMode:"nominal",g:0.08,pmt:2000000,sg:0,infl:0.025,simEndYear:2041,ovSlide:0};
+const STATE={basis:"KRW",bmKey:"sp",tab:"overview",mixMode:"bar",simMode:"nominal",g:0.08,pmt:2000000,sg:0,infl:0.025,simEndYear:2041,ovSlide:0};
 let DATA=null,MODEL=null,CHARTS={},OV_DATA=null;
 function destroy(k){if(CHARTS[k]){CHARTS[k].destroy();delete CHARTS[k];}}
 /* 차트 크롬 공통 — 축·그리드는 헤어라인 실선으로 후퇴시키고, 글자는 텍스트 토큰만 사용 */
@@ -1039,10 +1116,30 @@ function syncMandalaMirrors(s){const mir=mirrorIdx();
   for(const core in mir){const cell=$(`.mc[data-i="${mir[core]}"]`);if(cell)cell.textContent=(s[core]||"");}}
 function resetMandala(){if(!confirm("만다라트를 모두 비울까요?"))return;
   localStorage.removeItem(MANDALA_KEY);$("#mandala-grid").querySelectorAll(".mc").forEach(c=>c.textContent="");}
-/* 구성 막대 — 100% 가로 스택. 세그먼트 사이 2px 서피스 간격(테두리 아님).
-   근접한 값(17.5% vs 17.6%)을 도넛보다 정확히 읽히게 하려고 도넛에서 교체했습니다. */
-function mixBar(canvasId,key,items,total,b){
+/* 구성 시각화 — 두 형태를 토글로 제공.
+   · 구성 막대: 100% 가로 스택. 근접값(17.5% vs 17.6%)을 정확히 비교할 때.
+   · 도넛     : 한눈에 보는 부분-전체. ≤6조각일 때만 권장.
+   두 형태 모두 조각을 나누는 건 '테두리'가 아니라 2px 서피스 간격입니다. */
+function mixChart(canvasId,boxId,key,items,total,b){
   destroy(key);
+  const donut=STATE.mixMode==="donut";
+  const box=$("#"+boxId); if(box) box.className="chartbox "+(donut?"h-mid":"h-bar");
+  const fmt=(label,val)=>`${label} ${money(val,b)} · ${(val/total*100).toFixed(1)}%`;
+  if(donut){
+    CHARTS[key]=new Chart($("#"+canvasId),{type:"doughnut",
+      data:{labels:items.map(i=>i.label),datasets:[{data:items.map(i=>i.value),
+        backgroundColor:items.map(i=>i.color),borderColor:cssVar("--card"),borderWidth:2,hoverOffset:6}]},
+      options:{responsive:true,maintainAspectRatio:false,cutout:"66%",
+        plugins:{legend:{position:"right",labels:{padding:12}},
+          tooltip:{callbacks:{label:c=>fmt(c.label,c.raw)}}}},
+      plugins:[{id:"ctr",afterDraw(ch){const{ctx,chartArea:{left,right,top,bottom}}=ch;
+        const cx=(left+right)/2,cy=(top+bottom)/2;ctx.save();ctx.textAlign="center";
+        ctx.fillStyle=cssVar("--ink");ctx.font="700 16px "+(cssVar("--font")||"sans-serif");
+        ctx.fillText(moneyShort(total,b),cx,cy+1);
+        ctx.fillStyle=cssVar("--muted");ctx.font="600 11px "+(cssVar("--font")||"sans-serif");
+        ctx.fillText("총액",cx,cy+19);ctx.restore();}}]});
+    return;
+  }
   const last=items.length-1;
   const ds=items.map((it,i)=>({label:it.label,data:[it.value],backgroundColor:it.color,stack:"m",
     borderColor:cssVar("--card"),borderWidth:{top:0,bottom:0,left:0,right:i===last?0:2},
@@ -1051,7 +1148,7 @@ function mixBar(canvasId,key,items,total,b){
     options:{indexAxis:"y",responsive:true,maintainAspectRatio:false,
       layout:{padding:{top:2,bottom:0}},
       plugins:{legend:{position:"bottom",labels:{padding:14},onClick:null},
-        tooltip:{callbacks:{title:()=>"",label:c=>`${c.dataset.label} ${money(c.raw,b)} · ${(c.raw/total*100).toFixed(1)}%`}}},
+        tooltip:{callbacks:{title:()=>"",label:c=>fmt(c.dataset.label,c.raw)}}},
       scales:{x:{stacked:true,display:false,grid:{display:false}},y:{stacked:true,display:false,grid:{display:false}}}}});
 }
 function renderCompose(){
@@ -1062,7 +1159,7 @@ function renderCompose(){
   for(const r of rows){const v=conv(r.ev,r.cur,b,DATA.fx[lastYm]);if(!isNum(v))continue;if(byC[r.cls]!=null)byC[r.cls]+=v;else extra[r.cls]=(extra[r.cls]||0)+v;}
   const shown=ASSET_CLASSES.filter(c=>byC[c]>0),total=sum(shown.map(c=>byC[c]))+sum(Object.values(extra));
   $("#mix-class-sub").innerHTML=`총액 <b>${money(total,b)}</b> · ${fmtY(lastYm)} 기준`;
-  mixBar("c-mix-class","mixClass",shown.map((c,i)=>({label:c,value:byC[c],color:pal[i%pal.length]})),total,b);
+  mixChart("c-mix-class","box-mix-class","mixClass",shown.map((c,i)=>({label:c,value:byC[c],color:pal[i%pal.length]})),total,b);
   const contrib=contributions(DATA,DATA.months.length);
   let html=`<thead><tr><th>자산군</th><th>평가액</th><th>비중</th><th>누적 TWR</th><th>기여</th></tr></thead><tbody>`;
   shown.forEach((c,i)=>{const S=seriesFor(DATA,b,[c]),tw=twrStats(modifiedDietz(S.ev,S.cf)).cum,cb=contrib.perClass[c];
@@ -1075,7 +1172,7 @@ function renderCompose(){
   if(H.rows.length){
     $("#holdings-wrap").classList.remove("hidden");
     $("#mix-hold-sub").innerHTML=`총액 <b>${money(H.totLast,b)}</b> · 연말보유 기준 · 수익률은 시세(가격) 기준`;
-    mixBar("c-mix-hold","mixHold",H.rows.map((r,i)=>({label:r.ticker||r.name,value:r.val,color:pal[i%pal.length]})),H.totLast,b);
+    mixChart("c-mix-hold","box-mix-hold","mixHold",H.rows.map((r,i)=>({label:r.ticker||r.name,value:r.val,color:pal[i%pal.length]})),H.totLast,b);
     const retTip=b==="KRW"?"보유 기간 시세(가격) 기준 누적수익률 — 원화 환산(환율 변동 포함). 매매 타이밍은 반영 안 됨.":"보유 기간 시세(가격, USD) 기준 누적수익률. 매매 타이밍은 반영 안 됨.";
     let h2=`<thead><tr><th>종목</th><th>평가액</th><th>비중</th><th>수익률<span class="help" tabindex="0" style="margin-left:3px">?<span class="help__tip">${retTip}</span></span></th><th>기여</th></tr></thead><tbody>`;
     H.rows.forEach((r,i)=>{h2+=`<tr><td><span class="sw" style="background:${pal[i%pal.length]}"></span>${r.ticker} <span class="dim" style="font-size:.8em">${(r.name||"").slice(0,14)}</span></td><td>${money(r.val,b)}</td><td>${r.weight==null?"—":(r.weight*100).toFixed(1)+"%"}</td><td class="${signClass(r.cumRet)}">${pct(r.cumRet)}</td><td class="${signClass(r.contrib)}">${pp(r.contrib)}</td></tr>`;});
@@ -1179,8 +1276,7 @@ function applyTabVisibility(){
   const has=!!DATA;
   $$("#tabnav .tab").forEach(b=>b.classList.toggle("hidden",!has&&DATA_TABS.includes(b.dataset.tab)));
 }
-function renderActive(){
-  const t=STATE.tab;
+function renderTab(t){
   if(!DATA&&DATA_TABS.includes(t))return;   // 원장 없으면 계산 탭은 그리지 않음
   if(t==="overview")renderOverview();
   else if(t==="perf")renderPerf();
@@ -1190,6 +1286,7 @@ function renderActive(){
   else if(t==="mandala")renderMandalart();
   // manage/dev: 정적
 }
+function renderActive(){renderTab(STATE.tab);}
 function switchTab(id){
   STATE.tab=id;
   $$("#tabnav .tab").forEach(b=>b.classList.toggle("on",b.dataset.tab===id));
@@ -1236,12 +1333,13 @@ function handleFile(file){$("#droperr").textContent="";const rd=new FileReader()
 
 /* ─── 설정 저장 (개인 데이터 아님) + 데이터 옵트인 ─── */
 const PREF="dash_pref_v1",CACHE="dash_cache_v1",OPT="dash_optin_v1";
-function savePref(){try{localStorage.setItem(PREF,JSON.stringify({theme:document.documentElement.getAttribute("data-theme"),basis:STATE.basis,bmKey:STATE.bmKey,updown:document.documentElement.getAttribute("data-updown")||"global"}));}catch(e){}}
+function savePref(){try{localStorage.setItem(PREF,JSON.stringify({theme:document.documentElement.getAttribute("data-theme"),basis:STATE.basis,bmKey:STATE.bmKey,updown:document.documentElement.getAttribute("data-updown")||"global",mixMode:STATE.mixMode}));}catch(e){}}
 function saveCache(){try{localStorage.setItem(CACHE,JSON.stringify({data:DATA}));}catch(e){}}
 function applyPref(){let p={};try{p=JSON.parse(localStorage.getItem(PREF)||"{}");}catch(e){}
   document.documentElement.setAttribute("data-theme",p.theme||"auto");
   document.documentElement.setAttribute("data-updown",p.updown||"global");
-  if(p.basis)STATE.basis=p.basis; if(p.bmKey)STATE.bmKey=p.bmKey;
+  if(p.basis)STATE.basis=p.basis; if(p.bmKey)STATE.bmKey=p.bmKey; if(p.mixMode)STATE.mixMode=p.mixMode;
+  $$("#mix-mode button").forEach(x=>x.classList.toggle("on",x.dataset.m===STATE.mixMode));
   $$("#cur-toggle button").forEach(b=>b.classList.toggle("on",b.dataset.cur===STATE.basis));
   $$("#bm-pills .pill").forEach(b=>b.classList.toggle("on",b.dataset.bm===STATE.bmKey));
   syncSettingsUI();}
@@ -1268,13 +1366,51 @@ $("#tabnav").addEventListener("click",e=>{const t=e.target.closest(".tab");if(t)
 $("#cur-toggle").addEventListener("click",e=>{const b=e.target.dataset.cur;if(!b)return;STATE.basis=b;$$("#cur-toggle button").forEach(x=>x.classList.toggle("on",x.dataset.cur===b));savePref();syncSettingsUI();renderActive();});
 $("#bm-pills").addEventListener("click",e=>{const k=e.target.dataset.bm;if(!k)return;STATE.bmKey=k;$$("#bm-pills .pill").forEach(x=>x.classList.toggle("on",x.dataset.bm===k));savePref();syncSettingsUI();renderActive();});
 $("#sim-mode").addEventListener("click",e=>{const m=e.target.dataset.m;if(!m)return;STATE.simMode=m;$$("#sim-mode button").forEach(x=>x.classList.toggle("on",x.dataset.m===m));renderSim();});
+$("#mix-mode").addEventListener("click",e=>{const m=e.target.dataset.m;if(!m)return;STATE.mixMode=m;$$("#mix-mode button").forEach(x=>x.classList.toggle("on",x.dataset.m===m));savePref();renderCompose();});
 ["reload-btn","reload-btn2"].forEach(id=>$("#"+id)&&$("#"+id).addEventListener("click",()=>{$("#app").classList.add("hidden");$("#dropscreen").classList.remove("hidden");}));
-$("#report-btn").addEventListener("click",()=>{if(!DATA)return;
-  const last=DATA.months.length?fmtY(DATA.months[DATA.months.length-1]):"";
-  const d=new Date(),ds=`${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,"0")}-${String(d.getDate()).padStart(2,"0")}`;
+/* ─── 리포트 인쇄 ───────────────────────────────────────────────────────────
+   차트는 canvas 라서 '보이는 상태'에서만 그려집니다. 전체 리포트를 뽑으려면
+   인쇄 전에 모든 대상 탭을 펼쳐놓고 한 번씩 렌더해야 빈 칸이 안 생깁니다. */
+function todayStr(){const d=new Date();return `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,"0")}-${String(d.getDate()).padStart(2,"0")}`;}
+function printCurrentTab(){
+  const last=DATA&&DATA.months.length?fmtY(DATA.months[DATA.months.length-1]):(MARKET_DATA?MARKET_DATA.asOf:"");
   const tab=$("#tabnav .tab.on");
-  $("#print-meta").textContent=`${last} 기준 · 생성일 ${ds}`+(tab?` · ${tab.textContent} 페이지`:"");
-  window.print();});
+  $("#print-meta").textContent=`${last} 기준 · 생성일 ${todayStr()}`+(tab?` · ${tab.textContent} 페이지`:"");
+  window.print();
+}
+function printFullReport(){
+  const panels=$$(".panel-page[data-report]");
+  document.body.classList.add("print-all");     // 대상 탭 전부 표시 → canvas 크기 확보
+  panels.forEach(p=>p.classList.add("on"));
+  panels.forEach(p=>{try{renderTab(p.dataset.page);}catch(e){console.warn("리포트 렌더 실패",p.dataset.page,e);}});
+  // 표지 채우기
+  const b=STATE.basis,side=DATA?(b==="KRW"?MODEL.krw:MODEL.usd):null;
+  const lastEv=side?[...side.S.ev].reverse().find(isNum):null;
+  $("#pc-val").innerHTML=moneyHero(lastEv,b);
+  const ms=DATA?DATA.months:[];
+  const rows=[`기간  ${ms.length?fmtY(ms[0])+" ~ "+fmtY(ms[ms.length-1])+" ("+ms.length+"년)":"—"}`,
+              `누적 TWR  ${side?pct(side.twr.cum):"—"}   ·   XIRR  ${side?pct(side.xirr):"—"}`,
+              MARKET_DATA?`시장 기준일  ${MARKET_DATA.asOf}`:null,
+              `생성일  ${todayStr()}`].filter(Boolean);
+  $("#pc-meta").innerHTML=rows.join("<br>");
+  let done=false;
+  const restore=()=>{if(done)return;done=true;
+    document.body.classList.remove("print-all");
+    panels.forEach(p=>p.classList.toggle("on",p.dataset.page===STATE.tab));
+    renderActive();window.removeEventListener("afterprint",restore);};
+  window.addEventListener("afterprint",restore);
+  // afterprint 가 표준 복귀 경로입니다. 타이머는 그것이 안 오는 브라우저용 누수 방지일 뿐이라
+  // 넉넉히 잡습니다 — 짧게 두면 인쇄 대화상자가 열려 있는 동안 화면이 되돌아갑니다.
+  setTimeout(()=>{window.print();setTimeout(restore,30000);},250);
+}
+$("#report-btn").addEventListener("click",e=>{e.stopPropagation();
+  const m=$("#report-menu"),open=m.classList.toggle("hidden")===false;
+  $("#report-btn").setAttribute("aria-expanded",open?"true":"false");});
+$("#report-menu").addEventListener("click",e=>{const r=e.target.closest("button");if(!r)return;
+  $("#report-menu").classList.add("hidden");$("#report-btn").setAttribute("aria-expanded","false");
+  if(r.dataset.r==="all")printFullReport(); else printCurrentTab();});
+document.addEventListener("click",()=>{const m=$("#report-menu");if(m&&!m.classList.contains("hidden")){
+  m.classList.add("hidden");$("#report-btn").setAttribute("aria-expanded","false");}});
 $("#theme-btn").addEventListener("click",()=>{const cur=document.documentElement.getAttribute("data-theme");const dark=cur==="dark"||(cur!=="light"&&matchMedia("(prefers-color-scheme:dark)").matches);document.documentElement.setAttribute("data-theme",dark?"light":"dark");savePref();syncSettingsUI();if(MODEL)renderActive();});
 $("#set-theme").addEventListener("click",e=>{const v=e.target.dataset.v;if(!v)return;document.documentElement.setAttribute("data-theme",v);savePref();syncSettingsUI();if(MODEL)renderActive();});
 $("#set-cur").addEventListener("click",e=>{const v=e.target.dataset.v;if(!v)return;STATE.basis=v;$$("#cur-toggle button").forEach(x=>x.classList.toggle("on",x.dataset.cur===v));savePref();syncSettingsUI();renderActive();});
@@ -1290,6 +1426,70 @@ $("#mandala-reset").addEventListener("click",resetMandala);
 $("#ov-prev").addEventListener("click",()=>{STATE.ovSlide=(STATE.ovSlide+OV_SLIDES.length-1)%OV_SLIDES.length;renderOvSlide();});
 $("#ov-next").addEventListener("click",()=>{STATE.ovSlide=(STATE.ovSlide+1)%OV_SLIDES.length;renderOvSlide();});
 matchMedia("(prefers-color-scheme:dark)").addEventListener("change",()=>{if((document.documentElement.getAttribute("data-theme")||"auto")==="auto"&&MODEL)renderActive();});
+
+/* ─── 커맨드 팔레트 (⌘K / Ctrl+K) + 키보드 내비게이션 ───────────────────────
+   대시보드가 깊어질수록 "그 화면 어디였지"가 늘어납니다. 검색 한 번으로
+   탭 이동·통화·테마·리포트를 전부 실행할 수 있게 했습니다. */
+const TAB_LABELS={overview:"요약",perf:"성과·구성",risk:"리스크·심리",market:"시장지표",sim:"복리·목표",mandala:"만다라트",manage:"관리",dev:"개발기록"};
+function cmdkCommands(){
+  const c=[],vis=id=>!DATA?!DATA_TABS.includes(id):true;
+  Object.keys(TAB_LABELS).forEach((id,i)=>{if(!vis(id))return;
+    c.push({ic:"→",tt:TAB_LABELS[id]+" 탭",ds:"탭 이동",kbd:String(i+1),run:()=>switchTab(id)});});
+  c.push({ic:"₩",tt:"원화(₩)로 보기",ds:"표시 통화",run:()=>setBasis("KRW")});
+  c.push({ic:"$",tt:"달러($)로 보기",ds:"표시 통화",run:()=>setBasis("USD")});
+  c.push({ic:"◐",tt:"라이트 / 다크 전환",ds:"테마",run:()=>$("#theme-btn").click()});
+  c.push({ic:"📄",tt:"전체 리포트 인쇄",ds:"모든 탭을 표지와 함께",run:()=>printFullReport()});
+  c.push({ic:"📄",tt:"현재 탭만 인쇄",ds:"보고 있는 화면만",run:()=>printCurrentTab()});
+  if(DATA){
+    c.push({ic:"◨",tt:"자산구성 — 구성 막대",ds:"근접값 비교에 유리",run:()=>setMix("bar")});
+    c.push({ic:"◕",tt:"자산구성 — 도넛",ds:"부분-전체를 한눈에",run:()=>setMix("donut")});
+    [["sp","S&P 500"],["nq","NASDAQ"],["dj","다우존스"]].forEach(([k,n])=>
+      c.push({ic:"≈",tt:"벤치마크 — "+n,ds:"비교 지수 변경",run:()=>setBm(k)}));
+  }
+  c.push({ic:"⟳",tt:"다른 원장 파일 열기",ds:"엑셀 교체",run:()=>$("#reload-btn").click()});
+  return c;
+}
+function setBasis(v){STATE.basis=v;$$("#cur-toggle button").forEach(x=>x.classList.toggle("on",x.dataset.cur===v));savePref();syncSettingsUI();renderActive();}
+function setBm(k){STATE.bmKey=k;$$("#bm-pills .pill").forEach(x=>x.classList.toggle("on",x.dataset.bm===k));savePref();syncSettingsUI();renderActive();}
+function setMix(m){STATE.mixMode=m;$$("#mix-mode button").forEach(x=>x.classList.toggle("on",x.dataset.m===m));savePref();if(DATA)renderCompose();}
+let CMDK={open:false,items:[],sel:0};
+function cmdkRender(q){
+  const all=cmdkCommands(),s=(q||"").trim().toLowerCase();
+  CMDK.items=s?all.filter(x=>(x.tt+" "+x.ds).toLowerCase().includes(s)):all;
+  CMDK.sel=Math.min(CMDK.sel,Math.max(0,CMDK.items.length-1));
+  const L=$("#cmdk-list");
+  if(!CMDK.items.length){L.innerHTML=`<div class="cmdk__empty">일치하는 명령이 없습니다</div>`;return;}
+  L.innerHTML=CMDK.items.map((x,i)=>`<div class="cmdk__i" role="option" data-i="${i}" aria-selected="${i===CMDK.sel}">
+    <span class="ic">${x.ic}</span><span class="tx"><span class="tt">${x.tt}</span><span class="ds">${x.ds||""}</span></span>
+    ${x.kbd?`<kbd>${x.kbd}</kbd>`:""}</div>`).join("");
+  const cur=L.querySelector('[aria-selected="true"]'); if(cur)cur.scrollIntoView({block:"nearest"});
+}
+function cmdkOpen(){CMDK.open=true;CMDK.sel=0;$("#cmdk").classList.remove("hidden");
+  const i=$("#cmdk-in");i.value="";cmdkRender("");i.focus();}
+function cmdkClose(){CMDK.open=false;$("#cmdk").classList.add("hidden");}
+function cmdkRun(i){const it=CMDK.items[i];if(!it)return;cmdkClose();setTimeout(()=>it.run(),10);}
+$("#cmdk-in").addEventListener("input",e=>{CMDK.sel=0;cmdkRender(e.target.value);});
+$("#cmdk-list").addEventListener("click",e=>{const el=e.target.closest(".cmdk__i");if(el)cmdkRun(+el.dataset.i);});
+$("#cmdk").addEventListener("mousedown",e=>{if(e.target.id==="cmdk")cmdkClose();});
+document.addEventListener("keydown",e=>{
+  const k=e.key,mod=e.metaKey||e.ctrlKey;
+  if(mod&&(k==="k"||k==="K")){e.preventDefault();CMDK.open?cmdkClose():cmdkOpen();return;}
+  if(CMDK.open){
+    if(k==="Escape"){e.preventDefault();cmdkClose();}
+    else if(k==="ArrowDown"){e.preventDefault();CMDK.sel=(CMDK.sel+1)%Math.max(1,CMDK.items.length);cmdkRender($("#cmdk-in").value);}
+    else if(k==="ArrowUp"){e.preventDefault();CMDK.sel=(CMDK.sel-1+CMDK.items.length)%Math.max(1,CMDK.items.length);cmdkRender($("#cmdk-in").value);}
+    else if(k==="Enter"){e.preventDefault();cmdkRun(CMDK.sel);}
+    return;
+  }
+  // 입력 중이거나 앱이 안 열렸으면 단축키 무시
+  const t=e.target,typing=t&&(t.tagName==="INPUT"||t.tagName==="TEXTAREA"||t.isContentEditable);
+  if(typing||mod||$("#app").classList.contains("hidden"))return;
+  const tabs=$$("#tabnav .tab").filter(b=>!b.classList.contains("hidden"));
+  if(/^[1-8]$/.test(k)){const b=tabs[+k-1];if(b){e.preventDefault();switchTab(b.dataset.tab);}}
+  else if(k==="ArrowRight"||k==="ArrowLeft"){
+    const i=tabs.findIndex(b=>b.dataset.tab===STATE.tab);if(i<0)return;e.preventDefault();
+    switchTab(tabs[(i+(k==="ArrowRight"?1:tabs.length-1))%tabs.length].dataset.tab);}
+});
 
 /* ─── 시작 ─── */
 applyPref();syncSim();
