@@ -21,7 +21,7 @@
    ───────────────────────────────────────────────────────────────────────── */
 :root{
   --bg:#f4f6fa; --bg2:#eef1f6; --card:#ffffff; --card2:#f7f9fc;
-  --ink:#0b0f18; --ink2:#4d5665; --muted:#8b93a5; --line:#e6eaf1; --line2:#f0f3f8;
+  --ink:#0b0f18; --ink2:#4d5665; --muted:#6d7586;   /* 흰 배경 4.66:1 — 본문 기준 통과 */ --line:#e6eaf1; --line2:#f0f3f8;
   --accent:#2a78d6; --accent2:#1c5cab; --accent-weak:#e8f1fd; --accent-ink:#1c5cab;
   --pos:#006300; --pos-weak:rgba(12,163,12,.12); --neg:#d03b3b; --neg-weak:rgba(208,59,59,.12);
   --bm:#eb6834; --gray:#aab2c2;
@@ -30,6 +30,8 @@
   --shadow-lg:0 8px 28px rgba(11,15,24,.10);
   --radius:16px; --radius-sm:10px; --maxw:1180px;
   --font:"Pretendard Variable",Pretendard,-apple-system,BlinkMacSystemFont,"Apple SD Gothic Neo","Malgun Gothic","Noto Sans KR",system-ui,sans-serif;
+  /* 표지·섹션 제목용 — 윈도우·맥에 실제로 있는 것만 나열합니다 */
+  --serif:"Nanum Myeongjo","Noto Serif KR",Batang,Georgia,"Times New Roman",serif;
   /* 검증 통과 순서: blue·orange·aqua·yellow·magenta·green·violet·red */
   --d1:#2a78d6;--d2:#eb6834;--d3:#1baf7a;--d4:#eda100;--d5:#e87ba4;--d6:#008300;--d7:#4a3aa7;--d8:#e34948;
   /* 매매 판정색 — 등락색(pos/neg)과 분리합니다. 판정은 가격의 방향이 아니라
@@ -516,36 +518,103 @@ input[type=range]{width:100%;accent-color:var(--accent);height:4px}
 body.print-all .panel-page[data-report]{display:block!important}
 body.print-all .panel-page:not([data-report]){display:none!important}
 @media print{
+  /* ── 페이지 여백을 0으로 두는 이유 ────────────────────────────────────
+     브라우저가 찍는 머리글("26. 7. 27. 오후 1:30 …")과 바닥글(file:///…)은
+     **페이지 여백 안에** 그려집니다. 여백이 0이면 그릴 자리가 없어 사라집니다.
+     대신 여백을 우리가 직접 만듭니다:
+       · 좌우 — .wrap 패딩. 블록의 가로 인셋이라 모든 장에 걸립니다.
+       · 위아래 — 섹션 패딩(장이 바뀌는 지점) + 카드 자체 여백.
+     그래서 인쇄에서는 카드 테두리를 없애고 여백과 괘선으로만 구분합니다.
+     이어지는 장에서 테두리가 종이 끝에 닿아 잘리는 걸 막기 위해서이기도 하고,
+     보고서는 원래 모든 걸 상자에 넣지 않습니다. */
+  @page{margin:0}
+  html,body{margin:0;padding:0}
+
   .topbar,.tabs,.top-actions,.iconbtn,.btn,#ov-prev,#ov-next,.pill-row,.miniseg,.seg,.foot,
   #mandala-reset,.help,#banners,.sim-grid,.gaugebar,#div-card>.chartbox,#cmdk,.report-menu,
-  #drawer,#modal,.clickhint,.rowlink .go{display:none!important}
+  #drawer,#modal,.clickhint,.rowlink .go,.quote{display:none!important}
   .acc__b{display:block!important}   /* 접혀 있어도 인쇄에는 전부 나옵니다 */
   .acc__h .i{display:none}
-  body{background:#fff!important;color:#000!important}
-  .print-head{display:block!important;text-align:center;border-bottom:2px solid #333;padding-bottom:10px;margin-bottom:14px}
+  body{background:#fff!important;color:#111!important;font-size:9.6pt}
+  .wrap{max-width:none!important;padding-left:13mm!important;padding-right:13mm!important}
+  main.wrap{padding-top:0!important}
+
+  /* 단일 탭 인쇄용 머리글 (전체 리포트에서는 표지가 대신합니다) */
+  .print-head{display:block!important;padding-top:14mm;border-bottom:1.6pt solid #111;
+    padding-bottom:8px;margin-bottom:16px}
+  .ph__org{font-size:8.4pt;letter-spacing:.16em;text-transform:uppercase;font-weight:700;color:#111}
+  .ph__t{font-family:var(--serif);font-size:17pt;font-weight:400;margin-top:5px;letter-spacing:-.01em}
+  .ph__m{color:#555;font-size:8.8pt;margin-top:5px;font-variant-numeric:tabular-nums}
   body.print-all .print-head{display:none!important}
-  /* 표지 */
-  body.print-all .print-cover{display:flex!important;flex-direction:column;justify-content:center;
-    min-height:86vh;break-after:page;text-align:left;padding:0 4mm}
-  .print-cover__kicker{font-size:11pt;color:#555;letter-spacing:.04em}
-  .print-cover h1{font-size:26pt;font-weight:800;margin:6px 0 20px;letter-spacing:-.02em}
-  .print-cover__val{font-size:40pt;font-weight:800;letter-spacing:-.02em;line-height:1}
-  .print-cover__meta{margin-top:22px;font-size:10.5pt;color:#444;line-height:1.9;
-    border-top:1px solid #ccc;padding-top:14px}
-  /* 섹션: 새 페이지에서 시작 + 제목 */
-  body.print-all .panel-page[data-report]{break-before:page}
+
+  /* ── 표지 ── 애널리스트 리포트/논문 조판 ── */
+  body.print-all .print-cover{display:flex!important;flex-direction:column;
+    min-height:calc(100vh - 2px);break-after:page;text-align:left;
+    padding-top:14mm;padding-bottom:11mm}
+  .pc__rule{border-top:2.4pt solid #111;margin-bottom:5px}
+  .pc__rule--thin{border-top:.5pt solid #111;margin:0 0 4px}
+  .pc__top{display:flex;justify-content:space-between;align-items:baseline;gap:14px;
+    font-size:8.4pt;letter-spacing:.16em;text-transform:uppercase;color:#111;font-weight:700;
+    padding-bottom:6px}
+  .pc__top .r{letter-spacing:.06em;color:#555;font-weight:600;text-transform:none}
+  .pc__mid{margin-top:17mm}
+  .pc__kicker{font-size:9.5pt;letter-spacing:.2em;color:#555;font-weight:700;text-transform:uppercase}
+  .print-cover h1{font-family:var(--serif);font-size:28pt;font-weight:400;line-height:1.22;
+    letter-spacing:-.01em;margin:12px 0 0}
+  .print-cover h1 em{font-style:normal;display:block;font-size:.62em;color:#333;margin-top:9px;
+    letter-spacing:.01em}
+  .pc__period{margin-top:16px;font-size:10.5pt;color:#333;font-variant-numeric:tabular-nums}
+  .pc__sec{margin-top:8mm}
+  .pc__h{font-size:8.4pt;letter-spacing:.18em;text-transform:uppercase;color:#111;font-weight:800;
+    border-bottom:.5pt solid #111;padding-bottom:4px;margin-bottom:9px}
+  .pc__abs{font-family:var(--serif);font-size:10pt;line-height:1.66;color:#111;text-align:justify;
+    hyphens:auto;word-break:keep-all}
+  .pc__abs b{font-weight:700}
+  .pc__keys{width:100%;border-collapse:collapse;font-size:9.6pt}
+  .pc__keys td{padding:4.6px 0;border-bottom:.5pt solid #d5d5d5;vertical-align:baseline}
+  .pc__keys td:first-child{color:#444;white-space:nowrap;padding-right:10px}
+  .pc__keys td:last-child{text-align:right;font-weight:700;font-variant-numeric:tabular-nums;
+    white-space:nowrap}
+  .pc__keys tr:last-child td{border-bottom:0}
+  .pc__keys .sub{display:block;font-weight:400;color:#666;font-size:8.6pt;margin-top:1px}
+  .pc__foot{margin-top:auto;padding-top:6mm}
+  .pc__meta{display:flex;flex-wrap:wrap;gap:3px 20px;font-size:8.8pt;color:#444;
+    border-top:.5pt solid #111;padding-top:8px;font-variant-numeric:tabular-nums}
+  .pc__disc{margin-top:8px;font-size:7.6pt;line-height:1.55;color:#666;word-break:keep-all}
+
+  /* ── 본문 섹션 ── */
+  body.print-all .panel-page[data-report]{break-before:page;padding:15mm 0 14mm}
   body.print-all .panel-page[data-report]:first-of-type{break-before:auto}
   body.print-all .panel-page[data-report]::before{content:attr(data-title);display:block;
-    font-size:15pt;font-weight:800;letter-spacing:-.02em;margin:0 0 12px;
-    border-bottom:2px solid #333;padding-bottom:7px}
+    font-family:var(--serif);font-size:16pt;font-weight:400;letter-spacing:-.01em;margin:0 0 14px;
+    border-bottom:1.6pt solid #111;padding-bottom:8px}
   .panel-page:not(.on):not([data-report]){display:none!important}
   body:not(.print-all) .panel-page:not(.on){display:none!important}
-  .card,.kpi,.hero{box-shadow:none!important;border:1px solid #ccc!important;break-inside:avoid}
-  .hero{background:none!important}
-  .quote{break-inside:avoid;background:none!important} .chartbox{break-inside:avoid}
+
+  /* 상자를 걷어내고 괘선과 여백으로 — 이어지는 장에서 테두리가 종이 끝에 닿지 않게 */
+  .card,.kpi,.hero,.vhero,.tcard{box-shadow:none!important;border:0!important;
+    background:none!important;break-inside:avoid;border-radius:0!important}
+  .card{padding:0!important;margin:0 0 9mm!important}
+  .card+.card{padding-top:7mm!important;border-top:.5pt solid #ccc!important}
+  .kpi{padding:0 12px 0 0!important;margin:0!important}
+  .kpi-grid{gap:9px 0!important}
+  .hero,.vhero{padding:0!important;margin:0 0 7mm!important}
+  .blocktitle{margin-bottom:10px;border-bottom:.5pt solid #ddd;padding-bottom:5px}
+  .blocktitle h3{font-size:11pt;font-weight:750}
+  .chartbox{break-inside:avoid;margin:2mm 0}
   .table tbody tr:hover td{background:none!important}
-  @page{margin:12mm}
+  .table th{border-bottom:.7pt solid #111}
+  .tcards{gap:0!important}
+  .tcard{padding:5px 0!important;border-bottom:.5pt solid #e0e0e0!important;border-radius:0!important}
+  .note,.sub{color:#555!important}
+  .page-head{margin-top:0}
+  .cols{gap:8mm}
+  .kpi-grid{grid-template-columns:repeat(4,1fr)!important}
+  .kpi-grid--3{grid-template-columns:repeat(3,1fr)!important}
+  #ov-dots{display:none!important}          /* 종이에서는 슬라이드 점이 뜻이 없습니다 */
+  .hero__spark{height:64px}
 }
+
 </style>
 </head>
 <body>
@@ -595,14 +664,33 @@ body.print-all .panel-page:not([data-report]){display:none!important}
 
 <!-- ── 본문 ── -->
 <div id="app" class="hidden">
-  <div class="wrap print-head"><div style="font-size:1.5rem;font-weight:800">개인 투자 대시보드 리포트</div><div id="print-meta" style="color:#555;font-size:.85rem;margin-top:2px"></div></div>
+  <div class="wrap print-head"><div class="ph__org">개인 투자 리서치</div><div class="ph__t">개인 투자 포트폴리오</div><div id="print-meta" class="ph__m"></div></div>
   <!-- 전체 리포트 표지 (인쇄에서만 보임) -->
   <div class="wrap print-cover">
-    <div class="print-cover__kicker" id="pc-kicker">개인 투자 리포트</div>
-    <h1>자산 현황 및 성과 보고서</h1>
-    <div class="print-cover__kicker">총평가액</div>
-    <div class="print-cover__val" id="pc-val">—</div>
-    <div class="print-cover__meta" id="pc-meta"></div>
+    <div class="pc__rule"></div>
+    <div class="pc__top"><span>개인 투자 리서치</span><span class="r" id="pc-period-top">—</span></div>
+    <div class="pc__rule pc__rule--thin"></div>
+
+    <div class="pc__mid">
+      <div class="pc__kicker" id="pc-kicker">연간 성과 보고서</div>
+      <h1>개인 투자 포트폴리오<em>성과 · 리스크 · 자산배분 분석</em></h1>
+      <div class="pc__period" id="pc-period">&mdash;</div>
+    </div>
+
+    <div class="pc__sec">
+      <div class="pc__h">초록</div>
+      <div class="pc__abs" id="pc-abstract"></div>
+    </div>
+
+    <div class="pc__sec">
+      <div class="pc__h">주요 수치</div>
+      <table class="pc__keys" id="pc-keys"></table>
+    </div>
+
+    <div class="pc__foot">
+      <div class="pc__meta" id="pc-meta"></div>
+      <p class="pc__disc">본 문서는 개인 기록·점검 목적으로 자동 생성되었습니다. 투자 권유나 자문이 아니며, 과거 성과가 미래 수익을 보장하지 않습니다. 모든 수치는 원장 파일에 기록된 값에서만 산출되었고, 계산은 이 브라우저 안에서만 이루어졌습니다. 연 1회 기록이라 연중 고점·저점은 포함되지 않으며, 벤치마크 지수는 배당 재투자를 제외한 가격 기준입니다.</p>
+    </div>
   </div>
   <header class="topbar"><div class="wrap topbar__in">
     <div class="brand">
@@ -615,14 +703,14 @@ body.print-all .panel-page:not([data-report]){display:none!important}
     <div class="top-actions">
       <div class="seg" id="cur-toggle"><button data-cur="KRW" class="on">₩</button><button data-cur="USD">$</button></div>
       <div style="position:relative">
-        <button class="iconbtn" id="report-btn" title="리포트 저장" aria-haspopup="true" aria-expanded="false"><svg class="i" aria-hidden="true"><use href="#i-doc"/></svg></button>
+        <button class="iconbtn" id="report-btn" title="리포트 저장" aria-label="리포트 저장" aria-haspopup="true" aria-expanded="false"><svg class="i" aria-hidden="true"><use href="#i-doc"/></svg></button>
         <div class="report-menu hidden" id="report-menu" role="menu">
           <button data-r="all" role="menuitem"><b>전체 리포트</b><small>모든 탭을 표지와 함께 한 문서로</small></button>
           <button data-r="one" role="menuitem"><b>현재 탭만</b><small>지금 보고 있는 화면만</small></button>
         </div>
       </div>
-      <button class="iconbtn" id="theme-btn" title="테마 전환"><svg class="i" aria-hidden="true"><use href="#i-theme"/></svg></button>
-      <button class="iconbtn" id="reload-btn" title="다른 원장 열기"><svg class="i" aria-hidden="true"><use href="#i-reload"/></svg></button>
+      <button class="iconbtn" id="theme-btn" title="테마 전환" aria-label="라이트·다크 테마 전환"><svg class="i" aria-hidden="true"><use href="#i-theme"/></svg></button>
+      <button class="iconbtn" id="reload-btn" title="다른 원장 열기" aria-label="다른 원장 파일 열기"><svg class="i" aria-hidden="true"><use href="#i-reload"/></svg></button>
     </div>
   </div></header>
 
@@ -771,10 +859,7 @@ body.print-all .panel-page:not([data-report]){display:none!important}
           <div class="gauge-val" id="fg-val">—</div>
           <div class="gauge-label" id="fg-label">—</div>
           <div class="gauge-desc" id="fg-desc"></div>
-          <div class="fg-legend">
-            <span><i style="background:#e5484d"></i>극단적 공포</span><span><i style="background:#f0932b"></i>공포</span>
-            <span><i style="background:#aab2c2"></i>중립</span><span><i style="background:#7bc96f"></i>탐욕</span><span><i style="background:#12a150"></i>극단적 탐욕</span>
-          </div>
+          <div class="fg-legend" id="fg-legend"></div>
         </div>
         <div class="note" id="fg-note" style="text-align:center">자동수집본을 쓰면 실제 CNN 지수로 바뀝니다</div>
       </div>
@@ -865,7 +950,8 @@ body.print-all .panel-page:not([data-report]){display:none!important}
         <div class="card pad">
           <div class="blocktitle"><div><h3>변경 이력</h3><div class="sub">최신 두 개만 펼쳐 둡니다 · 제목을 누르면 열립니다</div></div></div>
           <div class="tl" id="tl-hist">
-            <div class="tl__i done"><h4>v15 — 모든 숫자에 근거<span class="tag">현재</span></h4><ul><li>숫자 카드를 누르면 <b>그게 무엇이고 어떻게 나온 값인지</b> 열립니다 — 총평가액·TWR·XIRR·목표·낙폭·심리·벤치마크·배당·복리·기준금리 열 가지</li><li><b>Fear &amp; Greed</b>: 0–24 극단적 공포부터 75–100 극단적 탐욕까지 다섯 구간이 각각 무슨 뜻인지, CNN이 어떤 일곱 가지로 만드는지, 그리고 이 숫자를 어떻게 읽으면 안 되는지</li><li>XIRR은 <b>검산</b>까지 보여줍니다 — 그 수익률에서 현금흐름의 현재가치 합이 0인지</li><li>모든 설명 끝에 <b>이 숫자가 말하지 않는 것</b>을 붙였습니다</li></ul></div>
+            <div class="tl__i done"><h4>v16 — 리포트 조판<span class="tag">현재</span></h4><ul><li>인쇄할 때 브라우저가 찍던 <b>날짜 머리글과 파일 경로 바닥글</b>이 사라집니다</li><li>전체 리포트 첫 장을 <b>애널리스트 리포트 조판</b>으로 — 제목·초록·주요 수치·출처·면책</li><li>본문에서 카드 상자를 걷어내고 괘선과 여백으로만 구분 — 종이에서 훨씬 읽기 쉽습니다</li><li>Fear &amp; Greed 구간 정의가 네 곳에 흩어져 있던 것을 한 곳으로 (서로 어긋날 수 있던 문제)</li><li>보조 글자색을 어둡게 조정 (흰 배경 대비 3.08:1 → 4.63:1)</li><li>아이콘 버튼에 읽어 주는 이름 추가</li></ul></div>
+            <div class="tl__i done"><h4>v15 — 모든 숫자에 근거<span class="tag">완료</span></h4><ul><li>숫자 카드를 누르면 <b>그게 무엇이고 어떻게 나온 값인지</b> 열립니다 — 총평가액·TWR·XIRR·목표·낙폭·심리·벤치마크·배당·복리·기준금리 열 가지</li><li><b>Fear &amp; Greed</b>: 0–24 극단적 공포부터 75–100 극단적 탐욕까지 다섯 구간이 각각 무슨 뜻인지, CNN이 어떤 일곱 가지로 만드는지, 그리고 이 숫자를 어떻게 읽으면 안 되는지</li><li>XIRR은 <b>검산</b>까지 보여줍니다 — 그 수익률에서 현금흐름의 현재가치 합이 0인지</li><li>모든 설명 끝에 <b>이 숫자가 말하지 않는 것</b>을 붙였습니다</li></ul></div>
             <div class="tl__i done"><h4>v14 — 매매일지<span class="tag">완료</span></h4><ul><li>원장에 <b>거래일지</b> 시트를 적으면 새 탭이 켜집니다 — 거래일·구분·티커·수량·단가만</li><li>거래 하나하나에 <b>잘한 선택 / 아쉬운 선택</b> 판정. 매도는 계속 들고 있었을 때와, 매수는 그 돈을 안 썼을 때와 비교합니다</li><li>판정 기준을 <b>S&amp;P에 넣었다면</b>으로 바꿔 볼 수 있습니다 — 매매가 지수를 이겼는지</li><li><b>지금 / 2024년말 / 2023년말</b> 기준으로 되감아, 판정이 시점에 얼마나 흔들리는지 직접 확인합니다</li><li>거래를 누르면 계산식이 전부 나오고, 그 종목 연말 종가 위에 <b>내 거래 가격</b>이 점선으로 그려집니다</li><li>연도 필터 · 최신순/잘한순/아쉬운순 정렬 · 종목별 성적표</li></ul></div>
             <div class="tl__i done"><h4>v13 — 눌러서 파고들기<span class="tag">완료</span></h4><ul><li>자산구성 표의 줄이나 그래프 조각을 누르면 그 자산군만 자세히 열립니다</li><li>모르는 용어 옆 <b>?</b> 를 누르면 뜻이 나옵니다 — 휴대폰에서도 동작</li><li>성장 곡선을 금액과 수익률 중에 골라 보고, 최근 5년·10년만 잘라 볼 수 있습니다</li><li>범례를 누르면 그 선을 잠시 끌 수 있습니다</li><li>시장지표 카드를 누르면 그 지표가 무엇이고 어디서 왔는지 나옵니다</li><li>⌘K 에서 용어를 바로 찾을 수 있습니다</li><li>변경 이력이 길어져 접었습니다 · 만다라트 비우기는 앱 안에서 확인합니다</li></ul></div>
             <div class="tl__i done"><h4>v12 — 화면 전체 다듬기<span class="tag">완료</span></h4><ul><li>아이콘을 직접 그려 넣어 어느 기기에서나 또렷하게</li><li>탭 아래 표시선이 따라 움직이도록</li><li>헤더·탭·카드의 왼쪽 끝을 하나로 정렬 (어긋나 있던 부분 수정)</li><li>문구에서 군더더기와 기술 용어를 걷어냄</li><li>휴대폰 화면 대응 정리</li></ul></div>
@@ -1220,13 +1306,28 @@ function fearGreed(D,bmKey){
   return {score,label:band[0],color:band[1],desc:band[2]};
 }
 // score(0~100) → [라벨, 색, 설명]. 실제 CNN 값과 자체 근사치가 같은 밴드를 공유
+const FG_BANDS=[
+  [0,24,"극단적 공포","#e5484d",25,
+   "시장이 겁에 질린 구간. 팔고 싶어지는 때이고, 역사적으로는 오히려 사 모으기 좋았던 구간이 많았습니다. 다만 <b>바닥이라는 뜻은 아닙니다</b> — 여기서 더 내려간 적도 많습니다.",
+   "지금은 시장이 겁에 질린 구간입니다. 역사적으로는 기회가 될 때가 많았습니다."],
+  [25,44,"공포","#f0932b",20,
+   "투자심리가 위축된 구간. 뉴스가 나쁘고 계좌를 열기 싫어집니다. 규칙대로 사 모으던 사람에게는 대체로 유리했던 구간.",
+   "투자심리가 위축돼 있습니다. 겁먹고 파는 건 대개 손해였습니다."],
+  [45,55,"중립","#aab2c2",11,
+   "과열도 공포도 아닌 구간. 이 지수로는 할 말이 별로 없다는 뜻이라, 무언가를 결정할 근거로 쓰기엔 약합니다.",
+   "과열도 공포도 아닌 구간입니다."],
+  [56,74,"탐욕","#7bc96f",19,
+   "분위기가 좋은 구간. 수익이 당연해 보이고 위험이 작아 보입니다. 새로 크게 베팅하기보다 <b>정해둔 규칙을 지킬 때</b>.",
+   "분위기가 좋습니다. 이럴 때일수록 정해둔 규칙을 지키세요."],
+  [75,100,"극단적 탐욕","#12a150",25,
+   "과열 구간. 안 사면 손해 같은 기분이 드는 때입니다. 비중·현금 비율을 점검하기 좋은 시점이지, 무조건 팔라는 신호는 아닙니다.",
+   "과열 구간입니다. 비중과 현금 비율을 점검하기 좋은 때입니다."]
+];
 function fgBand(score){
-  return score<25?["극단적 공포","#e5484d","지금은 시장이 겁에 질린 구간. 역사적으로는 기회가 될 때가 많았습니다."]
-    : score<45?["공포","#f0932b","투자심리가 위축돼 있습니다. 겁먹고 파는 건 대개 손해였어요."]
-    : score<=55?["중립","#aab2c2","특별한 과열도 공포도 아닌 구간."]
-    : score<=74?["탐욕","#7bc96f","분위기가 좋습니다. 다만 이럴 때일수록 규칙을 지키세요."]
-    : ["극단적 탐욕","#12a150","과열 구간. 수익을 당연하게 여기기 쉬운 때 — 리스크 관리를 점검하세요."];
+  const b=FG_BANDS.find(x=>score>=x[0]&&score<=x[1])||FG_BANDS[2];
+  return [b[2],b[3],b[6]];     // [이름, 색, 게이지 아래 한 줄]
 }
+
 
 /* ─── 종목별(가격 기준) 집계 ─── */
 function holdingStats(D,basis){
@@ -2014,13 +2115,6 @@ const exLead=t=>`<p style="color:var(--ink2);font-size:.93rem;line-height:1.75">
 const exWarn=t=>`<div class="note">${t}</div>`;
 
 /* Fear & Greed 구간 — fgBand() 와 같은 경계를 씁니다(두 곳이 어긋나지 않게) */
-const FG_BANDS=[
-  [0,24,"극단적 공포","#e5484d",25,"시장이 겁에 질린 구간. 팔고 싶어지는 때이고, 역사적으로는 오히려 사 모으기 좋았던 구간이 많았습니다. 다만 <b>바닥이라는 뜻은 아닙니다</b> — 여기서 더 내려간 적도 많습니다."],
-  [25,44,"공포","#f0932b",20,"투자심리가 위축된 구간. 뉴스가 나쁘고 계좌를 열기 싫어집니다. 규칙대로 사 모으던 사람에게는 대체로 유리했던 구간."],
-  [45,55,"중립","#aab2c2",11,"과열도 공포도 아닌 구간. 이 지수로는 할 말이 별로 없다는 뜻이라, 무언가를 결정할 근거로 쓰기엔 약합니다."],
-  [56,74,"탐욕","#7bc96f",19,"분위기가 좋은 구간. 수익이 당연해 보이고 위험이 작아 보입니다. 새로 크게 베팅하기보다 <b>정해둔 규칙을 지킬 때</b>."],
-  [75,100,"극단적 탐욕","#12a150",25,"과열 구간. 안 사면 손해 같은 기분이 드는 때입니다. 비중·현금 비율을 점검하기 좋은 시점이지, 무조건 팔라는 신호는 아닙니다."]
-];
 const FG_PARTS=[
   ["시장 모멘텀","S&P 500 이 125일 이동평균 위인지 아래인지"],
   ["주가 강도","52주 신고가 종목이 신저가 종목보다 많은지"],
@@ -2272,13 +2366,14 @@ function renderRisk(){
     :fgSheet?`실제 CNN Fear & Greed 지수 · 기준일 ${fgSheet.date} (원장 기준)`
     :"벤치마크 모멘텀·변동성 기반 자체 계산 · 참고용";
   $("#fg-note").textContent=fgSrc?"CNN Business 공식 Fear & Greed 지수입니다.":"※ 매일 자동수집본을 쓰면 실제 CNN 지수로 자동 교체됩니다.";
+  $("#fg-legend").innerHTML=FG_BANDS.map(x=>`<span><i style="background:${x[3]}"></i>${x[2]}</span>`).join("");
   destroy("gauge");
   if(fg){
     $("#fg-val").textContent=fg.score;$("#fg-val").style.color=fg.color;
     $("#fg-label").textContent=fg.label;$("#fg-label").style.color=fg.color;
     $("#fg-desc").textContent=fg.desc;
     const gauge={id:"gg",afterDraw(ch){const ctx=ch.ctx,W=ch.width,H=ch.height;const cx=W/2,cy=H-12,R=Math.min(W/2-16,H-26);
-      const zones=[[0,25,"#e5484d"],[25,45,"#f0932b"],[45,55,"#aab2c2"],[55,75,"#7bc96f"],[75,100,"#12a150"]];
+      const zones=FG_BANDS.map(x=>[x[0],Math.min(100,x[1]+1),x[3]]);   // 구간 정의는 FG_BANDS 한 곳에서만
       const A=v=>Math.PI+(v/100)*Math.PI;  // 0→왼쪽(180°) · 50→위(270°) · 100→오른쪽(360°)
       ctx.save();ctx.lineWidth=16;ctx.lineCap="butt";
       for(const[a,z,c]of zones){ctx.beginPath();ctx.arc(cx,cy,R,A(a),A(z),false);ctx.strokeStyle=c;ctx.stroke();}
@@ -2470,22 +2565,76 @@ function printCurrentTab(){
   $("#print-meta").textContent=`${last} 기준 · 생성일 ${todayStr()}`+(tab?` · ${tab.textContent} 페이지`:"");
   window.print();
 }
+/* ── 표지 ──────────────────────────────────────────────────────────────
+   금액 하나를 크게 박아 두면 영수증처럼 보입니다. 애널리스트 리포트는
+   제목 → 초록 → 주요 수치 표 → 출처·면책 순서로 읽히므로 그 조판을 따릅니다.
+   숫자는 전부 이미 계산된 값에서만 가져옵니다(표지용 별도 계산 없음). */
+function fillCover(){
+  const b=STATE.basis, has=!!(DATA&&MODEL);
+  const side=has?(b==="KRW"?MODEL.krw:MODEL.usd):null;
+  const ms=has?DATA.months:[];
+  const period=ms.length?`${ms[0]}–${ms[ms.length-1]}`:"—";
+  $("#pc-kicker").textContent=has?"연간 성과 보고서":"시장 지표 보고서";
+  $("#pc-period-top").textContent=has?`${period} 회계연도`:todayStr();
+  $("#pc-period").innerHTML=has
+    ? `관찰 기간 <b>${fmtY(ms[0])} – ${fmtY(ms[ms.length-1])}</b> · ${ms.length}개년 · ${b==="KRW"?"원화":"달러"} 기준`
+    : "원장 없음 · 시장 지표만 수록";
+  if(!has){
+    $("#pc-abstract").innerHTML="원장 파일이 열려 있지 않아 개인 성과는 포함되지 않았습니다. 이 문서에는 자동 수집된 공개 시장 지표만 실려 있습니다.";
+    $("#pc-keys").innerHTML="";
+    $("#pc-meta").innerHTML=[`작성 ${todayStr()}`,MARKET_DATA?`시장 기준일 ${MARKET_DATA.asOf}`:null].filter(Boolean)
+      .map(x=>`<span>${x}</span>`).join("");
+    return;
+  }
+  const ev=side.S.ev, lastEv=[...ev].reverse().find(isNum);
+  let prin=0; for(const c of side.S.cf) if(isNum(c)) prin+=c;
+  const pnl=isNum(lastEv)&&isNum(prin)?lastEv-prin:null;
+  const dd=drawdown(side.r);
+  const bmr=bmReturns(DATA,STATE.bmKey).r, rUsd=MODEL.usd.r;
+  let me=1,bc=1; for(let i=1;i<ms.length;i++){if(isNum(rUsd[i]))me*=(1+rUsd[i]);if(isNum(bmr[i]))bc*=(1+bmr[i]);}
+  const alpha=(me-1)-(bc-1);
+  const worstY=dd.mddIdx>=0?fmtY(ms[dd.mddIdx]):null;
+  const V=(DATA.trades&&DATA.trades.length)?tradeVerdicts(DATA,b,"hold",STATE.bmKey,""):null;
+
+  // 초록 — 무엇을 어떻게 쟀고 결과가 무엇이었는지. 형용사 없이.
+  $("#pc-abstract").innerHTML=
+    `${fmtY(ms[0])}부터 ${fmtY(ms[ms.length-1])}까지 <b>${ms.length}개년</b>의 연말 기록을 대상으로, `
+    +`입출금 영향을 제거한 시간가중수익률(TWR)과 입금 시점을 반영한 내부수익률(XIRR)을 산출하고 `
+    +`자산군별 기여도·환율 효과·최대낙폭을 분해했다. `
+    +`관찰 기간 누적 TWR은 <b>${pct(side.twr.cum)}</b>(연환산 ${pct(side.twr.ann)}), XIRR은 <b>${pct(side.xirr)}</b>였다. `
+    +(isNum(MODEL.decomp.fx)?`원화 기준 수익률 ${pct(MODEL.decomp.krw)} 가운데 자산 자체가 ${pp(MODEL.decomp.asset)}, 환율이 ${pp(MODEL.decomp.fx)}를 설명한다. `:"")
+    +(isNum(alpha)?`동일 기간 ${BM_LABEL[STATE.bmKey]} 대비 <b>${pp(alpha)}</b>였다. `:"")
+    +(dd.mddIdx>=0?`최대낙폭은 ${worstY} <b>${pct(dd.mdd)}</b>이며, 전고점 회복은 ${dd.ongoing?`아직 진행 중이다(${dd.recovery}년 경과)`:`${dd.recovery}년이 걸렸다`}. `:"")
+    +(V&&V.judged.length?`기록된 매매 ${V.judged.length}건을 '거래하지 않았을 경우'와 비교한 결과, 매매가 만든 차이는 <b>${moneySigned(V.net,b)}</b>였다(잘한 결정 ${V.good}건 / 아쉬운 결정 ${V.bad}건). `:"")
+    +`모든 수치는 연말 한 시점의 기록에서 산출되었다.`;
+
+  // 주요 수치 — 보고서의 key figures 표
+  const row=(k,v,sub)=>`<tr><td>${k}</td><td>${v}${sub?`<span class="sub">${sub}</span>`:""}</td></tr>`;
+  $("#pc-keys").innerHTML=
+    row("총평가액",money(lastEv,b),`${fmtY(ms[ms.length-1])} 연말 기준`)
+    +row("누적 투입원금",money(prin,b))
+    +row("누적 손익",moneySigned(pnl,b),isNum(pnl)&&prin?`원금 대비 ${pct(pnl/prin)}`:"")
+    +row("누적 TWR",pct(side.twr.cum),`연환산 ${pct(side.twr.ann)} · ${side.twr.n}개년`)
+    +row("XIRR",pct(side.xirr),"입금 시점 반영")
+    +row("최대낙폭",pct(dd.mdd),worstY?`${worstY} · 현재 낙폭 ${pct(dd.curDD)}`:"")
+    +(isNum(alpha)?row(`${BM_LABEL[STATE.bmKey]} 대비`,pp(alpha),"달러 기준 누적 초과수익"):"")
+    +(V&&V.judged.length?row("매매가 만든 차이",moneySigned(V.net,b),`${V.judged.length}건 · 잘한 결정 ${V.good} / 아쉬운 ${V.bad}`):"");
+
+  $("#pc-meta").innerHTML=[
+    `작성 ${todayStr()}`,
+    `기준일 ${fmtY(ms[ms.length-1])} 연말`,
+    MARKET_DATA?`시장 지표 ${MARKET_DATA.asOf}`:null,
+    `표시 통화 ${b==="KRW"?"KRW":"USD"}`,
+    `벤치마크 ${BM_LABEL[STATE.bmKey]}`
+  ].filter(Boolean).map(x=>`<span>${x}</span>`).join("");
+}
 function printFullReport(){
   const panels=$$(".panel-page[data-report]");
   drawerClose();modalClose();closeHelp(null);
   document.body.classList.add("print-all");     // 대상 탭 전부 표시 → canvas 크기 확보
   panels.forEach(p=>p.classList.add("on"));
   panels.forEach(p=>{try{renderTab(p.dataset.page);}catch(e){console.warn("리포트 렌더 실패",p.dataset.page,e);}});
-  // 표지 채우기
-  const b=STATE.basis,side=DATA?(b==="KRW"?MODEL.krw:MODEL.usd):null;
-  const lastEv=side?[...side.S.ev].reverse().find(isNum):null;
-  $("#pc-val").innerHTML=moneyHero(lastEv,b);
-  const ms=DATA?DATA.months:[];
-  const rows=[`기간  ${ms.length?fmtY(ms[0])+" ~ "+fmtY(ms[ms.length-1])+" ("+ms.length+"년)":"—"}`,
-              `누적 TWR  ${side?pct(side.twr.cum):"—"}   ·   XIRR  ${side?pct(side.xirr):"—"}`,
-              MARKET_DATA?`시장 기준일  ${MARKET_DATA.asOf}`:null,
-              `생성일  ${todayStr()}`].filter(Boolean);
-  $("#pc-meta").innerHTML=rows.join("<br>");
+  fillCover();
   let done=false;
   const restore=()=>{if(done)return;done=true;
     document.body.classList.remove("print-all");
