@@ -245,6 +245,13 @@ main{padding:26px 0 72px}
 /* 눌러서 열 수 있다는 신호 */
 tr.rowlink{cursor:pointer}
 tr.rowlink:hover{background:var(--accent-weak)}
+/* 숫자 카드도 누르면 열립니다 — 커서와 테두리로만 알립니다(문구를 더 얹지 않게) */
+.kpi.rowlink,.hero.rowlink,.gauge-wrap.rowlink,.stat-row.rowlink,.readout.rowlink{cursor:pointer}
+.kpi.rowlink:hover,.hero.rowlink:hover,.gauge-wrap.rowlink:hover,.stat-row.rowlink:hover{
+  border-color:color-mix(in srgb,var(--accent) 40%,var(--line));box-shadow:var(--shadow-lg)}
+.gauge-wrap.rowlink:hover,.stat-row.rowlink:hover,.readout.rowlink:hover{background:var(--accent-weak)}
+.kpi.rowlink:focus-visible,.hero.rowlink:focus-visible,.gauge-wrap.rowlink:focus-visible,
+.stat-row.rowlink:focus-visible,.readout.rowlink:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
 tr.rowlink td:last-child{position:relative}
 tr.rowlink .go{opacity:0;color:var(--accent);margin-left:6px;vertical-align:-2px;transition:opacity .14s}
 tr.rowlink:hover .go,tr.rowlink:focus-within .go{opacity:1}
@@ -330,6 +337,26 @@ tr.rowlink:hover .go,tr.rowlink:focus-within .go{opacity:1}
 .chip{border:1px solid var(--line);background:var(--card);color:var(--ink2);border-radius:999px;
   padding:5px 12px;font-size:.79rem;font-weight:700;cursor:pointer;font-family:inherit}
 .chip.on{background:var(--ink);border-color:var(--ink);color:var(--bg)}
+/* ── Fear & Greed 구간 띠 (드로어 안) ────────────────────────────── */
+.fgb{margin:6px 0 4px}
+.fgb__t{display:flex;height:13px;border-radius:99px;overflow:hidden}
+.fgb__t i{display:block}
+.fgb__m{position:relative;height:20px}
+.fgb__pin{position:absolute;transform:translateX(-50%);top:-2px;display:flex;flex-direction:column;align-items:center;gap:2px}
+.fgb__pin span{font-size:.7rem;font-weight:800;color:var(--ink);white-space:nowrap}
+.fgb__pin::before{content:"";width:2px;height:9px;background:var(--ink);border-radius:2px}
+.fgb__ax{display:flex;justify-content:space-between;font-size:.68rem;color:var(--muted);font-weight:700;margin-top:2px}
+.bandrow{display:flex;align-items:flex-start;gap:10px;padding:11px 0;border-bottom:1px solid var(--line2)}
+.bandrow:last-child{border-bottom:0}
+.bandrow i{width:10px;height:10px;border-radius:3px;flex:none;margin-top:5px}
+.bandrow .r{font-size:.76rem;font-weight:800;color:var(--muted);min-width:52px;flex:none;padding-top:2px;font-variant-numeric:tabular-nums}
+.bandrow .n{display:block;font-size:.88rem;font-weight:800}
+.bandrow .d{display:block;font-size:.8rem;color:var(--ink2);line-height:1.55;margin-top:3px}
+.bandrow.now{background:var(--accent-weak);border-radius:8px;padding:11px 10px;border-bottom:0}
+.bandrow.now .n::after{content:"지금";font-size:.66rem;font-weight:800;background:var(--ink);color:var(--bg);
+  padding:1px 6px;border-radius:999px;margin-left:6px;vertical-align:1px}
+.mixnote{font-size:.82rem;color:var(--ink2);line-height:1.7}
+.mixnote li{margin-top:5px}
 /* 계산 근거 — 드로어 안의 식 */
 .calc{font-variant-numeric:tabular-nums}
 .calc div{display:flex;justify-content:space-between;gap:14px;padding:9px 0;border-bottom:1px solid var(--line2);font-size:.87rem}
@@ -617,7 +644,7 @@ body.print-all .panel-page:not([data-report]){display:none!important}
     <section class="panel-page on" data-page="overview" data-report="1" data-title="요약">
       <div class="quote mb" data-qt="overview"></div>
       <!-- 히어로: 이 화면이 답하는 단 하나의 숫자 -->
-      <div class="hero mb">
+      <div class="hero mb rowlink" role="button" tabindex="0" data-ex="ev">
         <div class="hero__main">
           <div class="hero__label">총평가액 <span class="help" tabindex="0" role="button" aria-label="총평가액 설명">?<span class="help__tip">모든 자산군의 최근 연말 평가액 합계</span></span></div>
           <div class="hero__val" id="kpi-ev">—</div>
@@ -626,9 +653,9 @@ body.print-all .panel-page:not([data-report]){display:none!important}
         <div class="hero__spark"><canvas id="c-spark"></canvas></div>
       </div>
       <div class="kpi-grid kpi-grid--3 mb">
-        <div class="kpi"><div class="kpi__label">누적 TWR <span class="help" tabindex="0" role="button" data-g="twr" aria-label="누적 TWR 설명">?</span></div><div class="kpi__val" id="kpi-twr">—</div><div class="kpi__sub" id="kpi-twr-sub"></div></div>
-        <div class="kpi"><div class="kpi__label">XIRR <span class="help" tabindex="0" role="button" data-g="xirr" aria-label="XIRR 설명">?</span></div><div class="kpi__val" id="kpi-xirr">—</div><div class="kpi__sub" id="kpi-xirr-sub"></div></div>
-        <div class="kpi"><div class="kpi__label">목표 진척률 <span class="help" tabindex="0" role="button" data-g="goal" aria-label="목표 진척률 설명">?</span></div><div class="kpi__val" id="kpi-goal">—</div><div class="kpi__sub" id="kpi-goal-sub"></div></div>
+        <div class="kpi rowlink" role="button" tabindex="0" data-ex="twr"><div class="kpi__label">누적 TWR <span class="help" tabindex="0" role="button" data-g="twr" aria-label="누적 TWR 설명">?</span></div><div class="kpi__val" id="kpi-twr">—</div><div class="kpi__sub" id="kpi-twr-sub"></div></div>
+        <div class="kpi rowlink" role="button" tabindex="0" data-ex="xirr"><div class="kpi__label">XIRR <span class="help" tabindex="0" role="button" data-g="xirr" aria-label="XIRR 설명">?</span></div><div class="kpi__val" id="kpi-xirr">—</div><div class="kpi__sub" id="kpi-xirr-sub"></div></div>
+        <div class="kpi rowlink" role="button" tabindex="0" data-ex="goal"><div class="kpi__label">목표 진척률 <span class="help" tabindex="0" role="button" data-g="goal" aria-label="목표 진척률 설명">?</span></div><div class="kpi__val" id="kpi-goal">—</div><div class="kpi__sub" id="kpi-goal-sub"></div></div>
       </div>
       <div class="card pad mb">
         <div class="blocktitle">
@@ -665,7 +692,7 @@ body.print-all .panel-page:not([data-report]){display:none!important}
         </div>
         <div class="chartbox h-mid"><canvas id="c-perf"></canvas></div>
         <div class="note" id="perf-note"></div>
-        <div class="stat-row" id="perf-summary"></div>
+        <div class="stat-row rowlink" id="perf-summary" role="button" tabindex="0" data-ex="bench" style="border-radius:var(--radius-sm)"></div>
       </div>
       <div class="card pad mb">
         <div class="blocktitle"><div><h3>손익 분해 (전체 기간)</h3><div class="sub">0에서 시작해 무엇이 얼마나 보탰는지</div></div></div>
@@ -738,7 +765,7 @@ body.print-all .panel-page:not([data-report]){display:none!important}
       <div class="quote mb" data-qt="risk"></div>
       <div class="card pad mb">
         <div class="blocktitle"><div><h3>시장 심리 (Fear &amp; Greed) <span class="help" tabindex="0" role="button" data-g="fng" aria-label="Fear and Greed 설명">?</span></h3><div class="sub" id="fg-sub">벤치마크 모멘텀·변동성 기반 자체 계산 · 참고용</div></div></div>
-        <div class="gauge-wrap">
+        <div class="gauge-wrap rowlink" role="button" tabindex="0" data-ex="fng" style="border-radius:var(--radius-sm);padding:6px 0">
           <div class="chartbox" style="height:180px;max-width:360px"><canvas id="c-gauge"></canvas></div>
           <div class="gauge-val" id="fg-val">—</div>
           <div class="gauge-label" id="fg-label">—</div>
@@ -770,7 +797,7 @@ body.print-all .panel-page:not([data-report]){display:none!important}
           <div class="slider"><label>물가상승률 <b id="v-infl">2.5%</b> <span class="help" tabindex="0">?<span class="help__tip">오늘 돈 기준의 실질 구매력을 함께 계산합니다</span></span></label><input type="range" id="s-infl" min="0" max="6" step="0.1" value="2.5"></div>
           <div class="slider"><label>예측 종료 연도 <b id="v-endyr">2041년</b> <span class="help" tabindex="0">?<span class="help__tip">어느 해까지 그릴지 정합니다 · 최대 2060년</span></span></label><input type="range" id="s-endyr" min="2030" max="2060" step="1" value="2041"></div>
         </div>
-        <div class="readout" id="sim-readout"></div>
+        <div class="readout rowlink" id="sim-readout" role="button" tabindex="0" data-ex="sim" style="border-radius:var(--radius-sm)"></div>
         <div class="chartbox h-tall"><canvas id="c-compound"></canvas></div>
         <div class="note" id="sim-note"></div>
         <div class="gaugebar"><div class="gaugebar__t"><div class="gaugebar__f" id="goal-fill" style="width:0%"></div></div>
@@ -837,7 +864,8 @@ body.print-all .panel-page:not([data-report]){display:none!important}
         <div class="card pad">
           <div class="blocktitle"><div><h3>변경 이력</h3><div class="sub">최신 두 개만 펼쳐 둡니다 · 제목을 누르면 열립니다</div></div></div>
           <div class="tl" id="tl-hist">
-            <div class="tl__i done"><h4>v14 — 매매일지<span class="tag">현재</span></h4><ul><li>원장에 <b>거래일지</b> 시트를 적으면 새 탭이 켜집니다 — 거래일·구분·티커·수량·단가만</li><li>거래 하나하나에 <b>잘한 선택 / 아쉬운 선택</b> 판정. 매도는 계속 들고 있었을 때와, 매수는 그 돈을 안 썼을 때와 비교합니다</li><li>판정 기준을 <b>S&amp;P에 넣었다면</b>으로 바꿔 볼 수 있습니다 — 매매가 지수를 이겼는지</li><li><b>지금 / 2024년말 / 2023년말</b> 기준으로 되감아, 판정이 시점에 얼마나 흔들리는지 직접 확인합니다</li><li>거래를 누르면 계산식이 전부 나오고, 그 종목 연말 종가 위에 <b>내 거래 가격</b>이 점선으로 그려집니다</li><li>연도 필터 · 최신순/잘한순/아쉬운순 정렬 · 종목별 성적표</li></ul></div>
+            <div class="tl__i done"><h4>v15 — 모든 숫자에 근거<span class="tag">현재</span></h4><ul><li>숫자 카드를 누르면 <b>그게 무엇이고 어떻게 나온 값인지</b> 열립니다 — 총평가액·TWR·XIRR·목표·낙폭·심리·벤치마크·배당·복리·기준금리 열 가지</li><li><b>Fear &amp; Greed</b>: 0–24 극단적 공포부터 75–100 극단적 탐욕까지 다섯 구간이 각각 무슨 뜻인지, CNN이 어떤 일곱 가지로 만드는지, 그리고 이 숫자를 어떻게 읽으면 안 되는지</li><li>XIRR은 <b>검산</b>까지 보여줍니다 — 그 수익률에서 현금흐름의 현재가치 합이 0인지</li><li>모든 설명 끝에 <b>이 숫자가 말하지 않는 것</b>을 붙였습니다</li></ul></div>
+            <div class="tl__i done"><h4>v14 — 매매일지<span class="tag">완료</span></h4><ul><li>원장에 <b>거래일지</b> 시트를 적으면 새 탭이 켜집니다 — 거래일·구분·티커·수량·단가만</li><li>거래 하나하나에 <b>잘한 선택 / 아쉬운 선택</b> 판정. 매도는 계속 들고 있었을 때와, 매수는 그 돈을 안 썼을 때와 비교합니다</li><li>판정 기준을 <b>S&amp;P에 넣었다면</b>으로 바꿔 볼 수 있습니다 — 매매가 지수를 이겼는지</li><li><b>지금 / 2024년말 / 2023년말</b> 기준으로 되감아, 판정이 시점에 얼마나 흔들리는지 직접 확인합니다</li><li>거래를 누르면 계산식이 전부 나오고, 그 종목 연말 종가 위에 <b>내 거래 가격</b>이 점선으로 그려집니다</li><li>연도 필터 · 최신순/잘한순/아쉬운순 정렬 · 종목별 성적표</li></ul></div>
             <div class="tl__i done"><h4>v13 — 눌러서 파고들기<span class="tag">완료</span></h4><ul><li>자산구성 표의 줄이나 그래프 조각을 누르면 그 자산군만 자세히 열립니다</li><li>모르는 용어 옆 <b>?</b> 를 누르면 뜻이 나옵니다 — 휴대폰에서도 동작</li><li>성장 곡선을 금액과 수익률 중에 골라 보고, 최근 5년·10년만 잘라 볼 수 있습니다</li><li>범례를 누르면 그 선을 잠시 끌 수 있습니다</li><li>시장지표 카드를 누르면 그 지표가 무엇이고 어디서 왔는지 나옵니다</li><li>⌘K 에서 용어를 바로 찾을 수 있습니다</li><li>변경 이력이 길어져 접었습니다 · 만다라트 비우기는 앱 안에서 확인합니다</li></ul></div>
             <div class="tl__i done"><h4>v12 — 화면 전체 다듬기<span class="tag">완료</span></h4><ul><li>아이콘을 직접 그려 넣어 어느 기기에서나 또렷하게</li><li>탭 아래 표시선이 따라 움직이도록</li><li>헤더·탭·카드의 왼쪽 끝을 하나로 정렬 (어긋나 있던 부분 수정)</li><li>문구에서 군더더기와 기술 용어를 걷어냄</li><li>휴대폰 화면 대응 정리</li></ul></div>
             <div class="tl__i done"><h4>v11 — 전체 리포트 · 구성 토글 · 빠른 이동<span class="tag">완료</span></h4><ul><li>모든 탭을 표지와 함께 한 문서로 인쇄</li><li>자산구성을 구성 막대와 도넛 중에 골라 보기</li><li>⌘K 로 어디로든 바로 이동 · 숫자키 1–9 도 지원</li></ul></div>
@@ -1490,7 +1518,7 @@ function renderDividends(){
   const lastYr=months.length?months[months.length-1]:"",ttm=byY[lastYr]||0;
   const side=b==="KRW"?MODEL.krw:MODEL.usd,lastEv=[...side.S.ev].reverse().find(isNum);
   const yld=isNum(lastEv)&&lastEv>0?ttm/lastEv:null,total=series.reduce((s,x)=>s+x,0);
-  const cd=(name,val,sub)=>`<div class="kpi"><div class="kpi__label">${name}</div><div class="kpi__val" >${val}</div><div class="kpi__sub dim">${sub||""}</div></div>`;
+  const cd=(name,val,sub)=>`<div class="kpi rowlink" role="button" tabindex="0" data-ex="divy"><div class="kpi__label">${name}</div><div class="kpi__val" >${val}</div><div class="kpi__sub dim">${sub||""}</div></div>`;
   $("#div-cards").innerHTML=cd("최근 1년 배당",money(ttm,b),lastYr+"년")+cd("배당수익률",yld==null?"—":(yld*100).toFixed(2)+"%","최근 1년 ÷ 평가액")+cd("연 평균 배당",money(months.length?total/months.length:0,b),months.length+"년 평균")+cd("누적 배당",money(total,b),months.length+"년");
   destroy("div");
   CHARTS.div=new Chart($("#c-div"),{type:"bar",data:{labels:months.map(fmtY),datasets:[barMark(cssVar("--d3"),{data:series.map(v=>v||null)})]},
@@ -1552,15 +1580,16 @@ function renderMarket(){
           :c("Fear & Greed","—","","fng"));
   $("#market-note").innerHTML=`그날 값만 보여줍니다(누적 없음). 흐름을 쌓아 보는 건 아래 기준금리 하나입니다. <span class="dim">카드를 누르면 그 지표가 무엇인지 열립니다.</span>`;
   // 기준금리 — 유일한 누적 지표
+  const rc0=(name,val,sub)=>`<div class="kpi rowlink" role="button" tabindex="0" data-ex="rate"><div class="kpi__label">${name}</div><div class="kpi__val">${val}</div><div class="kpi__sub dim">${sub||""}</div></div>`;
   const pr=M.policyRate,rc=$("#rate-cards");
   if(!pr||!pr.current){rc.innerHTML=`<div class="empty" style="grid-column:1/-1">기준금리 데이터 없음</div>`;$("#rate-note").textContent="";return;}
   const cur=pr.current,hist=(pr.history||[]).filter(h=>isNum(h.target_to));
   const first=hist.length?hist[0]:null,chg=(first&&isNum(cur.target_to))?cur.target_to-first.target_to:null;
   rc.innerHTML=
-    c(`현재 목표범위${hlp("fedtr")}`,(isNum(cur.target_from)&&isNum(cur.target_to))?`${cur.target_from.toFixed(2)}~${cur.target_to.toFixed(2)}%`:"—",cur.date||"")+
-    c(`실효금리 EFFR${hlp("effr")}`,isNum(cur.effr)?cur.effr.toFixed(2)+"%":"—","실제 거래 금리")+
+    rc0(`현재 목표범위${hlp("fedtr")}`,(isNum(cur.target_from)&&isNum(cur.target_to))?`${cur.target_from.toFixed(2)}~${cur.target_to.toFixed(2)}%`:"—",cur.date||"")+
+    rc0(`실효금리 EFFR${hlp("effr")}`,isNum(cur.effr)?cur.effr.toFixed(2)+"%":"—","실제 거래 금리")+
     `<div class="kpi"><div class="kpi__label">기간 변동</div><div class="kpi__val ${signClass(chg)}" >${isNum(chg)?(chg>=0?"+":"−")+Math.abs(chg).toFixed(2)+"%p":"—"}</div><div class="kpi__sub dim">${first?first.date+" 대비":""}</div></div>`+
-    c("기록",hist.length?hist.length+"개월":"—",first?`${first.date.slice(0,7)} ~ ${cur.date.slice(0,7)}`:"");
+    rc0("기록",hist.length?hist.length+"개월":"—",first?`${first.date.slice(0,7)} ~ ${cur.date.slice(0,7)}`:"");
   CHARTS.rate=new Chart($("#c-rate"),{type:"line",data:{labels:hist.map(h=>h.date.slice(0,7)),datasets:[
     lineMark(cssVar("--d1"),{label:"목표 상단",data:hist.map(h=>h.target_to),backgroundColor:areaWash(cssVar("--d1")),fill:"+1",pointRadius:0,pointHitRadius:0,stepped:true}),
     lineMark(cssVar("--d1"),{label:"목표 하단",data:hist.map(h=>h.target_from),borderWidth:1.4,borderDash:[4,3],pointRadius:0,pointHitRadius:0,stepped:true}),
@@ -1957,6 +1986,261 @@ function openTradeDrawer(r){
   }
 }
 
+/* ═══════════════════ 설명 드로어 (모든 지표 공통) ═══════════════════
+   숫자 카드에 data-ex="키" 만 붙이면 눌렀을 때 그 지표가 무엇이고, 지금 값이
+   어떻게 나왔고, 어디까지 믿으면 되는지가 열립니다. 문구·계산은 여기 한 곳. */
+const exSec=(t,h)=>`<div><div class="dw__sec">${t}</div>${h}</div>`;
+const exTable=(head,body)=>`<div style="overflow-x:auto"><table class="table"><thead><tr>${head.map(h=>`<th>${h}</th>`).join("")}</tr></thead><tbody>${body}</tbody></table></div>`;
+const exCalc=lines=>`<div class="calc">${lines.map(([k,d,v,c])=>
+  `<div><span class="k">${k}${d?`<br><span class="op">${d}</span>`:""}</span><span class="${c||""}">${v}</span></div>`).join("")}</div>`;
+const exLead=t=>`<p style="color:var(--ink2);font-size:.93rem;line-height:1.75">${t}</p>`;
+const exWarn=t=>`<div class="note">${t}</div>`;
+
+/* Fear & Greed 구간 — fgBand() 와 같은 경계를 씁니다(두 곳이 어긋나지 않게) */
+const FG_BANDS=[
+  [0,24,"극단적 공포","#e5484d",25,"시장이 겁에 질린 구간. 팔고 싶어지는 때이고, 역사적으로는 오히려 사 모으기 좋았던 구간이 많았습니다. 다만 <b>바닥이라는 뜻은 아닙니다</b> — 여기서 더 내려간 적도 많습니다."],
+  [25,44,"공포","#f0932b",20,"투자심리가 위축된 구간. 뉴스가 나쁘고 계좌를 열기 싫어집니다. 규칙대로 사 모으던 사람에게는 대체로 유리했던 구간."],
+  [45,55,"중립","#aab2c2",11,"과열도 공포도 아닌 구간. 이 지수로는 할 말이 별로 없다는 뜻이라, 무언가를 결정할 근거로 쓰기엔 약합니다."],
+  [56,74,"탐욕","#7bc96f",19,"분위기가 좋은 구간. 수익이 당연해 보이고 위험이 작아 보입니다. 새로 크게 베팅하기보다 <b>정해둔 규칙을 지킬 때</b>."],
+  [75,100,"극단적 탐욕","#12a150",25,"과열 구간. 안 사면 손해 같은 기분이 드는 때입니다. 비중·현금 비율을 점검하기 좋은 시점이지, 무조건 팔라는 신호는 아닙니다."]
+];
+const FG_PARTS=[
+  ["시장 모멘텀","S&P 500 이 125일 이동평균 위인지 아래인지"],
+  ["주가 강도","52주 신고가 종목이 신저가 종목보다 많은지"],
+  ["주가 폭","오르는 종목의 거래량이 내리는 종목보다 많은지"],
+  ["풋/콜 비율","하락에 거는 옵션이 상승에 거는 옵션보다 많은지"],
+  ["시장 변동성","VIX(공포지수)가 50일 평균보다 높은지"],
+  ["안전자산 수요","최근 20일 국채가 주식보다 나았는지"],
+  ["정크본드 수요","위험한 회사채와 우량 회사채의 금리 차가 벌어졌는지"]
+];
+function fgDrawerBody(score,date,isReal){
+  const bd=fgBand(score),cur=FG_BANDS.find(x=>score>=x[0]&&score<=x[1])||FG_BANDS[2];
+  const pin=Math.max(0,Math.min(100,score));
+  return `
+    ${exLead(`0에 가까울수록 <b>공포</b>, 100에 가까울수록 <b>탐욕</b>입니다. 지금은 <b style="color:${bd[1]}">${score} · ${bd[0]}</b>.`)}
+    <div class="fgb">
+      <div class="fgb__t">${FG_BANDS.map(x=>`<i style="flex:${x[4]};background:${x[3]}"></i>`).join("")}</div>
+      <div class="fgb__m"><div class="fgb__pin" style="left:${pin}%"><span>${score}</span></div></div>
+      <div class="fgb__ax"><span>0 공포</span><span>50</span><span>탐욕 100</span></div>
+    </div>
+    ${exSec("구간별로 무슨 뜻인가",FG_BANDS.map(x=>`
+      <div class="bandrow${x===cur?" now":""}"><i style="background:${x[3]}"></i>
+        <span class="r">${x[0]}–${x[1]}</span>
+        <span><span class="n">${x[2]}</span><span class="d">${x[5]}</span></span></div>`).join(""))}
+    ${exSec("이 숫자는 무엇으로 만드나",
+      `<p class="mixnote">CNN이 아래 <b>일곱 가지</b>를 각각 0~100으로 바꿔 평균한 값입니다. 하나가 튀어도 전체는 잘 안 흔들립니다.</p>
+       <ul class="mixnote" style="padding-left:18px;margin-top:8px">${FG_PARTS.map(p=>`<li><b>${p[0]}</b> — ${p[1]}</li>`).join("")}</ul>`)}
+    ${exSec("어떻게 읽나",
+      `<p class="mixnote"><b>온도계지 일기예보가 아닙니다.</b> 지금 시장이 어떤 기분인지 알려줄 뿐, 내일 오를지 내릴지는 말해주지 않습니다.<br><br>
+       쓸모 있는 방식은 하나뿐입니다 — <b>내 결정이 지금 분위기에 끌려가고 있지 않은지 확인하는 것.</b>
+       공포 구간에서 팔고 싶어졌다면, 탐욕 구간에서 더 사고 싶어졌다면, 그 마음이 시장 기분에서 온 건지 내 계획에서 온 건지 되물어 보라는 뜻입니다.</p>`)}
+    ${exWarn(isReal?`출처: CNN Business 공식 지수 · 기준일 ${date||"—"} · 매일 21시 자동 갱신`
+      :`지금 화면은 <b>자체 계산 근사치</b>입니다. 자동수집본을 쓰면 CNN 공식 지수로 바뀝니다.`)}`;
+}
+const EXPLAIN={
+  /* ── 요약 ── */
+  ev:()=>{
+    const b=STATE.basis,{months}=DATA,lastYm=months[months.length-1],side=b==="KRW"?MODEL.krw:MODEL.usd;
+    const ev=side.S.ev,lastEv=[...ev].reverse().find(isNum);
+    let prin=0;for(const c of side.S.cf)if(isNum(c))prin+=c;
+    const i=ev.length-1,prevEv=i>0?ev[i-1]:null,cfNow=side.S.cf[i];
+    const grow=(isNum(lastEv)&&isNum(prevEv))?lastEv-prevEv:null;
+    const byC={};for(const r of(DATA.snap[lastYm]||[])){const v=conv(r.ev,r.cur,b,DATA.fx[lastYm]);if(isNum(v))byC[r.cls]=(byC[r.cls]||0)+v;}
+    const cls=Object.keys(byC).sort((x,y)=>byC[y]-byC[x]);
+    return{kicker:"핵심 지표",title:"총평가액",body:`
+      ${exLead(`${fmtY(lastYm)} 기준, 모든 자산군의 연말 평가액을 ${b==="KRW"?"그해 연말 환율로 원화 환산해":"달러로 환산해"} 더한 값입니다.`)}
+      ${exSec("무엇으로 이뤄져 있나",exTable(["자산군","평가액","비중"],
+        cls.map(c=>`<tr><td>${c}</td><td>${money(byC[c],b)}</td><td>${(byC[c]/lastEv*100).toFixed(1)}%</td></tr>`).join("")
+        +`<tr><td><b>합계</b></td><td><b>${money(lastEv,b)}</b></td><td><b>100%</b></td></tr>`))}
+      ${exSec("얼마가 내 돈이고 얼마가 불어난 건가",exCalc([
+        ["지금까지 넣은 원금","모든 해의 순입금 합계",money(prin,b)],
+        ["누적 손익","평가액 − 원금",moneySigned(lastEv-prin,b),signClass(lastEv-prin)],
+        ["총평가액","",money(lastEv,b)]]))}
+      ${exSec("작년보다 얼마나 늘었나",exCalc([
+        ["작년 연말",months[i-1]?fmtY(months[i-1]):"—",money(prevEv,b)],
+        ["그중 새로 넣은 돈","순입금",moneySigned(cfNow,b)],
+        ["운용으로 늘어난 몫","증가액 − 순입금",moneySigned(isNum(grow)&&isNum(cfNow)?grow-cfNow:null,b),signClass(isNum(grow)&&isNum(cfNow)?grow-cfNow:null)],
+        ["올해 연말","",money(lastEv,b)]]))}
+      ${exWarn("연 1회 기록이라 연중 고점·저점은 담기지 않습니다. 연말 한 시점의 사진입니다.")}`};
+  },
+  twr:()=>{
+    const b=STATE.basis,side=b==="KRW"?MODEL.krw:MODEL.usd,{months}=DATA;
+    const I=twrIndex(side.r);
+    return{kicker:"핵심 지표",title:"누적 TWR",body:`
+      ${exLead("입출금 시점과 금액의 영향을 걷어낸 <b>순수 운용 성과</b>입니다. 언제 얼마를 넣었는지와 무관하게 '운용을 잘했는가'만 봅니다.")}
+      ${exSec("연도별로 곱해 나갑니다",exTable(["연도","그해 수익률","누적(시작=100)"],
+        months.map((y,i)=>isNum(side.r[i])?`<tr><td>${fmtY(y)}</td><td class="${signClass(side.r[i])}">${pct(side.r[i])}</td><td>${isNum(I[i])?I[i].toFixed(1):"—"}</td></tr>`:"").join("")))}
+      ${exSec("정리",exCalc([
+        ["누적 TWR","(1+r₁)×(1+r₂)×… − 1",pct(side.twr.cum),signClass(side.twr.cum)],
+        ["연율화",`누적을 ${side.twr.n}년으로 고르게 편 값`,pct(side.twr.ann),signClass(side.twr.ann)],
+        ["기록 연수","",side.twr.n+"년"]]))}
+      ${exWarn(`연도별 수익률은 Modified Dietz — 그해 순입금이 기간 중간에 들어왔다고 보고 분모를 보정합니다.
+        ${side.twr.n<5?`<br><b>${side.twr.n}년은 짧습니다.</b> 이 숫자로 실력을 판단하기엔 표본이 부족합니다.`:""}`)}`};
+  },
+  xirr:()=>{
+    const b=STATE.basis,side=b==="KRW"?MODEL.krw:MODEL.usd,{months}=DATA;
+    const lastEv=[...side.S.ev].reverse().find(isNum),r=side.xirr;
+    const cfs=months.map((y,i)=>({y,amt:-(isNum(side.S.cf[i])?side.S.cf[i]:0)}));
+    if(cfs.length)cfs[cfs.length-1].amt+=(isNum(lastEv)?lastEv:0);
+    let npv=null;
+    if(isNum(r)){const d0=ymEndDate(months[0]);
+      npv=sum(months.map((y,i)=>cfs[i].amt/Math.pow(1+r,(ymEndDate(y)-d0)/(365*86400000))));}
+    return{kicker:"핵심 지표",title:"XIRR",body:`
+      ${exLead("<b>내 돈 기준</b> 연수익률입니다. 늦게 넣은 돈은 짧게, 일찍 넣은 돈은 길게 굴러간 것으로 쳐서 계산합니다.")}
+      ${exSec("현금흐름 (내 지갑 기준)",exTable(["연도","금액","뜻"],
+        cfs.map(c=>`<tr><td>${fmtY(c.y)}</td><td class="${signClass(c.amt)}">${moneySigned(c.amt,b)}</td><td class="dim">${c.amt<0?"내가 넣은 돈":"돌려받는 셈 치는 값"}</td></tr>`).join("")))}
+      ${exSec("검산",exCalc([
+        ["XIRR","이 수익률에서",pct(r),signClass(r)],
+        ["현재가치 합","0에 가까울수록 정확",isNum(npv)?money(npv,b):"—"],
+        ["누적 TWR","비교용",pct(side.twr.cum),signClass(side.twr.cum)]]))}
+      ${exSec("TWR과 왜 다른가",`<p class="mixnote">
+        TWR은 <b>운용 실력</b>만 봅니다. XIRR은 <b>언제 얼마를 넣었는지</b>까지 함께 봅니다.<br><br>
+        ${isNum(r)&&isNum(side.twr.ann)?(r<side.twr.ann
+          ? "지금은 XIRR이 더 낮습니다 — <b>많이 넣은 뒤에 성적이 나빴던 해</b>가 있었다는 뜻입니다."
+          : r>side.twr.ann ? "지금은 XIRR이 더 높습니다 — <b>많이 넣은 뒤에 성적이 좋았던 해</b>가 있었다는 뜻입니다."
+          : "지금은 둘이 거의 같습니다.") : ""}</p>`)}
+      ${exWarn("입출금 시점을 연말로 잡습니다(연 단위 원장). 실제 입금일이 연중이면 약간 달라집니다.")}`};
+  },
+  goal:()=>{
+    const g=DATA.goal,evK=[...MODEL.krw.S.ev].reverse().find(isNum);
+    if(!g||!isNum(g.target))return{kicker:"목표",title:"목표 진척률",body:exLead("원장 '목표' 시트가 비어 있습니다. 목표금액·목표일·월저축액을 적으면 이 화면이 채워집니다.")};
+    const left=g.target-evK, yrs=[];
+    let fv=evK;const gg=STATE.g,pmt=STATE.pmt*12;
+    const startY=+DATA.months[DATA.months.length-1].slice(0,4);
+    for(let t=1;t<=40&&fv<g.target;t++){fv=fv*(1+gg)+pmt;yrs.push(t);}
+    const reach=fv>=g.target?startY+yrs.length:null;
+    return{kicker:"목표",title:"목표 진척률",body:`
+      ${exLead(`현재 총자산을 목표금액으로 나눈 값입니다. 목표는 <b>${g.name||"—"}</b>.`)}
+      ${exSec("지금 어디쯤인가",exCalc([
+        ["현재 총자산","최근 연말",money(evK,"KRW")],
+        ["목표금액",g.targetYm?g.targetYm+" 까지":"",money(g.target,"KRW")],
+        ["남은 금액","",money(left,"KRW")],
+        ["진척률","현재 ÷ 목표",(evK/g.target*100).toFixed(2)+"%"]]))}
+      ${exSec("지금 가정대로 가면",exCalc([
+        ["가정 연복리","복리 탭 슬라이더 값",(gg*100).toFixed(1)+"%"],
+        ["월 저축액","",money(STATE.pmt,"KRW")],
+        ["도달 예상",reach?`약 ${yrs.length}년 뒤`:"40년 안에는 못 닿습니다",reach?reach+"년":"—"]]))}
+      ${exWarn("가정을 그대로 40년 밀어 본 <b>산수</b>일 뿐, 예측이 아닙니다. 수익률이 매년 같을 리 없고 물가도 반영하지 않았습니다. 복리 탭에서 가정을 바꿔 보세요.")}`};
+  },
+  /* ── 리스크 ── */
+  dd:()=>{
+    const b=STATE.basis,side=b==="KRW"?MODEL.krw:MODEL.usd,{months}=DATA;
+    const I=carryIndex(side.r),dd=drawdown(side.r);
+    let peak=-Infinity;const rows=months.map((y,i)=>{peak=Math.max(peak,I[i]);
+      return`<tr${i===dd.mddIdx?' style="background:var(--neg-weak)"':""}><td>${fmtY(y)}</td><td>${I[i].toFixed(1)}</td><td>${peak.toFixed(1)}</td><td class="${signClass(dd.uw[i])}">${dd.uw[i]?pct(dd.uw[i]):"0.00%"}</td></tr>`;}).join("");
+    const rr=side.r.slice(1).filter(isNum),win=rr.length?rr.filter(x=>x>0).length/rr.length:null;
+    return{kicker:"리스크",title:"낙폭과 회복",body:`
+      ${exLead("사상 최고점 대비 지금 얼마나 아래인지를 <b>연말 기준</b>으로 잰 값입니다. 실제로 견뎌야 했던 고통의 크기입니다.")}
+      ${exSec("연도별로 따라가 보면",exTable(["연도","누적지수","그때까지 최고","고점 대비"],rows))}
+      ${exSec("정리",exCalc([
+        ["역대 최악 하락 (MDD)",dd.mddIdx>=0?fmtY(months[dd.mddIdx])+"에":"",pct(dd.mdd),"neg"],
+        ["현재 낙폭","최고점 대비 지금",pct(dd.curDD),signClass(dd.curDD)],
+        ["최악에서 회복",dd.ongoing?"아직 전고점을 못 넘음":"전고점 회복까지",dd.recovery==null?"—":dd.recovery+"년"],
+        ["승률(연)","플러스로 끝난 해 비율",win==null?"—":(win*100).toFixed(0)+"%"]]))}
+      ${exWarn(`<b>연말 값만</b> 씁니다. 연중에 더 깊이 빠졌다가 회복한 구간은 이 표에 잡히지 않습니다 — 실제 낙폭은 이보다 컸을 수 있습니다.
+        승률은 첫 해(구조상 0)를 뺀 ${rr.length}개 표본 기준이라, 실력보다 운일 수 있습니다.`)}`};
+  },
+  fng:()=>{
+    const snap=(MARKET_DATA&&MARKET_DATA.fg&&isNum(MARKET_DATA.fg.score))?MARKET_DATA.fg:null;
+    const sheet=(DATA&&DATA.fgReal&&isNum(DATA.fgReal.score))?DATA.fgReal:null;
+    const src=snap||sheet;
+    const calc=src?null:(DATA?fearGreed(DATA,STATE.bmKey):null);
+    const score=src?Math.round(src.score):(calc?calc.score:null);
+    if(score==null)return{kicker:"시장 심리",title:"Fear & Greed",body:exLead("표시할 값이 없습니다.")};
+    return{kicker:"시장 심리",title:"Fear & Greed 지수",body:fgDrawerBody(score,src?src.date:null,!!src)};
+  },
+  /* ── 성과 ── */
+  bench:()=>{
+    const{months}=DATA,bmr=bmReturns(DATA,STATE.bmKey).r,rUsd=MODEL.usd.r;
+    let me=1,bc=1;const rows=months.map((y,i)=>{if(i===0)return"";
+      if(isNum(rUsd[i]))me*=(1+rUsd[i]);if(isNum(bmr[i]))bc*=(1+bmr[i]);
+      const d=(isNum(rUsd[i])&&isNum(bmr[i]))?rUsd[i]-bmr[i]:null;
+      return`<tr><td>${fmtY(y)}</td><td class="${signClass(rUsd[i])}">${pct(rUsd[i])}</td><td class="${signClass(bmr[i])}">${pct(bmr[i])}</td><td class="${signClass(d)}">${pp(d)}</td></tr>`;}).join("");
+    const cc=corr(rUsd,bmr);
+    const wins=months.map((y,i)=>(i>0&&isNum(rUsd[i])&&isNum(bmr[i]))?(rUsd[i]>bmr[i]?1:0):null).filter(x=>x!=null);
+    return{kicker:"성과",title:`${BM_LABEL[STATE.bmKey]} 와 비교`,body:`
+      ${exLead(`지수는 달러 표시라 <b>둘 다 달러 기준</b>으로 맞춰 비교합니다. 원화 기준으로 보면 환율 효과가 섞여 비교가 흐려집니다.`)}
+      ${exSec("연도별 맞대결",exTable(["연도","내 수익률","지수","차이"],rows))}
+      ${exSec("정리",exCalc([
+        ["누적 초과수익","내 누적 − 지수 누적",pp((me-1)-(bc-1)),signClass((me-1)-(bc-1))],
+        ["상관","1에 가까우면 지수와 같이 움직임",cc==null?"—":cc.toFixed(2)],
+        ["이긴 해",`${wins.filter(Boolean).length} / ${wins.length}`,wins.length?(wins.filter(Boolean).length/wins.length*100).toFixed(0)+"%":"—"]]))}
+      ${exWarn(`지수 수익률은 <b>배당 재투자를 뺀 가격 지수</b> 기준입니다. 실제 지수 ETF(배당 재투자)와는 매년 1~2%p 정도 차이가 날 수 있습니다.
+        표본 ${wins.length}년으로 실력을 가리기엔 짧습니다.`)}`};
+  },
+  divy:()=>{
+    const b=STATE.basis,{months}=DATA,divs=DATA.dividends||[],side=b==="KRW"?MODEL.krw:MODEL.usd;
+    const byY={};for(const d of divs){const y=d.ym.slice(0,4);byY[y]=(byY[y]||0)+d.amt*rateAt(DATA,d.ym,b);}
+    const rows=months.map((y,i)=>{const a=byY[y]||0,ev=side.S.ev[i];
+      return`<tr><td>${fmtY(y)}</td><td>${money(a,b)}</td><td>${money(ev,b)}</td><td>${isNum(ev)&&ev>0?(a/ev*100).toFixed(2)+"%":"—"}</td></tr>`;}).join("");
+    const tot=sum(Object.values(byY));
+    return{kicker:"성과",title:"배당",body:`
+      ${exLead("원장 '배당' 시트에 적힌 수령액을 연 단위로 합산했습니다. <b>세전</b> 기준입니다.")}
+      ${exSec("연도별",exTable(["연도","받은 배당","연말 평가액","수익률"],rows))}
+      ${exSec("정리",exCalc([
+        ["누적 배당",`${months.length}년 합계`,money(tot,b)],
+        ["연 평균","",money(months.length?tot/months.length:0,b)]]))}
+      ${exWarn("배당수익률은 그해 받은 배당 ÷ <b>그해 연말</b> 평가액입니다. 연중에 평가액이 크게 변했다면 실제 체감과 다를 수 있습니다. 미국 주식 배당은 현지에서 15% 원천징수되는데, 원장에 세후 금액을 적었다면 그대로 반영됩니다.")}`};
+  },
+  sim:()=>{
+    const PV=[...MODEL.krw.S.ev].reverse().find(isNum)||0;
+    const g=STATE.g,PMT=STATE.pmt,sg=STATE.sg,infl=STATE.infl,g0=DATA.goal;
+    const startY=+DATA.months[DATA.months.length-1].slice(0,4);
+    const N=Math.max(1,(STATE.simEndYear||startY+15)-startY);
+    let fv=PV,cum=0;const rows=[];
+    for(let t=1;t<=N;t++){
+      const A=12*PMT*Math.pow(1+sg,t-1);
+      fv=fv*(1+g)+A;cum+=A;
+      const prin=PV+cum,real=fv/Math.pow(1+infl,t);
+      rows.push(`<tr><td>${startY+t}년</td><td>${moneyShort(prin,"KRW")}</td><td>${moneyShort(fv-prin,"KRW")}</td><td><b>${moneyShort(fv,"KRW")}</b></td><td class="dim">${moneyShort(real,"KRW")}</td></tr>`);
+    }
+    const step=Math.max(1,Math.ceil(rows.length/12));
+    return{kicker:"복리",title:"복리 시뮬레이터",body:`
+      ${exLead("지금 총자산에서 출발해 <b>매년 잔액 전체가 수익률만큼 불어나고 저축이 더해진다</b>고 가정하고 그린 그림입니다.")}
+      ${exSec("가정 — 슬라이더로 바꾼 값 그대로",exCalc([
+        ["출발 금액","최근 연말 총자산",money(PV,"KRW")],
+        ["연복리 수익률","매년 같다고 가정",(g*100).toFixed(1)+"%"],
+        ["월 저축액","",money(PMT,"KRW")],
+        ["저축 증가율","매년 저축을 이만큼 늘림",(sg*100).toFixed(1)+"%"],
+        ["물가상승률","실질금액 계산에만 사용",(infl*100).toFixed(1)+"%"],
+        ["예측 종료",`${N}년 뒤`,(startY+N)+"년"]]))}
+      ${exSec("연도별 (표시 간격 "+step+"년)",exTable(["연도","납입 누계","복리분","합계","실질"],
+        rows.filter((_,i)=>i%step===0||i===rows.length-1).join("")))}
+      ${exWarn(`<b>예측이 아니라 산수입니다.</b> 수익률이 매년 정확히 ${(g*100).toFixed(1)}%인 해는 실제로 거의 없습니다.
+        실제로는 좋은 해와 나쁜 해가 섞이고, 나쁜 해가 앞쪽에 오면 결과가 크게 달라집니다.
+        세금·수수료도 빠져 있습니다. <b>가정을 바꿔 가며 범위를 감 잡는 용도</b>로 쓰세요.
+        ${g0&&isNum(g0.target)?`목표선은 원장 '목표' 시트의 ${money(g0.target,"KRW")}입니다.`:""}`)}`};
+  },
+  /* ── 시장 ── */
+  rate:()=>{
+    const pr=MARKET_DATA&&MARKET_DATA.policyRate;
+    if(!pr||!pr.current)return{kicker:"시장 지표",title:"미국 기준금리",body:exLead("기준금리 데이터가 없습니다.")};
+    const h=(pr.history||[]).filter(x=>isNum(x.target_to));
+    const chg=[];let prev=null;
+    for(const x of h){if(prev==null||Math.abs(x.target_to-prev)>1e-9){chg.push({...x,d:prev==null?null:x.target_to-prev});prev=x.target_to;}}
+    const cur=pr.current;
+    return{kicker:"시장 지표",title:"미국 기준금리",body:`
+      ${exLead("연준이 정하는 정책금리 구간입니다. 이 대시보드에서 <b>흐름을 쌓아 보는 유일한 지표</b>이고, 나머지 시장 지표는 그날 값만 보여줍니다.")}
+      ${exSec("지금",exCalc([
+        ["목표범위","연준이 정한 구간",(isNum(cur.target_from)&&isNum(cur.target_to))?`${cur.target_from.toFixed(2)}~${cur.target_to.toFixed(2)}%`:"—"],
+        ["실효금리 EFFR","은행끼리 실제로 거래된 금리",isNum(cur.effr)?cur.effr.toFixed(2)+"%":"—"],
+        ["기준일","",cur.date||"—"]]))}
+      ${exSec("금리가 바뀐 시점만",exTable(["시점","목표 상단","변동"],
+        chg.slice(-14).reverse().map(x=>`<tr><td>${x.date.slice(0,7)}</td><td>${x.target_to.toFixed(2)}%</td><td class="${x.d==null?"dim":x.d>0?"neg":"pos"}">${x.d==null?"—":(x.d>0?"+":"−")+Math.abs(x.d).toFixed(2)+"%p"}</td></tr>`).join("")))}
+      ${exSec("내 자산과 무슨 상관인가",`<ul class="mixnote" style="padding-left:18px">
+        <li><b>채권</b> — 금리가 오르면 이미 가진 채권 가격은 내려갑니다. 장기채일수록 크게 움직입니다.</li>
+        <li><b>성장주</b> — 먼 미래 이익에 기대는 주식일수록 금리 상승에 불리합니다.</li>
+        <li><b>현금성(MMF·RP)</b> — 금리가 오르면 이자가 붙습니다. 기다리는 비용이 줄어듭니다.</li>
+        <li><b>환율</b> — 미국 금리가 상대적으로 높아지면 달러가 강해지는 경향이 있습니다.</li></ul>`)}
+      ${exWarn("출처: 뉴욕 연준 공식 API(EFFR) · 매일 21시 자동 갱신. 경향일 뿐 규칙이 아닙니다.")}`};
+  }
+};
+function openExplain(key){
+  const f=EXPLAIN[key];if(!f||!DATA&&["ev","twr","xirr","goal","dd","bench","divy","sim"].includes(key))return;
+  let o;try{o=f();}catch(e){console.warn("설명 생성 실패",key,e);return;}
+  if(o)drawerOpen(o.kicker,o.title,o.body);
+}
+
 /* 리스크·심리 */
 function renderRisk(){
   chDefaults();const{months}=DATA;
@@ -1993,7 +2277,7 @@ function renderRisk(){
     plugins:[{id:"ml",afterDatasetsDraw(ch){if(dd.mddIdx<0)return;const p=ch.getDatasetMeta(0).data[dd.mddIdx];if(!p)return;const ctx=ch.ctx;ctx.save();ctx.fillStyle=cssVar("--neg");ctx.font="800 11px "+(cssVar("--font")||"sans-serif");ctx.textAlign="center";ctx.fillText(`최악 ${(dd.mdd*100).toFixed(1)}%`,p.x,p.y+16);ctx.restore();}}]});
   const rec=dd.recovery==null?"—":(dd.ongoing?`진행 중 ${dd.recovery}년`:`${dd.recovery}년`);
   const rr=r.slice(1).filter(isNum),win=rr.length?rr.filter(x=>x>0).length/rr.length:null;  // 첫 해(구조상 0) 제외
-  const card=(k,v,cls,key)=>`<div class="kpi"><div class="kpi__label">${k} ${hlp(key)}</div><div class="kpi__val ${cls||""}" >${v}</div></div>`;
+  const card=(k,v,cls,key)=>`<div class="kpi rowlink" role="button" tabindex="0" data-ex="dd"><div class="kpi__label">${k} ${hlp(key)}</div><div class="kpi__val ${cls||""}" >${v}</div></div>`;
   $("#risk-cards").innerHTML=
     card("역대 최악 하락",pct(dd.mdd),"neg","mdd")+
     card("현재 낙폭",pct(dd.curDD),signClass(dd.curDD),"curdd")+
@@ -2226,13 +2510,14 @@ $("#modal").addEventListener("mousedown",e=>{if(e.target.id==="modal")modalClose
 function openFromEl(el){
   const tr=el.closest("tr.rowlink");if(tr&&tr.dataset.cls){openClassDrawer(tr.dataset.cls);return true;}
   const mk=el.closest("[data-mk]");if(mk){openMarketDrawer(mk.dataset.mk);return true;}
+  const ex=el.closest("[data-ex]");if(ex){openExplain(ex.dataset.ex);return true;}
   return false;
 }
 document.addEventListener("click",e=>{if(e.target.closest(".help"))return;openFromEl(e.target);});
 document.addEventListener("keydown",e=>{
   if(e.key!=="Enter"&&e.key!==" ")return;
   const el=document.activeElement;if(!el)return;
-  if(el.matches("tr.rowlink,[data-mk]")&&openFromEl(el))e.preventDefault();
+  if(el.matches("tr.rowlink,[data-mk],[data-ex]")&&openFromEl(el))e.preventDefault();
 });
 // 매매일지: 판정 기준 · 정렬 · 연도 · 카드
 $("#v-base").addEventListener("click",e=>{const b=e.target.closest("button");if(!b)return;
@@ -2297,6 +2582,16 @@ function cmdkCommands(){
       c.push({ic:"★",tt:"가장 아쉬웠던 결정",ds:"매매일지",run:()=>{switchTab("trade");setTimeout(()=>{if(VD&&VD.worst[0])openTradeDrawer(VD.worst[0]);},60);}});
       c.push({ic:"★",tt:"가장 잘한 결정",ds:"매매일지",run:()=>{switchTab("trade");setTimeout(()=>{if(VD&&VD.best[0])openTradeDrawer(VD.best[0]);},60);}});
     }
+  }
+  // 지표 설명 — 계산 근거까지 담긴 상세
+  const EXNAV={ev:["총평가액","요약"],twr:["누적 TWR","요약"],xirr:["XIRR","요약"],goal:["목표 진척률","요약"],
+    dd:["낙폭과 회복","리스크"],fng:["Fear & Greed 지수","리스크"],bench:["벤치마크 비교","성과"],
+    divy:["배당","성과"],sim:["복리 시뮬레이터","복리"],rate:["미국 기준금리","시장"]};
+  const EXTAB={ev:"overview",twr:"overview",xirr:"overview",goal:"overview",dd:"risk",fng:"risk",bench:"perf",divy:"perf",sim:"sim",rate:"market"};
+  for(const k in EXNAV){
+    if(!DATA&&["ev","twr","xirr","goal","dd","bench","divy","sim"].includes(k))continue;
+    c.push({ic:"◎",tt:EXNAV[k][0]+" 자세히",ds:EXNAV[k][1]+" · 계산 근거",
+      run:()=>{switchTab(EXTAB[k]);setTimeout(()=>openExplain(k),60);}});
   }
   // 용어 — ⌘K 에 'TWR' 만 쳐도 뜻이 열립니다
   Object.keys(GLOSSARY).forEach(k=>{const g=GLOSSARY[k];
