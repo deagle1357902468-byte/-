@@ -198,11 +198,74 @@ main{padding:26px 0 72px}
 .kpi__val{font-size:clamp(1.4rem,2.6vw,1.65rem);font-weight:780;letter-spacing:-.02em;margin-top:8px;line-height:1.12;
   font-variant-numeric:proportional-nums;word-break:keep-all}
 .kpi__sub{margin-top:7px;font-size:.78rem;color:var(--ink2);line-height:1.6}
-.help{position:relative;display:inline-flex;width:15px;height:15px;border-radius:50%;border:1px solid var(--muted);color:var(--muted);font-size:10px;align-items:center;justify-content:center;cursor:help;font-weight:800;flex:none}
+.help{position:relative;display:inline-flex;width:15px;height:15px;margin-left:4px;border-radius:50%;border:1px solid var(--muted);color:var(--muted);font-size:10px;align-items:center;justify-content:center;cursor:help;font-weight:800;flex:none;vertical-align:1px}
 .help:hover .help__tip,.help:focus .help__tip{opacity:1;transform:translateY(0)}
 .help__tip{position:absolute;bottom:150%;left:50%;transform:translate(-50%,4px);opacity:0;transition:.14s;background:var(--ink);color:var(--bg);padding:8px 11px;border-radius:9px;font-size:.75rem;font-weight:500;width:220px;line-height:1.45;z-index:80;box-shadow:var(--shadow-lg);pointer-events:none;white-space:normal}
 /* 오른쪽 끝 카드에서 툴팁이 화면 밖으로 나가지 않도록 */
 .kpi:last-child .help__tip,.kpi-grid>.kpi:nth-child(4) .help__tip{left:auto;right:0;transform:translateY(4px)}
+/* 클릭하면 고정 — 터치 기기에는 hover 가 없습니다 */
+.help.on{border-color:var(--accent);color:var(--accent);background:var(--accent-weak)}
+.help.on .help__tip{opacity:1!important;transform:translate(-50%,0)}
+.kpi:last-child .help.on .help__tip,.kpi-grid>.kpi:nth-child(4) .help.on .help__tip{transform:translateY(0)}
+.help__tip b{color:inherit;font-weight:800}
+.help__tip .gt{display:block;font-weight:800;margin-bottom:3px;opacity:.85}
+
+/* ── 상세 드로어 (표의 한 줄 · 차트 한 조각을 눌러 파고들기) ───────────── */
+#drawer{position:fixed;inset:0;z-index:110;display:flex;justify-content:flex-end}
+#drawer.hidden{display:none}
+.dw__scrim{position:absolute;inset:0;background:rgba(8,11,18,.46);backdrop-filter:blur(2px);animation:fadeIn .16s ease-out}
+@keyframes fadeIn{from{opacity:0}to{opacity:1}}
+.dw__box{position:relative;width:min(520px,100%);height:100%;background:var(--card);border-left:1px solid var(--line);
+  box-shadow:var(--shadow-lg);display:flex;flex-direction:column;animation:dwIn .2s cubic-bezier(.2,.7,.3,1)}
+@keyframes dwIn{from{transform:translateX(28px);opacity:.4}to{transform:none;opacity:1}}
+.dw__head{display:flex;align-items:flex-start;justify-content:space-between;gap:14px;
+  padding:20px clamp(16px,2.4vw,24px) 16px;border-bottom:1px solid var(--line)}
+.dw__kicker{font-size:.72rem;font-weight:800;letter-spacing:.06em;color:var(--accent-ink);text-transform:uppercase}
+.dw__head h3{font-size:1.2rem;font-weight:800;letter-spacing:-.02em;margin-top:4px}
+.dw__body{flex:1;overflow-y:auto;padding:clamp(16px,2.4vw,24px);display:flex;flex-direction:column;gap:20px}
+.dw__grid{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+.dw__m{background:var(--card2);border:1px solid var(--line);border-radius:var(--radius-sm);padding:12px 14px}
+.dw__m .k{font-size:.74rem;font-weight:700;color:var(--ink2)}
+.dw__m .v{font-size:1.12rem;font-weight:800;letter-spacing:-.012em;margin-top:5px;font-variant-numeric:proportional-nums;word-break:keep-all}
+.dw__m .v .hero__cur{font-size:.82em;opacity:.62;margin-right:.1em;vertical-align:.04em;font-weight:600}
+.dw__sec{font-size:.82rem;font-weight:800;color:var(--ink2);margin-bottom:9px}
+@media(max-width:560px){.dw__box{width:100%;border-left:0}}
+/* 눌러서 열 수 있다는 신호 */
+tr.rowlink{cursor:pointer}
+tr.rowlink:hover{background:var(--accent-weak)}
+tr.rowlink td:last-child{position:relative}
+tr.rowlink .go{opacity:0;color:var(--accent);margin-left:6px;vertical-align:-2px;transition:opacity .14s}
+tr.rowlink:hover .go,tr.rowlink:focus-within .go{opacity:1}
+.clickhint{font-size:.75rem;color:var(--muted);margin-top:10px;display:flex;align-items:center;gap:5px}
+
+/* ── 확인 모달 (브라우저 기본 confirm 대체) ─────────────────────────── */
+#modal{position:fixed;inset:0;z-index:130;display:flex;align-items:center;justify-content:center;padding:16px;
+  background:rgba(8,11,18,.5);backdrop-filter:blur(3px)}
+#modal.hidden{display:none}
+.md__box{width:min(400px,100%);background:var(--card);border:1px solid var(--line);border-radius:16px;
+  box-shadow:var(--shadow-lg);padding:24px;animation:cmdkIn .14s ease-out}
+.md__box h4{font-size:1.05rem;font-weight:800;letter-spacing:-.015em}
+.md__box p{color:var(--ink2);font-size:.87rem;line-height:1.65;margin-top:8px;word-break:keep-all}
+.md__act{display:flex;gap:8px;justify-content:flex-end;margin-top:20px}
+
+/* ── 아코디언 (개발기록처럼 길게 쌓이는 목록) ──────────────────────── */
+.acc{border-top:1px solid var(--line2)}
+.acc__h{width:100%;display:flex;align-items:center;gap:10px;background:none;border:0;cursor:pointer;
+  padding:13px 2px;color:var(--ink);font-family:inherit;font-size:.9rem;font-weight:750;text-align:left;
+  list-style:none;outline:none}
+.acc__h::-webkit-details-marker{display:none}
+.acc__h::marker{content:""}
+.acc__h:focus-visible{box-shadow:0 0 0 2px var(--accent-weak);border-radius:6px}
+.acc__h .cnt{margin-left:auto;font-size:.74rem;font-weight:700;color:var(--muted);flex:none;white-space:nowrap}
+.acc__h .tag{flex:none}
+.acc__h .i{color:var(--muted);transition:transform .18s ease;flex:none}
+.acc[open] .acc__h .i{transform:rotate(180deg)}
+.acc__b{padding:2px 2px 16px}
+/* 연대표 안에서는 왼쪽 점과 줄을 맞춰야 하므로 위 여백을 없앱니다 */
+.tl__i--acc .acc{border-top:0}
+.tl__i--acc .acc__h{padding:0 2px 2px;font-size:.95rem;font-weight:800}
+.tl__i--acc .acc__b{padding:0 2px 0}
+.tl__i--acc .acc__h .cnt{font-weight:700}
 .badge{display:inline-block;font-size:.66rem;font-weight:800;padding:2px 7px;border-radius:999px;background:var(--neg-weak);color:var(--neg);margin-left:6px;vertical-align:middle}
 .badge--assume{background:var(--accent-weak);color:var(--accent)}
 .pill-row{display:inline-flex;gap:6px;flex-wrap:wrap}
@@ -211,6 +274,7 @@ main{padding:26px 0 72px}
 .miniseg{display:inline-flex;background:var(--line2);border:1px solid var(--line);border-radius:999px;padding:2px}
 .miniseg button{border:0;background:transparent;color:var(--ink2);font-weight:700;font-size:.78rem;padding:4px 11px;border-radius:999px;cursor:pointer}
 .miniseg button.on{background:var(--card);color:var(--ink);box-shadow:var(--shadow)}
+.miniseg:empty{display:none}   /* 기록이 짧아 선택지가 없으면 빈 껍데기를 남기지 않습니다 */
 
 .chartbox{position:relative;width:100%}
 .h-tall{height:360px}.h-mid{height:290px}.h-short{height:220px}.h-bar{height:104px;margin-bottom:6px}
@@ -219,7 +283,7 @@ main{padding:26px 0 72px}
 .stat-row b{color:var(--ink);font-weight:750}
 
 /* two-col */
-.cols{display:grid;grid-template-columns:340px 1fr;gap:20px}
+.cols{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1fr);gap:20px;align-items:start}
 @media(max-width:880px){.cols{grid-template-columns:1fr}}
 .table{width:100%;border-collapse:collapse;font-size:.86rem}
 .table th,.table td{padding:11px 12px;text-align:right;white-space:nowrap}
@@ -264,6 +328,8 @@ input[type=range]{width:100%;accent-color:var(--accent);height:4px}
 .btn{background:var(--card);border:1px solid var(--line);color:var(--ink);border-radius:10px;padding:8px 14px;font-size:.85rem;font-weight:700;cursor:pointer}
 .btn:hover{border-color:var(--accent)}
 .btn-accent{background:var(--accent);border-color:var(--accent);color:#fff}
+.btn--danger{background:var(--neg);border-color:var(--neg);color:#fff}
+.btn--danger:hover{border-color:var(--neg);filter:brightness(1.08)}
 
 /* timeline (changelog) */
 .tl{position:relative;padding-left:22px}
@@ -286,55 +352,6 @@ input[type=range]{width:100%;accent-color:var(--accent);height:4px}
 .mandala .mc.bt{border-top:2px solid var(--axis)}
 .mandala .mc.bl{border-left:2px solid var(--axis)}
 @media(max-width:640px){.mandala .mc{font-size:.48rem;padding:2px;border-radius:4px}}
-/* ── 여정 탭 ───────────────────────────────────────────────────────────── */
-.jn-now{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1.05fr);gap:clamp(16px,3vw,34px);align-items:center}
-@media(max-width:820px){.jn-now{grid-template-columns:1fr;gap:18px}}
-.jn-now__label{color:var(--ink2);font-size:.84rem;font-weight:700}
-.jn-now__val{font-size:clamp(1.9rem,4.4vw,2.6rem);font-weight:800;letter-spacing:-.02em;margin-top:8px;line-height:1.05;
-  font-variant-numeric:proportional-nums}
-.jn-now__delta{margin-top:10px;font-size:.88rem;color:var(--ink2);line-height:1.7}
-.jn-drivers{display:flex;flex-direction:column;gap:8px}
-.jn-drv{display:flex;align-items:center;gap:11px;padding:9px 13px;background:var(--card2);border:1px solid var(--line2);border-radius:11px}
-.jn-drv__n{flex:1;min-width:0;font-size:.84rem;font-weight:650;color:var(--ink);display:block}
-.jn-drv__s{display:block;font-size:.75rem;color:var(--muted);font-weight:500;margin-top:2px}
-.jn-drv__v{font-size:.92rem;font-weight:750;font-variant-numeric:tabular-nums;white-space:nowrap}
-
-/* 이정표 계단 */
-.steps{display:flex;gap:10px;flex-wrap:wrap}
-.step{flex:1 1 140px;min-width:0;border:1px solid var(--line);border-radius:13px;padding:14px 15px;background:var(--card);position:relative;overflow:hidden}
-.step--done{background:var(--accent-weak);border-color:color-mix(in srgb,var(--accent) 30%,var(--line))}
-.step--next{border-color:var(--accent);border-width:1.5px;box-shadow:0 0 0 3px var(--accent-weak)}
-.step__t{font-size:1.05rem;font-weight:800;letter-spacing:-.02em}
-.step--done .step__t{color:var(--accent-ink)}
-.step__s{font-size:.74rem;color:var(--muted);margin-top:4px;line-height:1.5}
-.step__bar{position:absolute;left:0;bottom:0;height:3px;background:var(--accent);transition:width .5s cubic-bezier(.3,.8,.3,1)}
-
-/* 타임라인 */
-.tline{position:relative;padding:6px 0 2px}
-.tline__track{height:9px;border-radius:99px;background:var(--line2);position:relative;overflow:hidden}
-.tline__fill{height:100%;border-radius:99px;background:linear-gradient(90deg,var(--accent2),var(--accent));transition:width .6s cubic-bezier(.3,.8,.3,1)}
-.tline__now{position:absolute;top:-5px;width:3px;height:19px;border-radius:2px;background:var(--ink);transform:translateX(-50%)}
-.tline__marks{position:relative;height:42px;margin-top:9px}
-.tline__mk{position:absolute;transform:translateX(-50%);text-align:center;font-size:.72rem;color:var(--muted);line-height:1.45;white-space:nowrap}
-.tline__mk b{display:block;color:var(--ink2);font-size:.78rem;font-weight:750}
-.tline__mk--now b{color:var(--accent-ink)}
-
-/* 연대기 */
-.chron{display:flex;flex-direction:column;gap:12px}
-.chron__i{display:grid;grid-template-columns:78px minmax(0,1fr);gap:16px;padding:15px 0;border-top:1px solid var(--line2)}
-.chron__i:first-child{border-top:0;padding-top:2px}
-@media(max-width:640px){.chron__i{grid-template-columns:1fr;gap:8px}}
-.chron__y{font-size:1.06rem;font-weight:800;letter-spacing:-.02em}
-.chron__y small{display:block;font-size:.72rem;font-weight:650;color:var(--muted);margin-top:2px}
-.chron__facts{display:flex;gap:7px;flex-wrap:wrap;margin-bottom:9px}
-.fact{font-size:.74rem;color:var(--ink2);background:var(--card2);border:1px solid var(--line2);border-radius:8px;padding:4px 9px;white-space:nowrap}
-.fact b{font-weight:750;font-variant-numeric:tabular-nums}
-.chron__memo{min-height:2.6em;font-size:.87rem;line-height:1.75;color:var(--ink);
-  border:1px dashed var(--line);border-radius:10px;padding:10px 13px;outline:none;transition:border-color .14s,background .14s}
-.chron__memo:hover{border-color:color-mix(in srgb,var(--accent) 34%,var(--line))}
-.chron__memo:focus{border-style:solid;border-color:var(--accent);background:var(--card2)}
-.chron__memo:empty::before{content:attr(data-ph);color:var(--muted)}
-
 /* 커맨드 팔레트 (⌘K / Ctrl+K) */
 #cmdk{position:fixed;inset:0;z-index:100;display:flex;align-items:flex-start;justify-content:center;
   padding:12vh 16px 16px;background:rgba(8,11,18,.5);backdrop-filter:blur(3px)}
@@ -397,7 +414,10 @@ body.print-all .panel-page[data-report]{display:block!important}
 body.print-all .panel-page:not([data-report]){display:none!important}
 @media print{
   .topbar,.tabs,.top-actions,.iconbtn,.btn,#ov-prev,#ov-next,.pill-row,.miniseg,.seg,.foot,
-  #mandala-reset,.help,#banners,.sim-grid,.gaugebar,#div-card>.chartbox,#cmdk,.report-menu{display:none!important}
+  #mandala-reset,.help,#banners,.sim-grid,.gaugebar,#div-card>.chartbox,#cmdk,.report-menu,
+  #drawer,#modal,.clickhint,.rowlink .go{display:none!important}
+  .acc__b{display:block!important}   /* 접혀 있어도 인쇄에는 전부 나옵니다 */
+  .acc__h .i{display:none}
   body{background:#fff!important;color:#000!important}
   .print-head{display:block!important;text-align:center;border-bottom:2px solid #333;padding-bottom:10px;margin-bottom:14px}
   body.print-all .print-head{display:none!important}
@@ -442,6 +462,9 @@ body.print-all .panel-page:not([data-report]){display:none!important}
   <symbol id="i-market" viewBox="0 0 24 24"><path d="M4 19h16M6.5 15.5v-4M11 15.5V7M15.5 15.5v-6M20 15.5V5" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" fill="none"/></symbol>
   <symbol id="i-arrow" viewBox="0 0 24 24"><path d="M5 12h13M13 6.5 18.8 12 13 17.5" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round" fill="none"/></symbol>
   <symbol id="i-quote" viewBox="0 0 24 24"><path d="M9.4 5.6C6.4 7 4.8 9.4 4.8 12.6v5.8h6.4v-6.2H7.9c.1-1.9 1-3.3 2.7-4.2l-1.2-2.4Zm9.4 0C15.8 7 14.2 9.4 14.2 12.6v5.8h6.4v-6.2h-3.3c.1-1.9 1-3.3 2.7-4.2l-1.2-2.4Z" fill="currentColor"/></symbol>
+  <symbol id="i-x" viewBox="0 0 24 24"><path d="M6.4 6.4 17.6 17.6M17.6 6.4 6.4 17.6" stroke="currentColor" stroke-width="2" stroke-linecap="round" fill="none"/></symbol>
+  <symbol id="i-chev" viewBox="0 0 24 24"><path d="M6 9.5 12 15.5 18 9.5" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" fill="none"/></symbol>
+  <symbol id="i-open" viewBox="0 0 24 24"><path d="M13.5 4.5H19.5V10.5M19.5 4.5 12 12" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round" fill="none"/><path d="M18 14.5v4a1.6 1.6 0 0 1-1.6 1.6H5.6A1.6 1.6 0 0 1 4 18.5V7.6A1.6 1.6 0 0 1 5.6 6h4" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" fill="none"/></symbol>
 </defs></svg>
 
 <!-- ── 파일 로드 전 ── -->
@@ -503,7 +526,6 @@ body.print-all .panel-page:not([data-report]){display:none!important}
     <button class="tab" data-tab="risk">리스크·심리</button>
     <button class="tab" data-tab="market">시장지표</button>
     <button class="tab" data-tab="sim">복리·목표</button>
-    <button class="tab" data-tab="journey">여정</button>
     <button class="tab" data-tab="mandala">만다라트</button>
     <button class="tab" data-tab="manage">관리</button>
     <button class="tab" data-tab="dev">개발기록</button>
@@ -518,21 +540,27 @@ body.print-all .panel-page:not([data-report]){display:none!important}
       <!-- 히어로: 이 화면이 답하는 단 하나의 숫자 -->
       <div class="hero mb">
         <div class="hero__main">
-          <div class="hero__label">총평가액 <span class="help" tabindex="0">?<span class="help__tip">모든 자산군의 최근 연말 평가액 합계</span></span></div>
+          <div class="hero__label">총평가액 <span class="help" tabindex="0" role="button" aria-label="총평가액 설명">?<span class="help__tip">모든 자산군의 최근 연말 평가액 합계</span></span></div>
           <div class="hero__val" id="kpi-ev">—</div>
           <div class="hero__sub" id="kpi-ev-sub"></div>
         </div>
         <div class="hero__spark"><canvas id="c-spark"></canvas></div>
       </div>
       <div class="kpi-grid kpi-grid--3 mb">
-        <div class="kpi"><div class="kpi__label">누적 TWR <span class="help" tabindex="0">?<span class="help__tip">입출금 시점과 규모의 영향을 걷어낸 순수 운용 성과</span></span></div><div class="kpi__val" id="kpi-twr">—</div><div class="kpi__sub" id="kpi-twr-sub"></div></div>
-        <div class="kpi"><div class="kpi__label">XIRR <span class="help" tabindex="0">?<span class="help__tip">입금 시점까지 반영한 내 돈의 실제 연수익률</span></span></div><div class="kpi__val" id="kpi-xirr">—</div><div class="kpi__sub" id="kpi-xirr-sub"></div></div>
-        <div class="kpi"><div class="kpi__label">목표 진척률 <span class="help" tabindex="0">?<span class="help__tip">현재 총자산을 목표금액으로 나눈 값</span></span></div><div class="kpi__val" id="kpi-goal">—</div><div class="kpi__sub" id="kpi-goal-sub"></div></div>
+        <div class="kpi"><div class="kpi__label">누적 TWR <span class="help" tabindex="0" role="button" data-g="twr" aria-label="누적 TWR 설명">?</span></div><div class="kpi__val" id="kpi-twr">—</div><div class="kpi__sub" id="kpi-twr-sub"></div></div>
+        <div class="kpi"><div class="kpi__label">XIRR <span class="help" tabindex="0" role="button" data-g="xirr" aria-label="XIRR 설명">?</span></div><div class="kpi__val" id="kpi-xirr">—</div><div class="kpi__sub" id="kpi-xirr-sub"></div></div>
+        <div class="kpi"><div class="kpi__label">목표 진척률 <span class="help" tabindex="0" role="button" data-g="goal" aria-label="목표 진척률 설명">?</span></div><div class="kpi__val" id="kpi-goal">—</div><div class="kpi__sub" id="kpi-goal-sub"></div></div>
       </div>
       <div class="card pad mb">
-        <div class="blocktitle"><div><h3>자산 성장 곡선</h3><div class="sub">두 선이 벌어진 만큼이 손익입니다</div></div></div>
+        <div class="blocktitle">
+          <div><h3>자산 성장 곡선 <span class="help" tabindex="0" role="button" data-g="growth" aria-label="자산 성장 곡선 설명">?</span></h3><div class="sub" id="growth-sub">두 선이 벌어진 만큼이 손익입니다</div></div>
+          <div style="display:flex;gap:8px;flex-wrap:wrap">
+            <div class="miniseg" id="growth-mode"><button data-m="amt" class="on">금액</button><button data-m="pct">수익률</button></div>
+            <div class="miniseg" id="span-seg"></div>
+          </div>
+        </div>
         <div class="chartbox h-tall"><canvas id="c-growth"></canvas></div>
-        <div class="note">색이 칠해진 면적이 누적 손익입니다</div>
+        <div class="note" id="growth-note">색이 칠해진 면적이 누적 손익입니다 · 범례를 누르면 그 선을 잠시 끌 수 있습니다</div>
       </div>
       <div class="card pad">
         <div class="blocktitle">
@@ -553,7 +581,7 @@ body.print-all .panel-page:not([data-report]){display:none!important}
       <div class="quote mb" data-qt="perf"></div>
       <div class="card pad mb">
         <div class="blocktitle">
-          <div><h3>벤치마크 비교</h3><div class="sub" id="perf-sub">시작 시점을 100으로 맞춘 누적 성과 · 달러 기준 비교</div></div>
+          <div><h3>벤치마크 비교 <span class="help" tabindex="0" role="button" data-g="bench" aria-label="벤치마크 비교 설명">?</span></h3><div class="sub" id="perf-sub">시작 시점을 100으로 맞춘 누적 성과 · 달러 기준 비교</div></div>
           <div class="pill-row" id="bm-pills"><button class="pill on" data-bm="sp">S&amp;P 500</button><button class="pill" data-bm="nq">NASDAQ</button><button class="pill" data-bm="dj">다우존스</button></div>
         </div>
         <div class="chartbox h-mid"><canvas id="c-perf"></canvas></div>
@@ -569,6 +597,7 @@ body.print-all .panel-page:not([data-report]){display:none!important}
           <div class="miniseg" id="mix-mode"><button data-m="bar" class="on">구성 막대</button><button data-m="donut">도넛</button></div></div>
         <div class="chartbox h-bar" id="box-mix-class"><canvas id="c-mix-class"></canvas></div>
         <div style="overflow-x:auto"><table class="table" id="t-class"></table></div>
+        <div class="clickhint" id="mix-hint"></div>
         <div id="holdings-wrap" class="hidden" style="margin-top:30px;padding-top:24px;border-top:1px solid var(--line2)">
           <div class="blocktitle"><div><h3 style="font-size:.98rem">종목별</h3><div class="sub" id="mix-hold-sub">연말보유 기준 · 수익률은 시세(가격) 기준</div></div></div>
           <div class="chartbox h-bar" id="box-mix-hold"><canvas id="c-mix-hold"></canvas></div>
@@ -587,7 +616,7 @@ body.print-all .panel-page:not([data-report]){display:none!important}
     <section class="panel-page" data-page="risk" data-report="1" data-title="리스크 · 심리">
       <div class="quote mb" data-qt="risk"></div>
       <div class="card pad mb">
-        <div class="blocktitle"><div><h3>시장 심리 (Fear &amp; Greed)</h3><div class="sub" id="fg-sub">벤치마크 모멘텀·변동성 기반 자체 계산 · 참고용</div></div></div>
+        <div class="blocktitle"><div><h3>시장 심리 (Fear &amp; Greed) <span class="help" tabindex="0" role="button" data-g="fng" aria-label="Fear and Greed 설명">?</span></h3><div class="sub" id="fg-sub">벤치마크 모멘텀·변동성 기반 자체 계산 · 참고용</div></div></div>
         <div class="gauge-wrap">
           <div class="chartbox" style="height:180px;max-width:360px"><canvas id="c-gauge"></canvas></div>
           <div class="gauge-val" id="fg-val">—</div>
@@ -645,44 +674,6 @@ body.print-all .panel-page:not([data-report]){display:none!important}
       </div>
     </section>
 
-    <!-- 여정 -->
-    <section class="panel-page" data-page="journey" data-report="1" data-title="여정">
-      <div class="quote mb" data-qt="journey"></div>
-
-      <!-- 지금 : 결산 이후 시장이 움직인 만큼 -->
-      <div class="card pad mb">
-        <div class="blocktitle"><div><h3>지금 어디쯤</h3><div class="sub" id="jn-now-sub">마지막 결산 이후 시장이 움직인 만큼을 반영한 추정치</div></div></div>
-        <div class="jn-now">
-          <div>
-            <div class="jn-now__label">추정 현재 자산</div>
-            <div class="jn-now__val" id="jn-est">—</div>
-            <div class="jn-now__delta" id="jn-est-delta"></div>
-          </div>
-          <div class="jn-drivers" id="jn-drivers"></div>
-        </div>
-        <div class="note" id="jn-est-note"></div>
-      </div>
-
-      <!-- 다음 이정표 -->
-      <div class="card pad mb">
-        <div class="blocktitle"><div><h3>다음 이정표</h3><div class="sub" id="jn-step-sub">1조는 멀어서 진척률이 0%로만 보입니다. 바로 다음 칸을 봅니다</div></div></div>
-        <div class="steps" id="jn-steps"></div>
-        <div class="note" id="jn-step-note"></div>
-      </div>
-
-      <!-- 30년 타임라인 -->
-      <div class="card pad mb">
-        <div class="blocktitle"><div><h3>전체 여정</h3><div class="sub" id="jn-tl-sub">지나온 길과 남은 길을 한 줄에</div></div></div>
-        <div class="tline" id="jn-timeline"></div>
-      </div>
-
-      <!-- 연대기 -->
-      <div class="card pad">
-        <div class="blocktitle"><div><h3>연대기</h3><div class="sub">그해 시장은 이랬고, 나는 이렇게 생각했다 · 메모는 이 브라우저에만 저장됩니다</div></div></div>
-        <div class="chron" id="jn-chron"></div>
-      </div>
-    </section>
-
     <!-- 만다라트 -->
     <section class="panel-page" data-page="mandala" data-report="1" data-title="만다라트">
       <div class="quote mb" data-qt="mandala"></div>
@@ -723,9 +714,9 @@ body.print-all .panel-page:not([data-report]){display:none!important}
       <div class="page-head"><h2>개발기록 · 로드맵</h2><p>무엇을 만들었고 무엇이 남았는지</p></div>
       <div class="cols">
         <div class="card pad">
-          <div class="blocktitle"><div><h3>변경 이력</h3></div></div>
-          <div class="tl">
-            <div class="tl__i done"><h4>v13 — 여정 탭<span class="tag">현재</span></h4><ul><li><b>지금 어디쯤</b> — 마지막 결산 이후 시장이 움직인 만큼을 반영한 추정 자산. 개인 데이터는 연 1회만 바뀌니, 월 중에 열어도 볼 것이 생깁니다</li><li><b>다음 이정표</b> — 1조까지 진척률 0%만 보이던 것을 1억·10억·100억 계단으로. 다음 칸까지 몇 년인지</li><li><b>전체 여정</b> — 시작부터 목표까지 한 줄에, 지금 위치 표시</li><li><b>연대기</b> — 해마다 시장 기록이 자동으로 붙고, 그 옆에 그때의 내 생각을 적어둡니다</li></ul></div>
+          <div class="blocktitle"><div><h3>변경 이력</h3><div class="sub">최신 두 개만 펼쳐 둡니다 · 제목을 누르면 열립니다</div></div></div>
+          <div class="tl" id="tl-hist">
+            <div class="tl__i done"><h4>v13 — 눌러서 파고들기<span class="tag">현재</span></h4><ul><li>자산구성 표의 줄이나 그래프 조각을 누르면 그 자산군만 자세히 열립니다</li><li>모르는 용어 옆 <b>?</b> 를 누르면 뜻이 나옵니다 — 휴대폰에서도 동작</li><li>성장 곡선을 금액과 수익률 중에 골라 보고, 최근 5년·10년만 잘라 볼 수 있습니다</li><li>범례를 누르면 그 선을 잠시 끌 수 있습니다</li><li>시장지표 카드를 누르면 그 지표가 무엇이고 어디서 왔는지 나옵니다</li><li>⌘K 에서 용어를 바로 찾을 수 있습니다</li><li>변경 이력이 길어져 접었습니다 · 만다라트 비우기는 앱 안에서 확인합니다</li></ul></div>
             <div class="tl__i done"><h4>v12 — 화면 전체 다듬기<span class="tag">완료</span></h4><ul><li>아이콘을 직접 그려 넣어 어느 기기에서나 또렷하게</li><li>탭 아래 표시선이 따라 움직이도록</li><li>헤더·탭·카드의 왼쪽 끝을 하나로 정렬 (어긋나 있던 부분 수정)</li><li>문구에서 군더더기와 기술 용어를 걷어냄</li><li>휴대폰 화면 대응 정리</li></ul></div>
             <div class="tl__i done"><h4>v11 — 전체 리포트 · 구성 토글 · 빠른 이동<span class="tag">완료</span></h4><ul><li>모든 탭을 표지와 함께 한 문서로 인쇄</li><li>자산구성을 구성 막대와 도넛 중에 골라 보기</li><li>⌘K 로 어디로든 바로 이동 · 숫자키 1–8 도 지원</li></ul></div>
             <div class="tl__i done"><h4>v10 — 디자인 개편<span class="tag">완료</span></h4><ul><li>색각 이상이 있어도 구분되는 색으로 전면 교체</li><li>총평가액을 화면의 주인공으로, 나머지는 보조 지표로 정리</li><li>비중이 비슷한 자산도 눈으로 구분되도록 구성 막대 도입</li><li>손익 분해 그래프가 0부터 쌓이는 흐름으로 제대로 보이게 수정</li></ul></div>
@@ -739,9 +730,10 @@ body.print-all .panel-page:not([data-report]){display:none!important}
             <div class="tl__i done"><h4>v2 — 오프라인 실행<span class="tag">완료</span></h4><ul><li>인터넷 없이 더블클릭만으로 열림</li></ul></div>
             <div class="tl__i done"><h4>v1 — 첫 버전<span class="tag">완료</span></h4><ul><li>진짜 수익률·환율 효과·자산구성·복리 계산</li></ul></div>
           </div>
+        </div>
         <div class="card pad">
           <div class="blocktitle"><div><h3>로드맵</h3></div></div>
-          <div class="tl">
+          <div class="tl" id="tl-road">
             <div class="tl__i done"><h4>일별 자동수집 파이프라인<span class="tag">완료</span></h4><ul><li>GitHub Actions 대신 <b>Claude 루틴</b>으로 해결 — 매일 21시(KST) 서버에서 자동 실행</li><li>Naver 금융(환율·지수·종목시세·미국채/금/WTI) + 뉴욕 연준(기준금리) + CNN(F&amp;G)</li><li>Yahoo가 429로 막혀 Naver로 교체 · Actions 워크플로는 백업으로만 남겨둠</li></ul></div>
             <div class="tl__i done"><h4>실제 Fear &amp; Greed 매일 연동<span class="tag">완료</span></h4><ul><li>참고용 자체계산 → <b>공식 CNN 지수</b>로 교체. 원장이 아니라 <b>HTML에 매일 직접</b> 심김</li></ul></div>
             <div class="tl__i done"><h4>자동 전달<span class="tag">완료</span></h4><ul><li>매일 21시에 <b>그날 시장이 반영된 HTML을 채팅으로 자동 전달</b> — 회사 PC에선 받아서 열기만</li></ul></div>
@@ -761,9 +753,29 @@ body.print-all .panel-page:not([data-report]){display:none!important}
 <!-- 커맨드 팔레트 -->
 <div id="cmdk" class="hidden" role="dialog" aria-modal="true" aria-label="명령 팔레트">
   <div class="cmdk__box">
-    <input id="cmdk-in" class="cmdk__in" type="text" placeholder="무엇이든 검색하세요 — 탭 이동, 통화, 테마, 리포트…" autocomplete="off" spellcheck="false">
+    <input id="cmdk-in" class="cmdk__in" type="text" placeholder="탭 이동 · 통화 · 테마 · 리포트 · 자산군 · 용어(TWR, XIRR, MDD…)" autocomplete="off" spellcheck="false">
     <div id="cmdk-list" class="cmdk__list" role="listbox"></div>
     <div class="cmdk__foot"><span>↑↓ 이동</span><span>↵ 실행</span><span>Esc 닫기</span><span style="margin-left:auto">숫자키 1–8 로 탭 바로 이동</span></div>
+  </div>
+</div>
+
+<!-- 상세 드로어 — 화면을 떠나지 않고 한 항목만 깊게 -->
+<div id="drawer" class="hidden" role="dialog" aria-modal="true" aria-labelledby="dw-title">
+  <div class="dw__scrim" id="dw-scrim"></div>
+  <div class="dw__box">
+    <div class="dw__head">
+      <div><div class="dw__kicker" id="dw-kicker">상세</div><h3 id="dw-title">—</h3></div>
+      <button class="iconbtn" id="dw-close" aria-label="닫기"><svg class="i" aria-hidden="true"><use href="#i-x"/></svg></button>
+    </div>
+    <div class="dw__body" id="dw-body"></div>
+  </div>
+</div>
+
+<!-- 확인 모달 -->
+<div id="modal" class="hidden" role="dialog" aria-modal="true" aria-labelledby="md-title">
+  <div class="md__box">
+    <h4 id="md-title">—</h4><p id="md-desc"></p>
+    <div class="md__act"><button class="btn" id="md-no">취소</button><button class="btn btn--danger" id="md-yes">확인</button></div>
   </div>
 </div>
 
@@ -836,7 +848,6 @@ const TAB_QUOTES = {
   risk:{en:"Be fearful when others are greedy, and greedy when others are fearful.", ko:"남들이 탐욕스러울 때 두려워하고, 남들이 두려워할 때 탐욕스러워져라.", by:"Warren Buffett"},
   market:{en:"The stock market is a device for transferring money from the impatient to the patient.", ko:"주식시장은 조급한 사람의 돈을 인내심 있는 사람에게 옮기는 장치다.", by:"Warren Buffett"},
   sim:{en:"The first rule of compounding: never interrupt it unnecessarily.", ko:"복리의 제1원칙 — 불필요하게 중단하지 마라.", by:"Charlie Munger"},
-  journey:{en:"Someone's sitting in the shade today because someone planted a tree a long time ago.", ko:"오늘 누군가 그늘에 앉아 쉴 수 있는 건, 오래전에 누군가 나무를 심었기 때문이다.", by:"Warren Buffett"},
   mandala:{en:"Spend each day trying to be a little wiser than you were when you woke up.", ko:"매일, 아침에 눈떴을 때보다 조금 더 현명해지려 애쓰며 하루를 보내라.", by:"Charlie Munger"},
   manage:{en:"The investor's chief problem — and even his worst enemy — is likely to be himself.", ko:"투자자의 가장 큰 문제이자 최대의 적은 바로 자기 자신일 가능성이 크다.", by:"Benjamin Graham"},
   dev:{en:"The big money is not in the buying and the selling, but in the waiting.", ko:"큰돈은 사고파는 데 있지 않고, 기다리는 데 있다.", by:"Charlie Munger"},
@@ -1060,8 +1071,89 @@ function holdingStats(D,basis){
 }
 
 /* ════════════════ 렌더링 ════════════════ */
-const STATE={basis:"KRW",bmKey:"sp",tab:"overview",mixMode:"bar",simMode:"nominal",g:0.08,pmt:2000000,sg:0,infl:0.025,simEndYear:2041,ovSlide:0};
+const STATE={basis:"KRW",bmKey:"sp",tab:"overview",mixMode:"bar",simMode:"nominal",g:0.08,pmt:2000000,sg:0,infl:0.025,simEndYear:2041,ovSlide:0,
+  growthMode:"amt",   // amt(금액) | pct(수익률)
+  span:0};            // 0=전체 · 그 외=최근 N년
 let DATA=null,MODEL=null,CHARTS={},OV_DATA=null;
+
+/* ════════════════ 용어 사전 ════════════════
+   `?` 표시를 누르면(터치 포함) 설명이 열립니다. 마크업에는 data-g="키" 만 붙이고
+   문구는 여기 한 곳에서만 관리합니다. */
+const GLOSSARY={
+  twr   :["누적 TWR","입출금 시점과 금액의 영향을 걷어낸 순수 운용 성과. 언제 얼마를 넣었는지와 무관하게 <b>운용을 잘했는가</b>만 봅니다."],
+  xirr  :["XIRR","입금 시점까지 반영한 <b>내 돈의 실제 연수익률</b>. 늦게 넣은 돈은 적게, 일찍 넣은 돈은 많이 계산됩니다."],
+  dietz :["Modified Dietz","그해 순입금이 기간 중간에 들어왔다고 보고 분모를 보정하는 방식. 연도별 수익률은 이걸로 계산합니다."],
+  mdd   :["최대낙폭 (MDD)","연말 기준 사상 최고점 대비 가장 크게 빠졌던 폭. <b>최악의 경우 이만큼 견뎌야 했다</b>는 뜻입니다."],
+  curdd :["현재 낙폭","지금이 사상 최고점(연말 기준)보다 얼마나 아래인지. 0%면 지금이 최고점입니다."],
+  recov :["회복 기간","최저점에서 이전 최고점을 되찾기까지 걸린 햇수. 아직 못 넘었으면 '진행 중'입니다."],
+  winr  :["승률","기록된 연도 중 플러스로 끝난 해의 비율. 첫해는 구조상 제외합니다."],
+  fx    :["환율 효과","달러로는 그대로여도 원화 환산액은 환율 때문에 달라집니다. 원화수익률에서 달러수익률을 뺀 몫이 환율이 만든 부분입니다."],
+  contrib:["기여","그 자산군이 <b>전체 수익률을 몇 %p 끌어올렸는지</b>. 비중 × 그 자산군 수익률이라, 비중이 작으면 많이 올라도 기여는 작습니다."],
+  weight:["비중","최근 연말 평가액 기준 구성비. 합이 100%가 됩니다."],
+  divy  :["배당수익률","그해 받은 배당을 그해 평가액으로 나눈 값. 세전 기준입니다."],
+  bench :["벤치마크 비교","시작 시점을 100으로 맞춰 그린 누적 성과. 환율 영향을 걷어내려고 <b>달러 기준</b>으로 비교합니다."],
+  voo   :["VOO였다면","같은 돈을 같은 날 S&P 500(VOO, 보수 연 0.03%)에 넣었다면 지금 얼마일지. 내 선이 위면 지수보다 잘한 것입니다."],
+  us10y :["미국채 10년 금리","전 세계 자산 가격의 기준이 되는 금리. 오르면 채권 가격은 내리고, 먼 미래 이익에 기대는 성장주에 부담이 됩니다."],
+  gold  :["금 (USD/oz)","실질금리가 내려가거나 통화 가치가 흔들릴 때 강해지는 경향이 있습니다. 1온스당 달러 가격입니다."],
+  wti   :["WTI 원유","미국 서부텍사스산 원유 가격. 물가와 에너지 업종에 곧바로 반영됩니다."],
+  effr  :["실효연방기금금리 (EFFR)","연준이 정한 <b>목표범위</b> 안에서 은행끼리 실제로 거래된 하루짜리 금리. 정책이 시장에 실제로 얼마나 먹히는지를 보여줍니다."],
+  fedtr :["연준 목표범위","연준이 정하는 정책금리 구간. 계단 모양으로 움직이며, 이 대시보드에서 <b>유일하게 흐름을 쌓는</b> 지표입니다."],
+  fng   :["Fear & Greed","CNN이 7개 시장 지표를 묶어 0~100으로 낸 투자 심리 지수. 0에 가까울수록 공포, 100에 가까울수록 탐욕입니다. <b>예측이 아니라 현재 온도계</b>입니다."],
+  usdkrw:["USD/KRW","원-달러 환율. 해외자산은 달러로 굴러가므로 이 값이 원화 평가액을 직접 흔듭니다."],
+  goal  :["목표 진척률","현재 총자산 ÷ 목표금액. 원장의 '목표' 시트에서 읽어옵니다."],
+  growth:["자산 성장 곡선","실선은 평가액, 점선은 지금까지 넣은 원금 누계. 두 선 사이의 색칠된 면적이 곧 누적 손익입니다."]
+};
+/* 툴팁은 필요할 때 만들어 붙입니다(초기 DOM을 가볍게) */
+function helpTip(el){
+  if(!el||el.querySelector(".help__tip"))return;
+  const g=GLOSSARY[el.dataset.g];if(!g)return;
+  const t=document.createElement("span");t.className="help__tip";
+  t.innerHTML=`<span class="gt">${g[0]}</span>${g[1]}`;el.appendChild(t);
+}
+function closeHelp(except){$$(".help.on").forEach(x=>{if(x!==except)x.classList.remove("on");});}
+document.addEventListener("pointerover",e=>{const h=e.target.closest&&e.target.closest(".help[data-g]");if(h)helpTip(h);},true);
+document.addEventListener("focusin",e=>{const h=e.target.closest&&e.target.closest(".help[data-g]");if(h)helpTip(h);});
+document.addEventListener("click",e=>{
+  const h=e.target.closest&&e.target.closest(".help");
+  closeHelp(h);
+  if(h){helpTip(h);h.classList.toggle("on");e.stopPropagation();}
+});
+const hlp=k=>`<span class="help" tabindex="0" role="button" aria-label="${(GLOSSARY[k]||["설명"])[0]} 설명" data-g="${k}">?</span>`;
+
+/* ════════════════ 상세 드로어 ════════════════
+   표의 한 줄, 차트의 한 조각, 시장 카드 하나를 눌러 그것만 깊게 봅니다.
+   화면을 떠나지 않으므로 맥락이 끊기지 않습니다. */
+const DW={open:false,prev:null};
+function drawerOpen(kicker,title,html){
+  DW.prev=document.activeElement;DW.open=true;
+  $("#dw-kicker").textContent=kicker;$("#dw-title").textContent=title;$("#dw-body").innerHTML=html;
+  $("#drawer").classList.remove("hidden");
+  document.body.style.overflow="hidden";
+  setTimeout(()=>$("#dw-close").focus(),0);
+}
+function drawerClose(){
+  if(!DW.open)return;DW.open=false;
+  $("#drawer").classList.add("hidden");$("#dw-body").innerHTML="";
+  document.body.style.overflow="";
+  destroy("dw1");destroy("dw2");
+  if(DW.prev&&DW.prev.focus)DW.prev.focus();DW.prev=null;
+}
+/* 드로어 안에서 Tab 이 밖으로 새지 않게 */
+function trapTab(box,e){
+  const f=$$('button,[href],input,select,textarea,[tabindex]:not([tabindex="-1"])',box).filter(x=>x.offsetParent!==null);
+  if(!f.length)return;const first=f[0],last=f[f.length-1];
+  if(e.shiftKey&&document.activeElement===first){e.preventDefault();last.focus();}
+  else if(!e.shiftKey&&document.activeElement===last){e.preventDefault();first.focus();}
+}
+
+/* ════════════════ 확인 모달 ════════════════ (브라우저 기본 confirm 대체) */
+let MD_CB=null;
+function askConfirm(title,desc,okLabel,cb){
+  MD_CB=cb;$("#md-title").textContent=title;$("#md-desc").textContent=desc;
+  $("#md-yes").textContent=okLabel||"확인";$("#modal").classList.remove("hidden");
+  setTimeout(()=>$("#md-no").focus(),0);
+}
+function modalClose(){$("#modal").classList.add("hidden");MD_CB=null;}
 function destroy(k){if(CHARTS[k]){CHARTS[k].destroy();delete CHARTS[k];}}
 /* 차트 크롬 공통 — 축·그리드는 헤어라인 실선으로 후퇴시키고, 글자는 텍스트 토큰만 사용 */
 function chDefaults(){
@@ -1134,13 +1226,30 @@ function renderOverview(){
       const paint=(pts,pos)=>{ctx.beginPath();ctx.moveTo(pts[0][0],pts[0][1]);for(let k=1;k<pts.length;k++)ctx.lineTo(pts[k][0],pts[k][1]);ctx.closePath();ctx.fillStyle=hex2rgba(pos?posC:negC,.18);ctx.fill();};
       if(dA===0&&dB===0)continue;if((dA>=0&&dB>=0)||(dA<=0&&dB<=0))paint([[p0.x,p0.y],[p1.x,p1.y],[q1.x,q1.y],[q0.x,q0.y]],(dA+dB)>=0);
       else{const t=dA/(dA-dB),xc=p0.x+t*(p1.x-p0.x),yc=p0.y+t*(p1.y-p0.y);paint([[p0.x,p0.y],[xc,yc],[q0.x,q0.y]],dA>0);paint([[xc,yc],[p1.x,p1.y],[q1.x,q1.y]],dB>0);}}ctx.restore();}};
-  CHARTS.growth=new Chart($("#c-growth"),{type:"line",data:{labels:months.map(fmtY),datasets:[
-    lineMark(cssVar("--d1"),{label:"평가액",data:ev,spanGaps:false}),
-    lineMark(cssVar("--gray"),{label:"누적 투입원금",data:prinArr,borderWidth:1.5,borderDash:[5,4],pointRadius:0,pointHitRadius:0})]},
+  // 기간 토글 — 연 단위라 기록이 짧으면 선택지를 만들지 않습니다(빈 껍데기 금지)
+  const OPTS=[0,10,5].filter(n=>n===0||months.length>n+1);
+  $("#span-seg").innerHTML=OPTS.length>1
+    ? OPTS.map(n=>`<button data-n="${n}"${STATE.span===n?' class="on"':""}>${n===0?"전체":"최근 "+n+"년"}</button>`).join("") : "";
+  const cut=(STATE.span>0&&months.length>STATE.span)?months.length-STATE.span:0;
+  const sl=a=>a.slice(cut);
+  const pctMode=STATE.growthMode==="pct";
+  $("#growth-sub").textContent=pctMode?"평가액과 원금을 시작 시점 100으로 맞춰 비교합니다":"두 선이 벌어진 만큼이 손익입니다";
+  const base=(arr)=>{const f=sl(arr).find(isNum);return isNum(f)&&f!==0?f:null;};
+  const b0=base(ev),p0=base(prinArr);
+  const evD=pctMode?sl(ev).map(v=>isNum(v)&&b0?v/b0*100:null):sl(ev);
+  const prD=pctMode?sl(prinArr).map(v=>isNum(v)&&p0?v/p0*100:null):sl(prinArr);
+  const yTick=pctMode?(v=>v.toFixed(0)):(v=>b==="KRW"?moneyShort(v,"KRW"):"$"+nfKRW.format(v));
+  CHARTS.growth=new Chart($("#c-growth"),{type:"line",data:{labels:sl(months).map(fmtY),datasets:[
+    lineMark(cssVar("--d1"),{label:"평가액",data:evD,spanGaps:false}),
+    lineMark(cssVar("--gray"),{label:"누적 투입원금",data:prD,borderWidth:1.5,borderDash:[5,4],pointRadius:0,pointHitRadius:0})]},
     options:{responsive:true,maintainAspectRatio:false,interaction:{mode:"index",intersect:false},
-      plugins:{legend:{position:"top",labels:{boxWidth:14,usePointStyle:true},onClick:null},
-        tooltip:{callbacks:{label:c=>{const i=c.dataIndex;if(c.datasetIndex===0)return `평가액 ${money(ev[i],b)}`;const d=isNum(ev[i])&&isNum(prinArr[i])?ev[i]-prinArr[i]:null;return `원금 ${money(prinArr[i],b)} (차액 ${money(d,b)})`;}}}},
-      scales:{y:{ticks:{callback:v=>b==="KRW"?moneyShort(v,"KRW"):"$"+nfKRW.format(v)},grid:{color:gridClr()}},x:{grid:{display:false},ticks:{maxTicksLimit:8}}}},plugins:[fillPlug]});
+      plugins:{legend:{position:"top",labels:{boxWidth:14,usePointStyle:true}},
+        tooltip:{callbacks:{label:c=>{const i=c.dataIndex+cut;
+          if(pctMode)return `${c.dataset.label} ${isNum(c.raw)?c.raw.toFixed(1):"—"} (${money(c.datasetIndex===0?ev[i]:prinArr[i],b)})`;
+          if(c.datasetIndex===0)return `평가액 ${money(ev[i],b)}`;
+          const d=isNum(ev[i])&&isNum(prinArr[i])?ev[i]-prinArr[i]:null;return `원금 ${money(prinArr[i],b)} (차액 ${money(d,b)})`;}}}},
+      scales:{y:{ticks:{callback:yTick},grid:{color:gridClr()}},x:{grid:{display:false},ticks:{maxTicksLimit:8}}}},
+    plugins:pctMode?[]:[fillPlug]});   // 100 기준선 위에서는 면적칠이 손익을 뜻하지 않습니다
   // 아래 캐러셀 슬라이드(넓게 하나씩)
   OV_DATA={months,ev,prinArr,altArr,b};renderOvSlide();
 }
@@ -1160,7 +1269,7 @@ function renderOvSlide(){
     CHARTS.ovslide=new Chart($("#c-ovslide"),{type:"line",data:{labels:months.map(fmtY),datasets:[
       lineMark(cssVar("--d1"),{label:"내 평가액",data:ev}),
       lineMark(cssVar("--d2"),{label:"VOO였다면",data:altArr,borderDash:[5,3]})]},
-      options:{responsive:true,maintainAspectRatio:false,interaction:{mode:"index",intersect:false},plugins:{legend:{position:"top",labels:{boxWidth:14,usePointStyle:true},onClick:null},tooltip:{callbacks:{label:c=>`${c.dataset.label} ${money(c.raw,b)}`}}},
+      options:{responsive:true,maintainAspectRatio:false,interaction:{mode:"index",intersect:false},plugins:{legend:{position:"top",labels:{boxWidth:14,usePointStyle:true}},tooltip:{callbacks:{label:c=>`${c.dataset.label} ${money(c.raw,b)}`}}},
         scales:{y:{ticks:{callback:v=>b==="KRW"?moneyShort(v,"KRW"):"$"+nfKRW.format(v)},grid:{color:gridClr()}},x:{grid:{display:false},ticks:{maxTicksLimit:8}}}}});
   } else if(i===1){
     const side=b==="KRW"?MODEL.krw:MODEL.usd;const mine=side.r.map(v=>isNum(v)?v*100:null);
@@ -1187,7 +1296,7 @@ function renderPerf(){
     lineMark(cssVar("--d1"),{label:"내 포트폴리오",data:meI}),
     lineMark(cssVar("--d2"),{label:BM_KEYS[STATE.bmKey],data:bmI,borderDash:[5,4]})]},
     options:{responsive:true,maintainAspectRatio:false,interaction:{mode:"index",intersect:false},
-      plugins:{legend:{position:"top",labels:{boxWidth:14,usePointStyle:true},onClick:null},tooltip:{callbacks:{label:c=>`${c.dataset.label} ${c.raw.toFixed(1)} (${(c.raw-100>=0?"+":"−")+Math.abs(c.raw-100).toFixed(1)}%)`}}},
+      plugins:{legend:{position:"top",labels:{boxWidth:14,usePointStyle:true}},tooltip:{callbacks:{label:c=>`${c.dataset.label} ${c.raw.toFixed(1)} (${(c.raw-100>=0?"+":"−")+Math.abs(c.raw-100).toFixed(1)}%)`}}},
       scales:{y:{grid:{color:gridClr()},title:{display:true,text:"시작=100"}},x:{grid:{display:false},ticks:{maxTicksLimit:12}}}}});
   // 요약: 초과수익(누적, USD), 상관, 승률, 최고/최저
   const rUsd=MODEL.usd.r; let me=1,bmc=1,ok=false;
@@ -1259,30 +1368,30 @@ function renderMarket(){
     cards2El.innerHTML="";$("#market-asof").textContent="—";$("#rate-cards").innerHTML="";return;
   }
   $("#market-asof").textContent=`${M.asOf} 기준 · 매일 자동으로 갱신됩니다 · 원장 파일과 무관`;
-  // 오늘 값만 (누적 없음)
-  const c=(name,val,sub)=>`<div class="kpi"><div class="kpi__label">${name}</div><div class="kpi__val" >${val}</div><div class="kpi__sub dim">${sub||""}</div></div>`;
+  // 오늘 값만 (누적 없음) — 카드를 누르면 그 지표의 뜻과 출처가 열립니다
+  const c=(name,val,sub,key)=>`<div class="kpi${key?" rowlink":""}"${key?` role="button" tabindex="0" data-mk="${key}"`:""}><div class="kpi__label">${name}</div><div class="kpi__val" >${val}</div><div class="kpi__sub dim">${sub||""}</div></div>`;
   const fx=M.fx||{},ix=M.index||{},id=M.indicators||{},fgv=M.fg||{};
   cardsEl.innerHTML=
-    c("USD/KRW",isNum(fx.usdkrw)?nfKRW.format(fx.usdkrw)+"원":"—",fx.date||"")+
-    c("S&P 500",isNum(ix.sp)?nfUSD.format(ix.sp):"—",ix.date||"")+
-    c("NASDAQ",isNum(ix.nasdaq)?nfUSD.format(ix.nasdaq):"—",ix.date||"")+
-    c("다우존스",isNum(ix.dow)?nfUSD.format(ix.dow):"—",ix.date||"");
+    c("USD/KRW",isNum(fx.usdkrw)?nfKRW.format(fx.usdkrw)+"원":"—",fx.date||"","usdkrw")+
+    c("S&P 500",isNum(ix.sp)?nfUSD.format(ix.sp):"—",ix.date||"","sp")+
+    c("NASDAQ",isNum(ix.nasdaq)?nfUSD.format(ix.nasdaq):"—",ix.date||"","nasdaq")+
+    c("다우존스",isNum(ix.dow)?nfUSD.format(ix.dow):"—",ix.date||"","dow");
   const fgBd=isNum(fgv.score)?fgBand(Math.round(fgv.score)):null;
   cards2El.innerHTML=
-    c("미국채 10년",isNum(id.us10y)?id.us10y.toFixed(2)+"%":"—",id.date||"")+
-    c("금 (USD/oz)",isNum(id.gold)?"$"+nfKRW.format(id.gold):"—",id.date||"")+
-    c("WTI 원유",isNum(id.wti)?"$"+id.wti.toFixed(2):"—",id.date||"")+
-    (fgBd?`<div class="kpi"><div class="kpi__label">Fear &amp; Greed</div><div class="kpi__val" style="color:${fgBd[1]}">${Math.round(fgv.score)} <span style="font-size:.9rem">${fgBd[0]}</span></div><div class="kpi__sub dim">${fgv.date||""}</div></div>`
-          :c("Fear & Greed","—",""));
-  $("#market-note").textContent="그날 값만 보여줍니다(누적 없음). 흐름을 쌓아 보는 건 아래 기준금리 하나입니다.";
+    c("미국채 10년",isNum(id.us10y)?id.us10y.toFixed(2)+"%":"—",id.date||"","us10y")+
+    c("금 (USD/oz)",isNum(id.gold)?"$"+nfKRW.format(id.gold):"—",id.date||"","gold")+
+    c("WTI 원유",isNum(id.wti)?"$"+id.wti.toFixed(2):"—",id.date||"","wti")+
+    (fgBd?`<div class="kpi rowlink" role="button" tabindex="0" data-mk="fng"><div class="kpi__label">Fear &amp; Greed</div><div class="kpi__val" style="color:${fgBd[1]}">${Math.round(fgv.score)} <span style="font-size:.9rem">${fgBd[0]}</span></div><div class="kpi__sub dim">${fgv.date||""}</div></div>`
+          :c("Fear & Greed","—","","fng"));
+  $("#market-note").innerHTML=`그날 값만 보여줍니다(누적 없음). 흐름을 쌓아 보는 건 아래 기준금리 하나입니다. <span class="dim">카드를 누르면 그 지표가 무엇인지 열립니다.</span>`;
   // 기준금리 — 유일한 누적 지표
   const pr=M.policyRate,rc=$("#rate-cards");
   if(!pr||!pr.current){rc.innerHTML=`<div class="empty" style="grid-column:1/-1">기준금리 데이터 없음</div>`;$("#rate-note").textContent="";return;}
   const cur=pr.current,hist=(pr.history||[]).filter(h=>isNum(h.target_to));
   const first=hist.length?hist[0]:null,chg=(first&&isNum(cur.target_to))?cur.target_to-first.target_to:null;
   rc.innerHTML=
-    c("현재 목표범위",(isNum(cur.target_from)&&isNum(cur.target_to))?`${cur.target_from.toFixed(2)}~${cur.target_to.toFixed(2)}%`:"—",cur.date||"")+
-    c("실효금리 EFFR",isNum(cur.effr)?cur.effr.toFixed(2)+"%":"—","실제 거래 금리")+
+    c(`현재 목표범위${hlp("fedtr")}`,(isNum(cur.target_from)&&isNum(cur.target_to))?`${cur.target_from.toFixed(2)}~${cur.target_to.toFixed(2)}%`:"—",cur.date||"")+
+    c(`실효금리 EFFR${hlp("effr")}`,isNum(cur.effr)?cur.effr.toFixed(2)+"%":"—","실제 거래 금리")+
     `<div class="kpi"><div class="kpi__label">기간 변동</div><div class="kpi__val ${signClass(chg)}" >${isNum(chg)?(chg>=0?"+":"−")+Math.abs(chg).toFixed(2)+"%p":"—"}</div><div class="kpi__sub dim">${first?first.date+" 대비":""}</div></div>`+
     c("기록",hist.length?hist.length+"개월":"—",first?`${first.date.slice(0,7)} ~ ${cur.date.slice(0,7)}`:"");
   CHARTS.rate=new Chart($("#c-rate"),{type:"line",data:{labels:hist.map(h=>h.date.slice(0,7)),datasets:[
@@ -1290,132 +1399,10 @@ function renderMarket(){
     lineMark(cssVar("--d1"),{label:"목표 하단",data:hist.map(h=>h.target_from),borderWidth:1.4,borderDash:[4,3],pointRadius:0,pointHitRadius:0,stepped:true}),
     lineMark(cssVar("--d2"),{label:"EFFR(실효)",data:hist.map(h=>h.effr),pointRadius:0,pointHitRadius:0,tension:.1})]},
     options:{responsive:true,maintainAspectRatio:false,interaction:{mode:"index",intersect:false},
-      plugins:{legend:{position:"top",labels:{boxWidth:14,usePointStyle:true},onClick:null},tooltip:{callbacks:{label:x=>`${x.dataset.label} ${isNum(x.raw)?x.raw.toFixed(2)+"%":"—"}`}}},
+      plugins:{legend:{position:"top",labels:{boxWidth:14,usePointStyle:true}},tooltip:{callbacks:{label:x=>`${x.dataset.label} ${isNum(x.raw)?x.raw.toFixed(2)+"%":"—"}`}}},
       scales:{y:{grid:{color:gridClr()},ticks:{callback:v=>v+"%"}},x:{grid:{display:false},ticks:{maxTicksLimit:12}}}}});
   $("#rate-note").textContent="연준 목표범위(계단식)와 실효금리. 금리 방향은 채권·성장주 밸류에이션에 직접 영향을 줍니다.";
 }
-/* ─── 여정 탭 ──────────────────────────────────────────────────────────────
-   이 대시보드는 개인 데이터를 1년에 한 번만 받습니다. 그래서 월 중에 열면
-   숫자가 하나도 안 바뀝니다. 여기서는 '마지막 결산 이후 시장이 움직인 만큼'을
-   반영해 현재 위치를 추정합니다 — 정확한 평가액이 아니라 추정이라는 걸 화면에 명시합니다. */
-const JOURNEY_KEY="dash_journey_v1";
-const STEP_LEVELS=[1e8,1e9,1e10,1e11,1e12];   // 1억·10억·100억·1000억·1조
-const stepLabel=v=>v>=1e12?`${v/1e12}조`:`${(v/1e8).toLocaleString()}억`;
-const BM_TO_SNAP={sp:"sp",nq:"nasdaq",dj:"dow"};   // 원장 키 → 시장 스냅샷 키
-// 주식성 자산만 지수로 추정합니다. 채권·현금성은 대표 지수가 없어 '변동 없음'으로 둡니다.
-const EQUITY_CLASSES=["해외주식","해외ETF"];
-
-function journeyEstimate(){
-  if(!DATA||!DATA.months.length)return null;
-  const b=STATE.basis,lastY=DATA.months[DATA.months.length-1];
-  const rows=DATA.snap[lastY]||[],fxEnd=DATA.fx[lastY];
-  if(!isNum(fxEnd))return null;
-  const M=MARKET_DATA;
-  const bmEnd=DATA.bm[lastY]?DATA.bm[lastY][STATE.bmKey]:null;
-  const bmNow=(M&&M.index)?M.index[BM_TO_SNAP[STATE.bmKey]]:null;
-  const fxNow=(M&&M.fx)?M.fx.usdkrw:null;
-  const eqR=(isNum(bmEnd)&&isNum(bmNow)&&bmEnd)?bmNow/bmEnd-1:null;      // 지수 변화
-  const fxR=(isNum(fxNow)&&fxEnd)?fxNow/fxEnd-1:null;                     // 환율 변화
-  let base=0,est=0;const parts=[];
-  for(const r of rows){
-    const v0=conv(r.ev,r.cur,b,fxEnd); if(!isNum(v0))continue;
-    base+=v0;
-    // 자산 자체의 가격 변화(주식성만) → 그 다음 통화 환산 변화(USD 자산만, 원화로 볼 때)
-    const priceR=EQUITY_CLASSES.includes(r.cls)&&isNum(eqR)?eqR:0;
-    let v1=v0*(1+priceR);
-    if(b==="KRW"&&r.cur==="USD"&&isNum(fxR))v1=v1*(1+fxR);
-    if(b==="USD"&&r.cur==="KRW"&&isNum(fxR))v1=v1/(1+fxR);
-    est+=v1; parts.push({cls:r.cls,from:v0,to:v1});
-  }
-  if(!base)return null;
-  const byCls={};for(const p of parts){const t=byCls[p.cls]=byCls[p.cls]||{from:0,to:0};t.from+=p.from;t.to+=p.to;}
-  return {lastY,base,est,eqR,fxR,byCls,asOf:M?M.asOf:null,
-          equityShare:sum(Object.entries(byCls).filter(([c])=>EQUITY_CLASSES.includes(c)).map(([,v])=>v.from))/base};
-}
-function renderJourney(){
-  chDefaults();
-  const b=STATE.basis,E=journeyEstimate();
-  // ── 1) 지금 어디쯤
-  const dEl=$("#jn-drivers");
-  if(!E){
-    $("#jn-est").textContent="—";$("#jn-est-delta").textContent="";dEl.innerHTML="";
-    $("#jn-est-note").textContent="추정에 필요한 시장 데이터가 없습니다.";
-  }else{
-    const chg=E.base?E.est/E.base-1:null;
-    $("#jn-est").innerHTML=moneyHero(E.est,b);
-    $("#jn-est-delta").innerHTML=`${fmtY(E.lastY)} 결산 <b>${money(E.base,b)}</b> 대비 `+
-      `<b class="${signClass(chg)}">${pct(chg)}</b> · <span class="dim">${money(E.est-E.base,b)}</span>`;
-    const drv=(n,s,v,cls)=>`<div class="jn-drv"><span class="jn-drv__n">${n}<span class="jn-drv__s">${s}</span></span><span class="jn-drv__v ${cls||""}">${v}</span></div>`;
-    dEl.innerHTML=
-      drv(BM_KEYS[STATE.bmKey],`주식성 자산 ${(E.equityShare*100).toFixed(0)}%에 적용`,pct(E.eqR),signClass(E.eqR))+
-      drv("USD/KRW",b==="KRW"?"달러 자산에 적용":"원화 자산에 적용",pct(E.fxR),signClass(E.fxR))+
-      drv("채권 · 현금성","대표 지수가 없어 변동 없음으로 둠","—","dim");
-    $("#jn-est-note").textContent=
-      `실제 평가액이 아니라 추정입니다. 보유 종목이 아니라 자산군 대표 지수로 계산했고, 채권·현금성은 변동이 없다고 가정했습니다.`
-      +(E.asOf?` 시장 기준일 ${E.asOf}.`:"");
-    $("#jn-now-sub").textContent=`${fmtY(E.lastY)} 결산 이후 시장이 움직인 만큼을 반영했습니다`;
-  }
-  // ── 2) 다음 이정표 (0.0% 대신 바로 다음 칸)
-  const evK=[...MODEL.krw.S.ev].reverse().find(isNum);
-  const nowK=E?(b==="KRW"?E.est:E.est*(MARKET_DATA&&MARKET_DATA.fx?MARKET_DATA.fx.usdkrw:1)):evK;
-  const g=STATE.g,pmt=STATE.pmt;
-  const yearsTo=(target)=>{ // 현재 자산 + 연 저축, 가정 수익률로 몇 해 걸리는지
-    if(!isNum(nowK)||nowK>=target)return 0;
-    let v=nowK,y=0;const A=pmt*12;
-    while(v<target&&y<200){v=v*(1+g)+A;y++;}
-    return y>=200?null:y;
-  };
-  const nextIdx=STEP_LEVELS.findIndex(t=>isNum(nowK)&&nowK<t);
-  $("#jn-steps").innerHTML=STEP_LEVELS.map((t,i)=>{
-    const done=isNum(nowK)&&nowK>=t, next=i===nextIdx;
-    const prev=i?STEP_LEVELS[i-1]:0;
-    const prog=done?1:(isNum(nowK)&&nowK>prev?(nowK-prev)/(t-prev):0);
-    const yrs=done?null:yearsTo(t);
-    return `<div class="step ${done?"step--done":""} ${next?"step--next":""}">
-      <div class="step__t">${stepLabel(t)}</div>
-      <div class="step__s">${done?"지나옴":(next?(yrs==null?"현재 가정으론 도달 못 함":`약 ${yrs}년 · ${(prog*100).toFixed(0)}% 지점`):(yrs==null?"—":`약 ${yrs}년`))}</div>
-      <div class="step__bar" style="width:${(prog*100).toFixed(1)}%"></div></div>`;}).join("");
-  const goal=DATA.goal;
-  $("#jn-step-note").textContent=`복리·목표 탭의 가정(연 ${(g*100).toFixed(1)}%, 월 ${moneyShort(pmt,"KRW")})으로 계산했습니다. 가정을 바꾸면 이 숫자도 바뀝니다.`;
-  // ── 3) 전체 여정 타임라인
-  const startY=+DATA.months[0], curY=new Date().getFullYear();
-  const goalY=goal&&goal.targetYm?+goal.targetYm.slice(0,4):curY+30;
-  const span=Math.max(1,goalY-startY), pos=Math.min(1,Math.max(0,(curY-startY)/span));
-  const marks=[{y:startY,l:"시작"},{y:curY,l:"지금",now:true},{y:goalY,l:goal?goal.name:"목표"}];
-  $("#jn-timeline").innerHTML=
-    `<div class="tline__track"><div class="tline__fill" style="width:${(pos*100).toFixed(1)}%"></div>
-       <div class="tline__now" style="left:${(pos*100).toFixed(1)}%"></div></div>
-     <div class="tline__marks">`+marks.map(m=>{
-       const x=Math.min(97,Math.max(3,((m.y-startY)/span)*100));
-       return `<div class="tline__mk ${m.now?"tline__mk--now":""}" style="left:${x}%"><b>${m.y}</b>${m.l}</div>`;}).join("")+`</div>`;
-  $("#jn-tl-sub").textContent=`${startY}년에 시작해 ${goalY}년까지 ${span}년 · ${curY-startY}년째 (${(pos*100).toFixed(0)}% 지점)`;
-  // ── 4) 연대기
-  let memo={};try{memo=JSON.parse(localStorage.getItem(JOURNEY_KEY)||"{}");}catch(e){}
-  const side=b==="KRW"?MODEL.krw:MODEL.usd;
-  const rows=DATA.months.map((y,i)=>{
-    const ev=side.S.ev[i],r=side.r[i],cf=side.S.cf[i];
-    const bmPrev=i?DATA.bm[DATA.months[i-1]]:null,bmCur=DATA.bm[y];
-    const bmR=(bmPrev&&bmCur&&isNum(bmPrev[STATE.bmKey])&&isNum(bmCur[STATE.bmKey])&&bmPrev[STATE.bmKey])
-      ?bmCur[STATE.bmKey]/bmPrev[STATE.bmKey]-1:null;
-    const fxPrev=i?DATA.fx[DATA.months[i-1]]:null,fxCur=DATA.fx[y];
-    const fxR=(isNum(fxPrev)&&isNum(fxCur)&&fxPrev)?fxCur/fxPrev-1:null;
-    const facts=[`평가액 <b>${money(ev,b)}</b>`];
-    if(i)facts.push(`내 수익률 <b class="${signClass(r)}">${pct(r)}</b>`);
-    if(isNum(cf)&&cf!==0)facts.push(`순입금 <b>${money(cf,b)}</b>`);
-    if(isNum(bmR))facts.push(`${BM_KEYS[STATE.bmKey]} <b class="${signClass(bmR)}">${pct(bmR)}</b>`);
-    if(isNum(fxR))facts.push(`환율 <b class="${signClass(fxR)}">${pct(fxR)}</b>`);
-    return `<div class="chron__i"><div><div class="chron__y">${y}<small>${i?`${i}년차`:"시작"}</small></div></div>
-      <div><div class="chron__facts">${facts.map(f=>`<span class="fact">${f}</span>`).join("")}</div>
-      <div class="chron__memo" contenteditable="true" data-y="${y}" data-ph="이 해에 무슨 일이 있었고, 무슨 생각을 했는지 적어두세요">${(memo[y]||"").replace(/[<>]/g,"")}</div></div></div>`;
-  }).reverse().join("");   // 최근 해가 위로
-  $("#jn-chron").innerHTML=rows;
-}
-$("#jn-chron").addEventListener("input",e=>{
-  const el=e.target.closest(".chron__memo");if(!el)return;
-  let m={};try{m=JSON.parse(localStorage.getItem(JOURNEY_KEY)||"{}");}catch(_){}
-  m[el.dataset.y]=el.textContent;localStorage.setItem(JOURNEY_KEY,JSON.stringify(m));
-});
-
 /* 만다라트 (개인 마음가짐 · localStorage) */
 const MANDALA_KEY="dash_mandala_v1";
 function mirrorIdx(){ // 8개 핵심 실천칸 ↔ 바깥 블록 중앙칸 매핑
@@ -1443,22 +1430,27 @@ function renderMandalart(){
 }
 function syncMandalaMirrors(s){const mir=mirrorIdx();
   for(const core in mir){const cell=$(`.mc[data-i="${mir[core]}"]`);if(cell)cell.textContent=(s[core]||"");}}
-function resetMandala(){if(!confirm("만다라트를 모두 비울까요?"))return;
-  localStorage.removeItem(MANDALA_KEY);$("#mandala-grid").querySelectorAll(".mc").forEach(c=>c.textContent="");}
+function resetMandala(){
+  askConfirm("만다라트를 비울까요?","적어둔 여든한 칸이 모두 지워집니다. 되돌릴 수 없습니다.","비우기",()=>{
+    localStorage.removeItem(MANDALA_KEY);$("#mandala-grid").querySelectorAll(".mc").forEach(c=>c.textContent="");});}
 /* 구성 시각화 — 두 형태를 토글로 제공.
    · 구성 막대: 100% 가로 스택. 근접값(17.5% vs 17.6%)을 정확히 비교할 때.
    · 도넛     : 한눈에 보는 부분-전체. ≤6조각일 때만 권장.
    두 형태 모두 조각을 나누는 건 '테두리'가 아니라 2px 서피스 간격입니다. */
-function mixChart(canvasId,boxId,key,items,total,b){
+function mixChart(canvasId,boxId,key,items,total,b,onPick){
   destroy(key);
   const donut=STATE.mixMode==="donut";
   const box=$("#"+boxId); if(box) box.className="chartbox "+(donut?"h-mid":"h-bar");
   const fmt=(label,val)=>`${label} ${money(val,b)} · ${(val/total*100).toFixed(1)}%`;
+  // 조각을 눌러 그 항목만 자세히 — 도넛은 index, 100% 막대는 dataset 이 항목입니다
+  const pick=(e,els)=>{if(!onPick||!els.length)return;const el=els[0];
+    const it=items[donut?el.index:el.datasetIndex];if(it)onPick(it.label);};
+  const cursor=(e,els)=>{if(onPick&&e.native&&e.native.target)e.native.target.style.cursor=els.length?"pointer":"default";};
   if(donut){
     CHARTS[key]=new Chart($("#"+canvasId),{type:"doughnut",
       data:{labels:items.map(i=>i.label),datasets:[{data:items.map(i=>i.value),
         backgroundColor:items.map(i=>i.color),borderColor:cssVar("--card"),borderWidth:2,hoverOffset:6}]},
-      options:{responsive:true,maintainAspectRatio:false,cutout:"66%",
+      options:{responsive:true,maintainAspectRatio:false,cutout:"66%",onClick:pick,onHover:cursor,
         plugins:{legend:{position:"right",labels:{padding:12}},
           tooltip:{callbacks:{label:c=>fmt(c.label,c.raw)}}}},
       plugins:[{id:"ctr",afterDraw(ch){const{ctx,chartArea:{left,right,top,bottom}}=ch;
@@ -1474,7 +1466,7 @@ function mixChart(canvasId,boxId,key,items,total,b){
     borderColor:cssVar("--card"),borderWidth:{top:0,bottom:0,left:0,right:i===last?0:2},
     borderRadius:3,maxBarThickness:30}));
   CHARTS[key]=new Chart($("#"+canvasId),{type:"bar",data:{labels:[""],datasets:ds},
-    options:{indexAxis:"y",responsive:true,maintainAspectRatio:false,
+    options:{indexAxis:"y",responsive:true,maintainAspectRatio:false,onClick:pick,onHover:cursor,
       layout:{padding:{top:2,bottom:0}},
       plugins:{legend:{position:"bottom",labels:{padding:14},onClick:null},
         tooltip:{callbacks:{title:()=>"",label:c=>fmt(c.dataset.label,c.raw)}}},
@@ -1488,14 +1480,16 @@ function renderCompose(){
   for(const r of rows){const v=conv(r.ev,r.cur,b,DATA.fx[lastYm]);if(!isNum(v))continue;if(byC[r.cls]!=null)byC[r.cls]+=v;else extra[r.cls]=(extra[r.cls]||0)+v;}
   const shown=ASSET_CLASSES.filter(c=>byC[c]>0),total=sum(shown.map(c=>byC[c]))+sum(Object.values(extra));
   $("#mix-class-sub").innerHTML=`총액 <b>${money(total,b)}</b> · ${fmtY(lastYm)} 기준`;
-  mixChart("c-mix-class","box-mix-class","mixClass",shown.map((c,i)=>({label:c,value:byC[c],color:pal[i%pal.length]})),total,b);
+  mixChart("c-mix-class","box-mix-class","mixClass",shown.map((c,i)=>({label:c,value:byC[c],color:pal[i%pal.length]})),total,b,openClassDrawer);
+  MIX_CLASSES=shown.slice();
   const contrib=contributions(DATA,DATA.months.length);
-  let html=`<thead><tr><th>자산군</th><th>평가액</th><th>비중</th><th>누적 TWR</th><th>기여</th></tr></thead><tbody>`;
+  let html=`<thead><tr><th>자산군</th><th>평가액</th><th>비중${hlp("weight")}</th><th>누적 TWR${hlp("twr")}</th><th>기여${hlp("contrib")}</th></tr></thead><tbody>`;
   shown.forEach((c,i)=>{const S=seriesFor(DATA,b,[c]),tw=twrStats(modifiedDietz(S.ev,S.cf)).cum,cb=contrib.perClass[c];
-    html+=`<tr><td><span class="sw" style="background:${pal[i%pal.length]}"></span>${c}</td><td>${money(byC[c],b)}</td><td>${(byC[c]/total*100).toFixed(1)}%</td><td class="${signClass(tw)}">${pct(tw)}</td><td class="${signClass(cb)}">${pp(cb)}</td></tr>`;});
+    html+=`<tr class="rowlink" tabindex="0" data-cls="${c}"><td><span class="sw" style="background:${pal[i%pal.length]}"></span>${c}</td><td>${money(byC[c],b)}</td><td>${(byC[c]/total*100).toFixed(1)}%</td><td class="${signClass(tw)}">${pct(tw)}</td><td class="${signClass(cb)}">${pp(cb)}<svg class="i go" aria-hidden="true"><use href="#i-open"/></svg></td></tr>`;});
   for(const c in extra)html+=`<tr><td>⚠ ${c}</td><td>${money(extra[c],b)}</td><td>${(extra[c]/total*100).toFixed(1)}%</td><td>—</td><td>—</td></tr>`;
-  html+=`<tr><td class="dim">환율 효과</td><td>—</td><td>—</td><td>—</td><td class="${signClass(contrib.fxContrib)}">${pp(contrib.fxContrib)}</td></tr></tbody>`;
+  html+=`<tr><td class="dim">환율 효과${hlp("fx")}</td><td>—</td><td>—</td><td>—</td><td class="${signClass(contrib.fxContrib)}">${pp(contrib.fxContrib)}</td></tr></tbody>`;
   $("#t-class").innerHTML=html;
+  $("#mix-hint").innerHTML=`<svg class="i" aria-hidden="true"><use href="#i-open"/></svg> 표의 줄이나 그래프 조각을 누르면 그 자산군만 자세히 볼 수 있습니다`;
   // 종목별 (선택 통화 기준)
   const H=holdingStats(DATA,b);
   if(H.rows.length){
@@ -1507,6 +1501,93 @@ function renderCompose(){
     H.rows.forEach((r,i)=>{h2+=`<tr><td><span class="sw" style="background:${pal[i%pal.length]}"></span>${r.ticker} <span class="dim" style="font-size:.8em">${(r.name||"").slice(0,14)}</span></td><td>${money(r.val,b)}</td><td>${r.weight==null?"—":(r.weight*100).toFixed(1)+"%"}</td><td class="${signClass(r.cumRet)}">${pct(r.cumRet)}</td><td class="${signClass(r.contrib)}">${pp(r.contrib)}</td></tr>`;});
     h2+=`</tbody>`;$("#t-hold").innerHTML=h2;
   } else $("#holdings-wrap").classList.add("hidden");
+}
+
+/* ── 자산군 상세 (드로어) ────────────────────────────────────────────
+   원장에 이미 있는 값만 씁니다 — 새로 추정하거나 만들어내지 않습니다. */
+let MIX_CLASSES=[];
+function openClassDrawer(cls){
+  if(!DATA||!MODEL)return;
+  const b=STATE.basis,{months}=DATA;
+  const S=seriesFor(DATA,b,[cls]),r=modifiedDietz(S.ev,S.cf),tw=twrStats(r);
+  const tot=seriesFor(DATA,b).ev;
+  const lastI=[...S.ev].map(isNum).lastIndexOf(true);
+  if(lastI<0){drawerOpen("자산군",cls,`<div class="empty">이 자산군에는 기록된 값이 없습니다.</div>`);return;}
+  const val=S.ev[lastI],wNow=isNum(tot[lastI])&&tot[lastI]?val/tot[lastI]:null;
+  const prevI=[...S.ev].slice(0,lastI).map(isNum).lastIndexOf(true);
+  const wPrev=(prevI>=0&&isNum(tot[prevI])&&tot[prevI])?S.ev[prevI]/tot[prevI]:null;
+  const dW=(isNum(wNow)&&isNum(wPrev))?wNow-wPrev:null;
+  let inv=0;for(const c of S.cf)if(isNum(c))inv+=c;
+  const pnl=isNum(val)?val-inv:null;
+  const cb=contributions(DATA,months.length).perClass[cls];
+  // 금액은 통화기호를 분리해 넣습니다 — 큰 자간에서 ₩ 획이 첫 숫자에 닿는 걸 막습니다
+  const m=(k,v,cls2,key)=>`<div class="dw__m"><div class="k">${k}${key?hlp(key):""}</div><div class="v ${cls2||""}">${v}</div></div>`;
+  const rows=months.map((ym,i)=>isNum(S.ev[i])
+    ?`<tr><td>${fmtY(ym)}</td><td>${money(S.ev[i],b)}</td><td>${money(S.cf[i],b)}</td><td class="${signClass(r[i])}">${pct(r[i])}</td></tr>`:"").join("");
+  drawerOpen("자산군",cls,`
+    <div class="dw__grid">
+      ${m("평가액",moneyHero(val,b))}
+      ${m("비중",wNow==null?"—":(wNow*100).toFixed(1)+"%","","weight")}
+      ${m("누적 TWR",pct(tw.cum),signClass(tw.cum),"twr")}
+      ${m("전체 기여",pp(cb),signClass(cb),"contrib")}
+      ${m("넣은 원금",moneyHero(inv,b))}
+      ${m("누적 손익",moneyHero(pnl,b),signClass(pnl))}
+    </div>
+    <div>
+      <div class="dw__sec">평가액과 원금</div>
+      <div class="chartbox" style="height:190px"><canvas id="c-dw1"></canvas></div>
+    </div>
+    <div>
+      <div class="dw__sec">연도별 수익률${hlp("dietz")}</div>
+      <div class="chartbox" style="height:150px"><canvas id="c-dw2"></canvas></div>
+    </div>
+    <div>
+      <div class="dw__sec">연도별 기록</div>
+      <div style="overflow-x:auto"><table class="table"><thead><tr><th>연도</th><th>평가액</th><th>순입금</th><th>수익률</th></tr></thead><tbody>${rows}</tbody></table></div>
+    </div>
+    <div class="note">비중은 ${dW==null?"직전 연도와 비교할 값이 없습니다":`전년 대비 <b class="${signClass(dW)}">${pp(dW)}</b> 움직였습니다`}. 연율화 ${pct(tw.ann)} · ${tw.n}년 기록.</div>`);
+  // 드로어 차트 — 열린 뒤에 그립니다(캔버스 크기가 확정된 다음)
+  chDefaults();
+  const prin=[];let s=0;for(const c of S.cf){s+=isNum(c)?c:0;prin.push(s);}
+  destroy("dw1");destroy("dw2");
+  CHARTS.dw1=new Chart($("#c-dw1"),{type:"line",data:{labels:months.map(fmtY),datasets:[
+    lineMark(cssVar("--d1"),{label:"평가액",data:S.ev,backgroundColor:areaWash(cssVar("--d1")),fill:"origin"}),
+    lineMark(cssVar("--gray"),{label:"넣은 원금",data:prin,borderWidth:1.5,borderDash:[5,4],pointRadius:0,pointHitRadius:0})]},
+    options:{responsive:true,maintainAspectRatio:false,interaction:{mode:"index",intersect:false},
+      plugins:{legend:{position:"top",labels:{boxWidth:12,usePointStyle:true}},tooltip:{callbacks:{label:c=>`${c.dataset.label} ${money(c.raw,b)}`}}},
+      scales:{y:{ticks:{callback:v=>b==="KRW"?moneyShort(v,"KRW"):"$"+nfKRW.format(v)},grid:{color:gridClr()}},x:{grid:{display:false},ticks:{maxTicksLimit:7}}}}});
+  const rp=r.map(v=>isNum(v)?v*100:null);
+  CHARTS.dw2=new Chart($("#c-dw2"),{type:"bar",data:{labels:months.map(fmtY),datasets:[
+    barMark(rp.map(v=>v==null?"#0000":v>=0?cssVar("--pos"):cssVar("--neg")),{data:rp})]},
+    options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{display:false},
+      tooltip:{callbacks:{label:c=>isNum(c.raw)?(c.raw>=0?"+":"−")+Math.abs(c.raw).toFixed(2)+"%":"—"}}},
+      scales:{y:{ticks:{callback:v=>v+"%"},grid:{color:gridClr()}},x:{grid:{display:false},ticks:{maxTicksLimit:7}}}}});
+}
+
+/* ── 시장 지표 상세 (드로어) ─────────────────────────────────────── */
+function openMarketDrawer(key){
+  const M=MARKET_DATA;if(!M)return;
+  const g=GLOSSARY[key]||["지표",""];
+  const id=M.indicators||{},fx=M.fx||{},ix=M.index||{},fgv=M.fg||{};
+  const rowsOf={
+    usdkrw:[["현재",isNum(fx.usdkrw)?nfKRW.format(fx.usdkrw)+"원":"—"],["기준일",fx.date||"—"],["출처","Naver 금융"]],
+    us10y :[["현재",isNum(id.us10y)?id.us10y.toFixed(2)+"%":"—"],["기준일",id.date||"—"],["출처","Naver 금융 (US10YT=RR)"]],
+    gold  :[["현재",isNum(id.gold)?"$"+nfKRW.format(id.gold):"—"],["기준일",id.date||"—"],["출처","Naver 금융 (GCcv1)"]],
+    wti   :[["현재",isNum(id.wti)?"$"+id.wti.toFixed(2):"—"],["기준일",id.date||"—"],["출처","Naver 금융 (CLcv1)"]],
+    fng   :[["현재",isNum(fgv.score)?Math.round(fgv.score)+" · "+fgBand(Math.round(fgv.score))[0]:"—"],["기준일",fgv.date||"—"],["출처","CNN Business 공식 지수"]],
+    sp    :[["현재",isNum(ix.sp)?nfUSD.format(ix.sp):"—"],["기준일",ix.date||"—"],["출처","Naver 금융 (.INX)"]],
+    nasdaq:[["현재",isNum(ix.nasdaq)?nfUSD.format(ix.nasdaq):"—"],["기준일",ix.date||"—"],["출처","Naver 금융 (.IXIC)"]],
+    dow   :[["현재",isNum(ix.dow)?nfUSD.format(ix.dow):"—"],["기준일",ix.date||"—"],["출처","Naver 금융 (.DJI)"]]
+  }[key]||[];
+  const IX={sp:["S&P 500","미국 대형주 500개. 세계 주식시장의 기준선으로 쓰입니다."],
+            nasdaq:["NASDAQ","기술주 비중이 큰 지수. 금리에 더 민감하게 반응합니다."],
+            dow:["다우존스","오래된 대형주 30개. 지수 계산이 주가 가중이라 요즘은 참고용에 가깝습니다."]};
+  const t=IX[key]||g;
+  drawerOpen("시장 지표",t[0],`
+    <p style="color:var(--ink2);font-size:.9rem;line-height:1.7">${t[1]}</p>
+    <div><div class="dw__sec">오늘 값</div>
+      <table class="table"><tbody>${rowsOf.map(([k,v])=>`<tr><td class="dim">${k}</td><td style="font-weight:700">${v}</td></tr>`).join("")}</tbody></table></div>
+    <div class="note">시장 지표는 <b>그날 값만</b> 담습니다. 흐름을 쌓아 보는 건 미국 기준금리 하나입니다.</div>`);
 }
 
 /* 리스크·심리 */
@@ -1545,12 +1626,12 @@ function renderRisk(){
     plugins:[{id:"ml",afterDatasetsDraw(ch){if(dd.mddIdx<0)return;const p=ch.getDatasetMeta(0).data[dd.mddIdx];if(!p)return;const ctx=ch.ctx;ctx.save();ctx.fillStyle=cssVar("--neg");ctx.font="800 11px "+(cssVar("--font")||"sans-serif");ctx.textAlign="center";ctx.fillText(`최악 ${(dd.mdd*100).toFixed(1)}%`,p.x,p.y+16);ctx.restore();}}]});
   const rec=dd.recovery==null?"—":(dd.ongoing?`진행 중 ${dd.recovery}년`:`${dd.recovery}년`);
   const rr=r.slice(1).filter(isNum),win=rr.length?rr.filter(x=>x>0).length/rr.length:null;  // 첫 해(구조상 0) 제외
-  const card=(k,v,cls,tip)=>`<div class="kpi"><div class="kpi__label">${k} <span class="help" tabindex="0">?<span class="help__tip">${tip}</span></span></div><div class="kpi__val ${cls||""}" >${v}</div></div>`;
+  const card=(k,v,cls,key)=>`<div class="kpi"><div class="kpi__label">${k} ${hlp(key)}</div><div class="kpi__val ${cls||""}" >${v}</div></div>`;
   $("#risk-cards").innerHTML=
-    card("역대 최악 하락",pct(dd.mdd),"neg","연말 기준 고점 대비 최대 하락폭(MDD). 최악의 경우 이만큼 빠졌었다는 뜻.")+
-    card("현재 낙폭",pct(dd.curDD),signClass(dd.curDD),"지금이 사상 최고점(연말) 대비 얼마나 아래인지.")+
-    card("최악에서 회복",rec,"","그 최저점에서 전고점을 회복하기까지 걸린 햇수.")+
-    card("승률(연)",win==null?"—":(win*100).toFixed(0)+"%","","전체 연도 중 플러스였던 해의 비율.");
+    card("역대 최악 하락",pct(dd.mdd),"neg","mdd")+
+    card("현재 낙폭",pct(dd.curDD),signClass(dd.curDD),"curdd")+
+    card("최악에서 회복",rec,"","recov")+
+    card("승률(연)",win==null?"—":(win*100).toFixed(0)+"%","","winr");
 }
 
 /* 복리·목표 (상세 시뮬) */
@@ -1581,7 +1662,7 @@ function renderSim(){
      borderColor:cssVar("--card"),borderWidth:{top:2,right:0,bottom:0,left:0}},   /* 세그먼트 사이 2px 서피스 간격 */
     {label:real?"복리분(실질)":"복리분(재투자 수익)",data:barInt,backgroundColor:cssVar("--d1"),stack:"s",maxBarThickness:24,borderRadius:4,borderSkipped:"start"}]},
     options:{responsive:true,maintainAspectRatio:false,interaction:{mode:"index",intersect:false},
-      plugins:{legend:{position:"top",labels:{boxWidth:14,usePointStyle:true},onClick:null},
+      plugins:{legend:{position:"top",labels:{boxWidth:14,usePointStyle:true}},
         tooltip:{callbacks:{label:c=>`${c.dataset.label} ${moneyShort(c.raw,"KRW")}`,footer:items=>"합계 "+moneyShort(sum(items.map(i=>i.raw)),"KRW")}},tl:{}},
       scales:{x:{stacked:true,grid:{display:false},ticks:{maxTicksLimit:12}},y:{stacked:true,ticks:{callback:v=>moneyShort(v,"KRW")},grid:{color:gridClr()}}}},
     plugins:[{id:"tl",afterDatasetsDraw(ch){if(!isNum(targetLine))return;const y=ch.scales.y.getPixelForValue(targetLine);const{left,right}=ch.chartArea,ctx=ch.ctx;ctx.save();ctx.strokeStyle=cssVar("--neg");ctx.setLineDash([6,4]);ctx.lineWidth=1.4;ctx.beginPath();ctx.moveTo(left,y);ctx.lineTo(right,y);ctx.stroke();ctx.setLineDash([]);ctx.fillStyle=cssVar("--neg");ctx.font="800 11px "+(cssVar("--font")||"sans-serif");ctx.fillText(`목표 ${moneyShort(targetLine,"KRW")}${real?" (실질)":""}`,left+6,y-6);ctx.restore();}}]});
@@ -1600,7 +1681,7 @@ function renderSim(){
 
 /* ─── 탭 전환 ─── */
 // 원장(xlsx)이 있어야 의미 있는 탭들. 시장지표·만다라트·관리·개발기록은 원장 없이도 열람 가능.
-const DATA_TABS=["overview","perf","risk","sim","journey"];
+const DATA_TABS=["overview","perf","risk","sim"];
 function applyTabVisibility(){
   const has=!!DATA;
   $$("#tabnav .tab").forEach(b=>b.classList.toggle("hidden",!has&&DATA_TABS.includes(b.dataset.tab)));
@@ -1613,9 +1694,9 @@ function renderTab(t){
   else if(t==="risk")renderRisk();
   else if(t==="market")renderMarket();
   else if(t==="sim")renderSim();
-  else if(t==="journey")renderJourney();
   else if(t==="mandala")renderMandalart();
-  // manage/dev: 정적
+  else if(t==="dev")buildAccordions();
+  // manage: 정적
 }
 function renderActive(){renderTab(STATE.tab);}
 function moveTabIndicator(){
@@ -1720,6 +1801,7 @@ function printCurrentTab(){
 }
 function printFullReport(){
   const panels=$$(".panel-page[data-report]");
+  drawerClose();modalClose();closeHelp(null);
   document.body.classList.add("print-all");     // 대상 탭 전부 표시 → canvas 크기 확보
   panels.forEach(p=>p.classList.add("on"));
   panels.forEach(p=>{try{renderTab(p.dataset.page);}catch(e){console.warn("리포트 렌더 실패",p.dataset.page,e);}});
@@ -1763,6 +1845,47 @@ $("#s-infl").addEventListener("input",e=>{STATE.infl=+e.target.value/100;syncSim
 $("#s-endyr").addEventListener("input",e=>{STATE.simEndYear=+e.target.value;syncSim();renderSim();});
 $("#optin").addEventListener("change",e=>{if(e.target.checked){localStorage.setItem(OPT,"1");if(DATA)saveCache();$("#optin-note").textContent="⚠ 이 브라우저에 데이터가 저장됩니다.";}else{localStorage.setItem(OPT,"0");try{localStorage.removeItem(CACHE);}catch(_){}$("#optin-note").textContent="저장이 꺼졌고 캐시를 삭제했습니다.";}});
 $("#mandala-reset").addEventListener("click",resetMandala);
+
+/* ─── 드로어 · 모달 · 새 토글 ─── */
+$("#dw-close").addEventListener("click",drawerClose);
+$("#dw-scrim").addEventListener("click",drawerClose);
+$("#md-no").addEventListener("click",modalClose);
+$("#md-yes").addEventListener("click",()=>{const cb=MD_CB;modalClose();if(cb)cb();});
+$("#modal").addEventListener("mousedown",e=>{if(e.target.id==="modal")modalClose();});
+// 표의 줄 / 시장 카드 → 상세 (클릭 · Enter · Space 모두)
+function openFromEl(el){
+  const tr=el.closest("tr.rowlink");if(tr&&tr.dataset.cls){openClassDrawer(tr.dataset.cls);return true;}
+  const mk=el.closest("[data-mk]");if(mk){openMarketDrawer(mk.dataset.mk);return true;}
+  return false;
+}
+document.addEventListener("click",e=>{if(e.target.closest(".help"))return;openFromEl(e.target);});
+document.addEventListener("keydown",e=>{
+  if(e.key!=="Enter"&&e.key!==" ")return;
+  const el=document.activeElement;if(!el)return;
+  if(el.matches("tr.rowlink,[data-mk]")&&openFromEl(el))e.preventDefault();
+});
+// 성장 곡선: 금액 ↔ 수익률 · 기간
+$("#growth-mode").addEventListener("click",e=>{const b=e.target.closest("button");if(!b)return;
+  STATE.growthMode=b.dataset.m;$$("#growth-mode button").forEach(x=>x.classList.toggle("on",x===b));renderOverview();});
+$("#span-seg").addEventListener("click",e=>{const b=e.target.closest("button");if(!b)return;
+  STATE.span=+b.dataset.n;renderOverview();});
+
+/* ─── 개발기록 아코디언 ─── */
+function buildAccordions(){
+  const box=$("#tl-hist");if(!box||box.dataset.acc)return;box.dataset.acc="1";
+  const items=$$(".tl__i",box);
+  items.forEach((it,i)=>{
+    const h=it.querySelector("h4");if(!h)return;
+    const body=document.createElement("div");body.className="acc__b";
+    while(it.children.length>1)body.appendChild(it.children[1]);   // h4 뒤의 내용만 옮깁니다
+    const n=body.querySelectorAll("li").length;
+    const d=document.createElement("details");d.className="acc";if(i<2)d.open=true;
+    const s=document.createElement("summary");s.className="acc__h";
+    s.innerHTML=h.innerHTML+`<span class="cnt">${n}개</span><svg class="i" aria-hidden="true"><use href="#i-chev"/></svg>`;
+    h.remove();d.appendChild(s);d.appendChild(body);
+    it.appendChild(d);it.classList.add("tl__i--acc");
+  });
+}
 $("#ov-prev").addEventListener("click",()=>{STATE.ovSlide=(STATE.ovSlide+OV_SLIDES.length-1)%OV_SLIDES.length;renderOvSlide();});
 $("#ov-next").addEventListener("click",()=>{STATE.ovSlide=(STATE.ovSlide+1)%OV_SLIDES.length;renderOvSlide();});
 matchMedia("(prefers-color-scheme:dark)").addEventListener("change",()=>{if((document.documentElement.getAttribute("data-theme")||"auto")==="auto"&&MODEL)renderActive();});
@@ -1770,7 +1893,7 @@ matchMedia("(prefers-color-scheme:dark)").addEventListener("change",()=>{if((doc
 /* ─── 커맨드 팔레트 (⌘K / Ctrl+K) + 키보드 내비게이션 ───────────────────────
    대시보드가 깊어질수록 "그 화면 어디였지"가 늘어납니다. 검색 한 번으로
    탭 이동·통화·테마·리포트를 전부 실행할 수 있게 했습니다. */
-const TAB_LABELS={overview:"요약",perf:"성과·구성",risk:"리스크·심리",market:"시장지표",sim:"복리·목표",journey:"여정",mandala:"만다라트",manage:"관리",dev:"개발기록"};
+const TAB_LABELS={overview:"요약",perf:"성과·구성",risk:"리스크·심리",market:"시장지표",sim:"복리·목표",mandala:"만다라트",manage:"관리",dev:"개발기록"};
 function cmdkCommands(){
   const c=[],vis=id=>!DATA?!DATA_TABS.includes(id):true;
   Object.keys(TAB_LABELS).forEach((id,i)=>{if(!vis(id))return;
@@ -1785,7 +1908,13 @@ function cmdkCommands(){
     c.push({ic:"◕",tt:"자산구성 — 도넛",ds:"부분-전체를 한눈에",run:()=>setMix("donut")});
     [["sp","S&P 500"],["nq","NASDAQ"],["dj","다우존스"]].forEach(([k,n])=>
       c.push({ic:"≈",tt:"벤치마크 — "+n,ds:"비교 지수 변경",run:()=>setBm(k)}));
+    MIX_CLASSES.forEach(cls=>
+      c.push({ic:"◧",tt:cls+" 자세히",ds:"자산군 상세",run:()=>{switchTab("perf");openClassDrawer(cls);}}));
   }
+  // 용어 — ⌘K 에 'TWR' 만 쳐도 뜻이 열립니다
+  Object.keys(GLOSSARY).forEach(k=>{const g=GLOSSARY[k];
+    c.push({ic:"?",tt:g[0],ds:"용어",run:()=>drawerOpen("용어",g[0],
+      `<p style="color:var(--ink2);font-size:.94rem;line-height:1.75">${g[1]}</p>`)});});
   c.push({ic:"⟳",tt:"다른 원장 파일 열기",ds:"엑셀 교체",run:()=>$("#reload-btn").click()});
   return c;
 }
@@ -1813,6 +1942,19 @@ $("#cmdk-list").addEventListener("click",e=>{const el=e.target.closest(".cmdk__i
 $("#cmdk").addEventListener("mousedown",e=>{if(e.target.id==="cmdk")cmdkClose();});
 document.addEventListener("keydown",e=>{
   const k=e.key,mod=e.metaKey||e.ctrlKey;
+  // 확인 모달 → 드로어 → 팔레트 순으로 위에 있는 것부터 닫습니다
+  if(!$("#modal").classList.contains("hidden")){
+    if(k==="Escape"){e.preventDefault();modalClose();}
+    else if(k==="Enter"){e.preventDefault();const cb=MD_CB;modalClose();if(cb)cb();}
+    else if(k==="Tab")trapTab($(".md__box"),e);
+    return;
+  }
+  if(DW.open){
+    if(k==="Escape"){e.preventDefault();drawerClose();}
+    else if(k==="Tab")trapTab($(".dw__box"),e);
+    return;
+  }
+  if(k==="Escape"&&$$(".help.on").length){closeHelp(null);return;}
   if(mod&&(k==="k"||k==="K")){e.preventDefault();CMDK.open?cmdkClose():cmdkOpen();return;}
   if(CMDK.open){
     if(k==="Escape"){e.preventDefault();cmdkClose();}
