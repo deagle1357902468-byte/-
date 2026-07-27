@@ -30,8 +30,6 @@
   --shadow-lg:0 8px 28px rgba(11,15,24,.10);
   --radius:16px; --radius-sm:10px; --maxw:1180px;
   --font:"Pretendard Variable",Pretendard,-apple-system,BlinkMacSystemFont,"Apple SD Gothic Neo","Malgun Gothic","Noto Sans KR",system-ui,sans-serif;
-  /* 표지·섹션 제목용 — 윈도우·맥에 실제로 있는 것만 나열합니다 */
-  --serif:"Nanum Myeongjo","Noto Serif KR",Batang,Georgia,"Times New Roman",serif;
   /* 검증 통과 순서: blue·orange·aqua·yellow·magenta·green·violet·red */
   --d1:#2a78d6;--d2:#eb6834;--d3:#1baf7a;--d4:#eda100;--d5:#e87ba4;--d6:#008300;--d7:#4a3aa7;--d8:#e34948;
   /* 매매 판정색 — 등락색(pos/neg)과 분리합니다. 판정은 가격의 방향이 아니라
@@ -379,7 +377,10 @@ tr.rowlink:hover .go,tr.rowlink:focus-within .go{opacity:1}
 .miniseg{display:inline-flex;background:var(--line2);border:1px solid var(--line);border-radius:999px;padding:2px}
 .miniseg button{border:0;background:transparent;color:var(--ink2);font-weight:700;font-size:.78rem;padding:4px 11px;border-radius:999px;cursor:pointer;white-space:nowrap;font-family:inherit}
 .miniseg button.on{background:var(--card);color:var(--ink);box-shadow:var(--shadow)}
-.miniseg:empty{display:none}   /* 기록이 짧아 선택지가 없으면 빈 껍데기를 남기지 않습니다 */
+.miniseg:empty{display:none}
+.tinput{border:1px solid var(--line);background:var(--card);color:var(--ink);border-radius:9px;
+  padding:7px 11px;font-family:inherit;font-size:.86rem;min-width:170px;outline:none}
+.tinput:focus{border-color:var(--accent);box-shadow:0 0 0 3px var(--accent-weak)}   /* 기록이 짧아 선택지가 없으면 빈 껍데기를 남기지 않습니다 */
 
 .chartbox{position:relative;width:100%}
 .h-tall{height:360px}.h-mid{height:290px}.h-short{height:220px}.h-bar{height:104px;margin-bottom:6px}
@@ -447,6 +448,34 @@ input[type=range]{width:100%;accent-color:var(--accent);height:4px}
 .tl__i.done .tag{background:var(--pos-weak);color:var(--pos)} .tl__i.plan .tag{background:var(--line2);color:var(--muted)}
 .tl__i ul{margin:6px 0 0;padding-left:16px;color:var(--ink2);font-size:.85rem;line-height:1.7}
 
+/* 만다라트 서식 도구 */
+.mtool{display:flex;flex-wrap:wrap;align-items:center;gap:7px;margin:0 0 14px;
+  padding:9px 11px;background:var(--card2);border:1px solid var(--line);border-radius:var(--radius-sm)}
+.mtsel{border:1px solid var(--line);background:var(--card);color:var(--ink);border-radius:999px;
+  padding:5px 10px;font-family:inherit;font-size:.78rem;font-weight:700;cursor:pointer;outline:none}
+.mtsel:focus-visible{border-color:var(--accent);box-shadow:0 0 0 3px var(--accent-weak)}
+.mtdiv{width:1px;height:20px;background:var(--line);margin:0 2px}
+.mtool .miniseg button{min-width:30px;font-size:.82rem;line-height:1.2}
+.mtool .miniseg button .i{margin:1px auto}
+.mtool .miniseg button b,.mtool .miniseg button i,.mtool .miniseg button u,.mtool .miniseg button s{font-style:inherit}
+.mtool .miniseg button[data-c=italic] i{font-style:italic}
+.mtcolors{display:inline-flex;gap:4px;align-items:center}
+.mtcolors button{width:20px;height:20px;border-radius:50%;border:1.5px solid var(--line);cursor:pointer;padding:0}
+.mtcolors button.on{box-shadow:0 0 0 2px var(--card),0 0 0 4px var(--accent)}
+.btn--sm{padding:5px 10px;font-size:.78rem}
+#toast{position:fixed;left:50%;bottom:26px;transform:translate(-50%,10px);z-index:210;
+  background:var(--ink);color:var(--bg);padding:10px 16px;border-radius:999px;font-size:.84rem;
+  font-weight:700;box-shadow:var(--shadow-lg);opacity:0;transition:.16s;pointer-events:none}
+#toast.on{opacity:1;transform:translate(-50%,0)}
+/* 글꼴·크기는 그리드 전체에 걸립니다(칸마다 다르면 표가 지저분해집니다) */
+.mandala[data-font=gothic]{font-family:"Malgun Gothic","맑은 고딕","Nanum Gothic",sans-serif}
+.mandala[data-font=myeongjo]{font-family:"Nanum Myeongjo","Batang",바탕,serif}
+.mandala[data-font=round]{font-family:"Jua","Nanum Pen Script","Gaegu","Malgun Gothic",sans-serif}
+.mandala[data-font=mono]{font-family:"D2Coding",Consolas,"Courier New",monospace}
+.mandala[data-size=xs] .mc{font-size:.52rem}
+.mandala[data-size=s]  .mc{font-size:.57rem}
+.mandala[data-size=l]  .mc{font-size:.70rem;line-height:1.3}
+.mandala[data-align=center] .mc{text-align:center;display:flex;align-items:center;justify-content:center}
 /* mandala (만다라트) */
 .mandala{display:grid;grid-template-columns:repeat(9,1fr);gap:3px;max-width:860px;margin:4px auto}
 .mandala .mc{aspect-ratio:1;border:1px solid var(--line);border-radius:6px;padding:5px;font-size:.62rem;line-height:1.22;overflow:auto;background:var(--card2);color:var(--ink);outline:none;word-break:break-word}
@@ -513,7 +542,12 @@ input[type=range]{width:100%;accent-color:var(--accent);height:4px}
 @media (prefers-reduced-motion:reduce){*{animation-duration:.001ms!important;transition-duration:.001ms!important}
   .tabs__ind{transition:none}}
 /* 리포트(인쇄/PDF) */
-.print-head,.print-cover{display:none}
+.print-head,.print-cover,.print-summary{display:none}
+/* 인쇄 준비: 본문을 A4 인쇄 상자와 **똑같이** 만들어 두면 Chart.js 가 그 폭으로
+   다시 그립니다. 폭·좌우 패딩을 인쇄 규칙과 일치시켜야 그래프가 잘리지도,
+   칼럼보다 좁게 그려지지도 않습니다. (A4 210mm · 좌우 13mm) */
+body.print-fit .wrap{max-width:210mm;padding-left:13mm;padding-right:13mm}
+body.print-fit .card{padding:0}   /* 인쇄에서 카드 패딩이 0이므로 여기서도 맞춰야 폭이 일치합니다 */
 /* 전체 리포트 모드: 인쇄 대상 탭을 모두 펼쳐 한 문서로 만듭니다 */
 body.print-all .panel-page[data-report]{display:block!important}
 body.print-all .panel-page:not([data-report]){display:none!important}
@@ -532,7 +566,7 @@ body.print-all .panel-page:not([data-report]){display:none!important}
 
   .topbar,.tabs,.top-actions,.iconbtn,.btn,#ov-prev,#ov-next,.pill-row,.miniseg,.seg,.foot,
   #mandala-reset,.help,#banners,.sim-grid,.gaugebar,#div-card>.chartbox,#cmdk,.report-menu,
-  #drawer,#modal,.clickhint,.rowlink .go,.quote{display:none!important}
+  #drawer,#modal,#toast,.clickhint,.rowlink .go,.quote,.mtool{display:none!important}
   .acc__b{display:block!important}   /* 접혀 있어도 인쇄에는 전부 나옵니다 */
   .acc__h .i{display:none}
   body{background:#fff!important;color:#111!important;font-size:9.6pt}
@@ -543,51 +577,53 @@ body.print-all .panel-page:not([data-report]){display:none!important}
   .print-head{display:block!important;padding-top:14mm;border-bottom:1.6pt solid #111;
     padding-bottom:8px;margin-bottom:16px}
   .ph__org{font-size:8.4pt;letter-spacing:.16em;text-transform:uppercase;font-weight:700;color:#111}
-  .ph__t{font-family:var(--serif);font-size:17pt;font-weight:400;margin-top:5px;letter-spacing:-.01em}
+  .ph__t{font-size:16pt;font-weight:750;margin-top:5px;letter-spacing:-.02em}
   .ph__m{color:#555;font-size:8.8pt;margin-top:5px;font-variant-numeric:tabular-nums}
   body.print-all .print-head{display:none!important}
 
-  /* ── 표지 ── 애널리스트 리포트/논문 조판 ── */
+  /* ── 표지(겉지) ── 제목·이름·날짜만. 숫자는 다음 장으로. ── */
   body.print-all .print-cover{display:flex!important;flex-direction:column;
     min-height:calc(100vh - 2px);break-after:page;text-align:left;
-    padding-top:14mm;padding-bottom:11mm}
-  .pc__rule{border-top:2.4pt solid #111;margin-bottom:5px}
-  .pc__rule--thin{border-top:.5pt solid #111;margin:0 0 4px}
-  .pc__top{display:flex;justify-content:space-between;align-items:baseline;gap:14px;
-    font-size:8.4pt;letter-spacing:.16em;text-transform:uppercase;color:#111;font-weight:700;
-    padding-bottom:6px}
-  .pc__top .r{letter-spacing:.06em;color:#555;font-weight:600;text-transform:none}
-  .pc__mid{margin-top:17mm}
-  .pc__kicker{font-size:9.5pt;letter-spacing:.2em;color:#555;font-weight:700;text-transform:uppercase}
-  .print-cover h1{font-family:var(--serif);font-size:28pt;font-weight:400;line-height:1.22;
-    letter-spacing:-.01em;margin:12px 0 0}
-  .print-cover h1 em{font-style:normal;display:block;font-size:.62em;color:#333;margin-top:9px;
-    letter-spacing:.01em}
-  .pc__period{margin-top:16px;font-size:10.5pt;color:#333;font-variant-numeric:tabular-nums}
-  .pc__sec{margin-top:8mm}
-  .pc__h{font-size:8.4pt;letter-spacing:.18em;text-transform:uppercase;color:#111;font-weight:800;
-    border-bottom:.5pt solid #111;padding-bottom:4px;margin-bottom:9px}
-  .pc__abs{font-family:var(--serif);font-size:10pt;line-height:1.66;color:#111;text-align:justify;
-    hyphens:auto;word-break:keep-all}
+    padding-top:22mm;padding-bottom:18mm}
+  .pc__rule{border-top:2.4pt solid #111}
+  .pc__rule--thin{border-top:.5pt solid #111;margin-top:9px}
+  .pc__org{font-size:8.6pt;letter-spacing:.2em;text-transform:uppercase;font-weight:700;
+    color:#111;padding-top:7px}
+  .pc__mid{margin-top:auto;margin-bottom:auto;padding-bottom:14mm}
+  .print-cover h1{font-size:32pt;font-weight:750;line-height:1.2;letter-spacing:-.03em;margin:0}
+  .pc__sub{font-size:15pt;font-weight:400;color:#444;margin-top:10px;letter-spacing:-.01em}
+  .pc__period{margin-top:26px;font-size:11pt;color:#333;font-variant-numeric:tabular-nums;
+    letter-spacing:.02em}
+  .pc__foot{margin-top:0}
+  .pc__by{font-size:11.5pt;font-weight:700;color:#111}
+  .pc__by:empty{display:none}
+  .pc__date{font-size:9.5pt;color:#555;margin-top:4px;font-variant-numeric:tabular-nums}
+
+  /* ── 요약 장 ── */
+  body.print-all .print-summary{display:block!important;break-after:page;
+    padding-top:15mm;padding-bottom:14mm}
+  .ps__h{font-size:15pt;font-weight:750;letter-spacing:-.02em;
+    border-bottom:1.6pt solid #111;padding-bottom:7px;margin-bottom:12px}
+  .ps__h--2{margin-top:11mm}
+  .pc__abs{font-size:10pt;line-height:1.78;color:#111;word-break:keep-all}
   .pc__abs b{font-weight:700}
   .pc__keys{width:100%;border-collapse:collapse;font-size:9.6pt}
-  .pc__keys td{padding:4.6px 0;border-bottom:.5pt solid #d5d5d5;vertical-align:baseline}
+  .pc__keys td{padding:6px 0;border-bottom:.5pt solid #d5d5d5;vertical-align:baseline}
   .pc__keys td:first-child{color:#444;white-space:nowrap;padding-right:10px}
   .pc__keys td:last-child{text-align:right;font-weight:700;font-variant-numeric:tabular-nums;
     white-space:nowrap}
   .pc__keys tr:last-child td{border-bottom:0}
   .pc__keys .sub{display:block;font-weight:400;color:#666;font-size:8.6pt;margin-top:1px}
-  .pc__foot{margin-top:auto;padding-top:6mm}
-  .pc__meta{display:flex;flex-wrap:wrap;gap:3px 20px;font-size:8.8pt;color:#444;
-    border-top:.5pt solid #111;padding-top:8px;font-variant-numeric:tabular-nums}
-  .pc__disc{margin-top:8px;font-size:7.6pt;line-height:1.55;color:#666;word-break:keep-all}
+  .pc__meta{display:flex;flex-wrap:wrap;gap:3px 18px;font-size:8.8pt;color:#444;
+    border-top:.5pt solid #111;padding-top:8px;margin-top:11mm;font-variant-numeric:tabular-nums}
+  .pc__disc{margin-top:9px;font-size:7.8pt;line-height:1.6;color:#666;word-break:keep-all}
 
   /* ── 본문 섹션 ── */
   body.print-all .panel-page[data-report]{break-before:page;padding:15mm 0 14mm}
   body.print-all .panel-page[data-report]:first-of-type{break-before:auto}
   body.print-all .panel-page[data-report]::before{content:attr(data-title);display:block;
-    font-family:var(--serif);font-size:16pt;font-weight:400;letter-spacing:-.01em;margin:0 0 14px;
-    border-bottom:1.6pt solid #111;padding-bottom:8px}
+    font-size:15pt;font-weight:750;letter-spacing:-.02em;margin:0 0 14px;
+    border-bottom:1.6pt solid #111;padding-bottom:7px}
   .panel-page:not(.on):not([data-report]){display:none!important}
   body:not(.print-all) .panel-page:not(.on){display:none!important}
 
@@ -602,6 +638,9 @@ body.print-all .panel-page:not([data-report]){display:none!important}
   .blocktitle{margin-bottom:10px;border-bottom:.5pt solid #ddd;padding-bottom:5px}
   .blocktitle h3{font-size:11pt;font-weight:750}
   .chartbox{break-inside:avoid;margin:2mm 0}
+  /* Chart.js 가 캔버스에 화면 기준 인라인 크기를 박아 둡니다. 인쇄 직전에 다시 그리지만
+     (printFullReport 의 print-fit), 타이밍이 어긋나도 종이 밖으로 나가지 않게 막습니다. */
+  canvas{max-width:100%!important;height:auto!important}
   .table tbody tr:hover td{background:none!important}
   .table th{border-bottom:.7pt solid #111}
   .tcards{gap:0!important}
@@ -636,6 +675,8 @@ body.print-all .panel-page:not([data-report]){display:none!important}
   <symbol id="i-quote" viewBox="0 0 24 24"><path d="M9.4 5.6C6.4 7 4.8 9.4 4.8 12.6v5.8h6.4v-6.2H7.9c.1-1.9 1-3.3 2.7-4.2l-1.2-2.4Zm9.4 0C15.8 7 14.2 9.4 14.2 12.6v5.8h6.4v-6.2h-3.3c.1-1.9 1-3.3 2.7-4.2l-1.2-2.4Z" fill="currentColor"/></symbol>
   <symbol id="i-x" viewBox="0 0 24 24"><path d="M6.4 6.4 17.6 17.6M17.6 6.4 6.4 17.6" stroke="currentColor" stroke-width="2" stroke-linecap="round" fill="none"/></symbol>
   <symbol id="i-chev" viewBox="0 0 24 24"><path d="M6 9.5 12 15.5 18 9.5" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" fill="none"/></symbol>
+  <symbol id="i-alignl" viewBox="0 0 24 24"><path d="M4 6h16M4 11h10M4 16h14M4 21h8" stroke="currentColor" stroke-width="2" stroke-linecap="round" fill="none"/></symbol>
+  <symbol id="i-alignc" viewBox="0 0 24 24"><path d="M4 6h16M7 11h10M5 16h14M8 21h8" stroke="currentColor" stroke-width="2" stroke-linecap="round" fill="none"/></symbol>
   <symbol id="i-check" viewBox="0 0 24 24"><path d="m5 12.6 4.6 4.6L19 7.4" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" fill="none"/></symbol>
   <symbol id="i-alert" viewBox="0 0 24 24"><path d="M12 4.4 21 19.6H3L12 4.4Z" stroke="currentColor" stroke-width="1.9" stroke-linejoin="round" fill="none"/><path d="M12 10v3.6" stroke="currentColor" stroke-width="2.1" stroke-linecap="round"/><circle cx="12" cy="16.7" r="1.05" fill="currentColor"/></symbol>
   <symbol id="i-trade" viewBox="0 0 24 24"><path d="M4 8.5h13M13.5 4.8 17.4 8.5l-3.9 3.7" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round" fill="none"/><path d="M20 15.5H7M10.5 11.8 6.6 15.5l3.9 3.7" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round" fill="none"/></symbol>
@@ -668,29 +709,27 @@ body.print-all .panel-page:not([data-report]){display:none!important}
   <!-- 전체 리포트 표지 (인쇄에서만 보임) -->
   <div class="wrap print-cover">
     <div class="pc__rule"></div>
-    <div class="pc__top"><span>개인 투자 리서치</span><span class="r" id="pc-period-top">—</span></div>
-    <div class="pc__rule pc__rule--thin"></div>
-
+    <div class="pc__org">개인 투자 리서치</div>
     <div class="pc__mid">
-      <div class="pc__kicker" id="pc-kicker">연간 성과 보고서</div>
-      <h1>개인 투자 포트폴리오<em>성과 · 리스크 · 자산배분 분석</em></h1>
+      <h1 id="pc-title">개인 투자 포트폴리오</h1>
+      <div class="pc__sub" id="pc-kicker">연간 성과 보고서</div>
       <div class="pc__period" id="pc-period">&mdash;</div>
     </div>
-
-    <div class="pc__sec">
-      <div class="pc__h">초록</div>
-      <div class="pc__abs" id="pc-abstract"></div>
-    </div>
-
-    <div class="pc__sec">
-      <div class="pc__h">주요 수치</div>
-      <table class="pc__keys" id="pc-keys"></table>
-    </div>
-
     <div class="pc__foot">
-      <div class="pc__meta" id="pc-meta"></div>
-      <p class="pc__disc">본 문서는 개인 기록·점검 목적으로 자동 생성되었습니다. 투자 권유나 자문이 아니며, 과거 성과가 미래 수익을 보장하지 않습니다. 모든 수치는 원장 파일에 기록된 값에서만 산출되었고, 계산은 이 브라우저 안에서만 이루어졌습니다. 연 1회 기록이라 연중 고점·저점은 포함되지 않으며, 벤치마크 지수는 배당 재투자를 제외한 가격 기준입니다.</p>
+      <div class="pc__by" id="pc-by"></div>
+      <div class="pc__date" id="pc-date"></div>
+      <div class="pc__rule pc__rule--thin"></div>
     </div>
+  </div>
+
+  <!-- 요약 장 (인쇄 전용) — 표지 다음, 본문 앞 -->
+  <div class="wrap print-summary">
+    <div class="ps__h">요약</div>
+    <div class="pc__abs" id="pc-abstract"></div>
+    <div class="ps__h ps__h--2">주요 수치</div>
+    <table class="pc__keys" id="pc-keys"></table>
+    <div class="pc__meta" id="pc-meta"></div>
+    <p class="pc__disc">본 문서는 개인 기록·점검 목적으로 자동 생성되었습니다. 투자 권유나 자문이 아니며, 과거 성과가 미래 수익을 보장하지 않습니다. 모든 수치는 원장 파일에 기록된 값에서만 산출되었고, 계산은 이 브라우저 안에서만 이루어졌습니다. 연 1회 기록이라 연중 고점·저점은 포함되지 않으며, 벤치마크 지수는 배당 재투자를 제외한 가격 기준입니다.</p>
   </div>
   <header class="topbar"><div class="wrap topbar__in">
     <div class="brand">
@@ -912,8 +951,35 @@ body.print-all .panel-page:not([data-report]){display:none!important}
     <section class="panel-page" data-page="mandala" data-report="1" data-title="만다라트">
       <div class="quote mb" data-qt="mandala"></div>
       <div class="card pad">
-        <div class="blocktitle"><div><h3>만다라트 — 투자 마음가짐</h3><div class="sub">가운데는 핵심 목표, 둘레 여덟 칸은 실천 항목입니다 · 칸을 눌러 채우세요</div></div>
+        <div class="blocktitle"><div><h3>만다라트 — 투자 마음가짐</h3><div class="sub">가운데는 핵심 목표, 둘레 여덟 칸은 실천 항목입니다 · 칸을 누르고 아래 도구로 꾸미세요</div></div>
           <button class="btn" id="mandala-reset">비우기</button></div>
+        <div class="mtool" id="mandala-tool">
+          <select id="mt-font" class="mtsel" aria-label="글꼴">
+            <option value="">기본</option>
+            <option value="gothic">고딕</option>
+            <option value="myeongjo">명조</option>
+            <option value="round">둥근고딕</option>
+            <option value="mono">고정폭</option>
+          </select>
+          <div class="miniseg" id="mt-size" role="group" aria-label="글자 크기">
+            <button data-s="xs">아주 작게</button><button data-s="s">작게</button>
+            <button data-s="m" class="on">보통</button><button data-s="l">크게</button>
+          </div>
+          <span class="mtdiv"></span>
+          <div class="miniseg" id="mt-style" role="group" aria-label="글자 서식">
+            <button data-c="bold" title="굵게" aria-label="굵게"><b>B</b></button>
+            <button data-c="italic" title="기울임" aria-label="기울임"><i>I</i></button>
+            <button data-c="underline" title="밑줄" aria-label="밑줄"><u>U</u></button>
+            <button data-c="strikeThrough" title="취소선" aria-label="취소선"><s>S</s></button>
+          </div>
+          <div class="mtcolors" id="mt-color" role="group" aria-label="글자색"></div>
+          <span class="mtdiv"></span>
+          <div class="miniseg" id="mt-align" role="group" aria-label="정렬">
+            <button data-a="left" class="on" title="왼쪽 정렬" aria-label="왼쪽 정렬"><svg class="i i--sm" aria-hidden="true"><use href="#i-alignl"/></svg></button>
+            <button data-a="center" title="가운데 정렬" aria-label="가운데 정렬"><svg class="i i--sm" aria-hidden="true"><use href="#i-alignc"/></svg></button>
+          </div>
+          <button class="btn btn--sm" id="mt-clearfmt" title="선택한 글자의 서식만 지웁니다">서식 지우기</button>
+        </div>
         <div id="mandala-grid" class="mandala"></div>
         <div class="note">투자 데이터와 무관한 개인 메모입니다 · 이 브라우저에만 저장됩니다</div>
       </div>
@@ -929,6 +995,8 @@ body.print-all .panel-page:not([data-report]){display:none!important}
         <div class="set-row"><div class="k">기본 벤치마크</div><div class="seg" id="set-bm"><button data-v="sp">S&amp;P</button><button data-v="nq">NASDAQ</button><button data-v="dj">다우</button></div></div>
         <div class="set-row"><div class="k">상승/하락 색<small>초록 상승(글로벌) / 빨강 상승(한국)</small></div><div class="seg" id="set-updown"><button data-v="global">초록↑</button><button data-v="krlike">빨강↑</button></div></div>
         <div class="set-row"><div class="k">이 브라우저에 데이터 저장<small id="optin-note">기본 꺼짐 · 켜면 다음에 열 때 자동 복원</small></div><label class="miniseg"><input type="checkbox" id="optin" style="margin:6px 10px"></label></div>
+        <div class="set-row"><div class="k">리포트 작성자<small>전체 리포트 겉지에 들어갑니다 · 비워두면 표시되지 않습니다</small></div>
+          <input type="text" id="set-author" class="tinput" placeholder="이름" maxlength="40" autocomplete="off"></div>
         <div class="set-row"><div class="k">데이터<small id="data-status"></small></div><button class="btn" id="reload-btn2">다른 파일 열기</button></div>
       </div>
       <div class="card pad">
@@ -950,7 +1018,8 @@ body.print-all .panel-page:not([data-report]){display:none!important}
         <div class="card pad">
           <div class="blocktitle"><div><h3>변경 이력</h3><div class="sub">최신 두 개만 펼쳐 둡니다 · 제목을 누르면 열립니다</div></div></div>
           <div class="tl" id="tl-hist">
-            <div class="tl__i done"><h4>v16 — 리포트 조판<span class="tag">현재</span></h4><ul><li>인쇄할 때 브라우저가 찍던 <b>날짜 머리글과 파일 경로 바닥글</b>이 사라집니다</li><li>전체 리포트 첫 장을 <b>애널리스트 리포트 조판</b>으로 — 제목·초록·주요 수치·출처·면책</li><li>본문에서 카드 상자를 걷어내고 괘선과 여백으로만 구분 — 종이에서 훨씬 읽기 쉽습니다</li><li>Fear &amp; Greed 구간 정의가 네 곳에 흩어져 있던 것을 한 곳으로 (서로 어긋날 수 있던 문제)</li><li>보조 글자색을 어둡게 조정 (흰 배경 대비 3.08:1 → 4.63:1)</li><li>아이콘 버튼에 읽어 주는 이름 추가</li></ul></div>
+            <div class="tl__i done"><h4>v17 — 겉지 · 인쇄 서식 · 만다라트 서식 도구<span class="tag">현재</span></h4><ul><li>리포트 <b>첫 장을 겉지로</b> — 제목·부제·기간·작성자·날짜만. 숫자는 다음 장 요약으로 옮겼습니다</li><li>표지·제목 글꼴을 <b>화면과 같은 고딕</b>으로 되돌렸습니다 (명조는 낡아 보였습니다)</li><li><b>그래프가 종이 밖으로 잘리던 문제</b> — 인쇄 직전 본문을 A4 인쇄 폭과 똑같이 만들어 차트를 다시 그립니다</li><li>모든 쪽의 좌우 여백을 13mm로 맞추고, 그래프가 칼럼을 정확히 채웁니다</li><li>만다라트에 <b>서식 도구</b> — 글꼴 5종 · 크기 4단 · 굵게/기울임/밑줄/취소선 · 글자색 6가지 · 정렬 · 서식 지우기</li><li>관리 탭에 <b>리포트 작성자</b> 입력 (겉지에 들어갑니다 · 이 브라우저에만 저장)</li></ul></div>
+            <div class="tl__i done"><h4>v16 — 리포트 조판<span class="tag">완료</span></h4><ul><li>인쇄할 때 브라우저가 찍던 <b>날짜 머리글과 파일 경로 바닥글</b>이 사라집니다</li><li>전체 리포트 첫 장을 <b>애널리스트 리포트 조판</b>으로 — 제목·초록·주요 수치·출처·면책</li><li>본문에서 카드 상자를 걷어내고 괘선과 여백으로만 구분 — 종이에서 훨씬 읽기 쉽습니다</li><li>Fear &amp; Greed 구간 정의가 네 곳에 흩어져 있던 것을 한 곳으로 (서로 어긋날 수 있던 문제)</li><li>보조 글자색을 어둡게 조정 (흰 배경 대비 3.08:1 → 4.63:1)</li><li>아이콘 버튼에 읽어 주는 이름 추가</li></ul></div>
             <div class="tl__i done"><h4>v15 — 모든 숫자에 근거<span class="tag">완료</span></h4><ul><li>숫자 카드를 누르면 <b>그게 무엇이고 어떻게 나온 값인지</b> 열립니다 — 총평가액·TWR·XIRR·목표·낙폭·심리·벤치마크·배당·복리·기준금리 열 가지</li><li><b>Fear &amp; Greed</b>: 0–24 극단적 공포부터 75–100 극단적 탐욕까지 다섯 구간이 각각 무슨 뜻인지, CNN이 어떤 일곱 가지로 만드는지, 그리고 이 숫자를 어떻게 읽으면 안 되는지</li><li>XIRR은 <b>검산</b>까지 보여줍니다 — 그 수익률에서 현금흐름의 현재가치 합이 0인지</li><li>모든 설명 끝에 <b>이 숫자가 말하지 않는 것</b>을 붙였습니다</li></ul></div>
             <div class="tl__i done"><h4>v14 — 매매일지<span class="tag">완료</span></h4><ul><li>원장에 <b>거래일지</b> 시트를 적으면 새 탭이 켜집니다 — 거래일·구분·티커·수량·단가만</li><li>거래 하나하나에 <b>잘한 선택 / 아쉬운 선택</b> 판정. 매도는 계속 들고 있었을 때와, 매수는 그 돈을 안 썼을 때와 비교합니다</li><li>판정 기준을 <b>S&amp;P에 넣었다면</b>으로 바꿔 볼 수 있습니다 — 매매가 지수를 이겼는지</li><li><b>지금 / 2024년말 / 2023년말</b> 기준으로 되감아, 판정이 시점에 얼마나 흔들리는지 직접 확인합니다</li><li>거래를 누르면 계산식이 전부 나오고, 그 종목 연말 종가 위에 <b>내 거래 가격</b>이 점선으로 그려집니다</li><li>연도 필터 · 최신순/잘한순/아쉬운순 정렬 · 종목별 성적표</li></ul></div>
             <div class="tl__i done"><h4>v13 — 눌러서 파고들기<span class="tag">완료</span></h4><ul><li>자산구성 표의 줄이나 그래프 조각을 누르면 그 자산군만 자세히 열립니다</li><li>모르는 용어 옆 <b>?</b> 를 누르면 뜻이 나옵니다 — 휴대폰에서도 동작</li><li>성장 곡선을 금액과 수익률 중에 골라 보고, 최근 5년·10년만 잘라 볼 수 있습니다</li><li>범례를 누르면 그 선을 잠시 끌 수 있습니다</li><li>시장지표 카드를 누르면 그 지표가 무엇이고 어디서 왔는지 나옵니다</li><li>⌘K 에서 용어를 바로 찾을 수 있습니다</li><li>변경 이력이 길어져 접었습니다 · 만다라트 비우기는 앱 안에서 확인합니다</li></ul></div>
@@ -1007,6 +1076,8 @@ body.print-all .panel-page:not([data-report]){display:none!important}
     <div class="dw__body" id="dw-body"></div>
   </div>
 </div>
+
+<div id="toast" role="status" aria-live="polite"></div>
 
 <!-- 확인 모달 -->
 <div id="modal" class="hidden" role="dialog" aria-modal="true" aria-labelledby="md-title">
@@ -1718,11 +1789,78 @@ function renderMarket(){
   $("#rate-note").textContent="연준 목표범위(계단식)와 실효금리. 금리 방향은 채권·성장주 밸류에이션에 직접 영향을 줍니다.";
 }
 /* 만다라트 (개인 마음가짐 · localStorage) */
+const AUTHOR_KEY="dash_author_v1";      // 표지에 들어갈 이름 (이 브라우저에만 저장)
 const MANDALA_KEY="dash_mandala_v1";
 function mirrorIdx(){ // 8개 핵심 실천칸 ↔ 바깥 블록 중앙칸 매핑
   const m={};for(let br=0;br<3;br++)for(let bc=0;bc<3;bc++){if(br===1&&bc===1)continue;
     const core=(3+br)*9+(3+bc), blockCenter=(br*3+1)*9+(bc*3+1);m[core]=blockCenter;}return m;}
+/* 칸에 서식(굵게·색 등)이 들어가므로 HTML로 저장합니다. localStorage 는 사용자 것이지만
+   손상·변조된 값이 그대로 실행되지 않게 허용 태그만 남깁니다. */
+const MD_OK_TAGS=new Set(["B","STRONG","I","EM","U","S","STRIKE","BR","SPAN","FONT","DIV"]);
+function mdClean(html){
+  const box=document.createElement("div");box.innerHTML=String(html||"");
+  const walk=el=>{
+    [...el.children].forEach(c=>{
+      if(!MD_OK_TAGS.has(c.tagName)){c.replaceWith(...c.childNodes);return;}
+      [...c.attributes].forEach(a=>{
+        const n=a.name.toLowerCase();
+        if(n==="color")return;                                   // <font color> 는 허용
+        if(n==="style"){c.setAttribute("style",c.style.color?`color:${c.style.color}`:"");return;}
+        c.removeAttribute(a.name);                               // on*·href 등은 전부 제거
+      });
+      walk(c);
+    });
+  };
+  walk(box);return box.innerHTML;
+}
+const MD_STYLE_KEY="dash_mandala_style_v1";
+const MD_COLORS=["","#d03b3b","#eb6834","#eda100","#00806a","#2a78d6","#4a3aa7"];
+function mdStyle(){let o={font:"",size:"m",align:"left"};
+  try{Object.assign(o,JSON.parse(localStorage.getItem(MD_STYLE_KEY)||"{}"));}catch(e){}
+  return o;}
+function mdApplyStyle(){
+  const g=$("#mandala-grid"),o=mdStyle();if(!g)return;
+  g.dataset.font=o.font;g.dataset.size=o.size;g.dataset.align=o.align;
+  const sel=$("#mt-font");if(sel)sel.value=o.font;
+  $$("#mt-size button").forEach(b=>b.classList.toggle("on",b.dataset.s===o.size));
+  $$("#mt-align button").forEach(b=>b.classList.toggle("on",b.dataset.a===o.align));
+}
+function mdSetStyle(patch){
+  const o=Object.assign(mdStyle(),patch);
+  localStorage.setItem(MD_STYLE_KEY,JSON.stringify(o));mdApplyStyle();
+}
+/* 서식 명령은 편집 중인 칸에만 걸립니다. 선택 영역이 없으면 그 칸 전체에 적용합니다. */
+let TOAST_T=null;
+function toast(msg){const t=$("#toast");if(!t)return;t.textContent=msg;t.classList.add("on");
+  clearTimeout(TOAST_T);TOAST_T=setTimeout(()=>t.classList.remove("on"),1900);}
+let MD_LAST=null;
+function mdCell(){
+  const a=document.activeElement;
+  if(a&&a.classList&&a.classList.contains("mc")&&a.isContentEditable)return a;
+  return MD_LAST&&MD_LAST.isConnected?MD_LAST:null;
+}
+function mdExec(cmd,val){
+  const cell=mdCell();
+  if(!cell){toast("먼저 칸을 눌러 커서를 두세요");return;}
+  cell.focus();
+  const sel=window.getSelection();
+  const whole=!sel.rangeCount||sel.isCollapsed||!cell.contains(sel.anchorNode);
+  if(whole){const r=document.createRange();r.selectNodeContents(cell);sel.removeAllRanges();sel.addRange(r);}
+  try{document.execCommand(cmd,false,val);}catch(e){}
+  if(whole){                      // 우리가 통째로 잡은 선택이면 풀어 둡니다
+    const r2=document.createRange();r2.selectNodeContents(cell);r2.collapse(false);
+    sel.removeAllRanges();sel.addRange(r2);
+  }
+  mdSave(cell);
+}
+function mdSave(cell){
+  let st={};try{st=JSON.parse(localStorage.getItem(MANDALA_KEY)||"{}");}catch(_){}
+  st[cell.dataset.i]=mdClean(cell.innerHTML);
+  localStorage.setItem(MANDALA_KEY,JSON.stringify(st));
+  syncMandalaMirrors(st);
+}
 function renderMandalart(){
+  mdApplyStyle();
   const grid=$("#mandala-grid");if(grid.dataset.built)return; // 한 번만 생성
   grid.dataset.built="1";
   let saved={};try{saved=JSON.parse(localStorage.getItem(MANDALA_KEY)||"{}");}catch(e){}
@@ -1733,20 +1871,25 @@ function renderMandalart(){
     if(r%3===0&&r!==0)cell.classList.add("bt"); if(c%3===0&&c!==0)cell.classList.add("bl");
     if(i===40)cell.classList.add("goal"); else if(i in mir)cell.classList.add("core"); else if(mirrors.has(i))cell.classList.add("mirror");
     if(mirrors.has(i)){cell.contentEditable="false";} else {cell.contentEditable="true";}
-    cell.textContent=saved[i]||"";
+    cell.innerHTML=mdClean(saved[i]||"");
     grid.appendChild(cell);
   }
   syncMandalaMirrors(saved);
-  grid.addEventListener("input",e=>{const cell=e.target.closest(".mc");if(!cell)return;
-    let s={};try{s=JSON.parse(localStorage.getItem(MANDALA_KEY)||"{}");}catch(_){}
-    s[cell.dataset.i]=cell.textContent;localStorage.setItem(MANDALA_KEY,JSON.stringify(s));
-    syncMandalaMirrors(s);});
+  grid.addEventListener("input",e=>{const cell=e.target.closest(".mc");if(cell)mdSave(cell);});
+  grid.addEventListener("focusin",e=>{const cell=e.target.closest(".mc");
+    if(cell&&cell.isContentEditable)MD_LAST=cell;});
+  // 서식은 텍스트만 붙여넣기 — 웹에서 복사한 스타일이 표를 망가뜨리지 않게
+  grid.addEventListener("paste",e=>{const cell=e.target.closest(".mc");if(!cell)return;
+    e.preventDefault();const t=(e.clipboardData||window.clipboardData).getData("text/plain");
+    document.execCommand("insertText",false,t);});
+  // ⌘B / ⌘I / ⌘U 도 그대로 동작하고 저장까지
+  grid.addEventListener("keyup",e=>{if(e.metaKey||e.ctrlKey){const cell=e.target.closest(".mc");if(cell)mdSave(cell);}});
 }
 function syncMandalaMirrors(s){const mir=mirrorIdx();
-  for(const core in mir){const cell=$(`.mc[data-i="${mir[core]}"]`);if(cell)cell.textContent=(s[core]||"");}}
+  for(const core in mir){const cell=$(`.mc[data-i="${mir[core]}"]`);if(cell)cell.innerHTML=mdClean(s[core]||"");}}
 function resetMandala(){
   askConfirm("만다라트를 비울까요?","적어둔 여든한 칸이 모두 지워집니다. 되돌릴 수 없습니다.","비우기",()=>{
-    localStorage.removeItem(MANDALA_KEY);$("#mandala-grid").querySelectorAll(".mc").forEach(c=>c.textContent="");});}
+    localStorage.removeItem(MANDALA_KEY);$("#mandala-grid").querySelectorAll(".mc").forEach(c=>c.innerHTML="");});}
 /* 구성 시각화 — 두 형태를 토글로 제공.
    · 구성 막대: 100% 가로 스택. 근접값(17.5% vs 17.6%)을 정확히 비교할 때.
    · 도넛     : 한눈에 보는 부분-전체. ≤6조각일 때만 권장.
@@ -2563,27 +2706,46 @@ function printCurrentTab(){
   const last=DATA&&DATA.months.length?fmtY(DATA.months[DATA.months.length-1]):(MARKET_DATA?MARKET_DATA.asOf:"");
   const tab=$("#tabnav .tab.on");
   $("#print-meta").textContent=`${last} 기준 · 생성일 ${todayStr()}`+(tab?` · ${tab.textContent} 페이지`:"");
-  window.print();
+  drawerClose();modalClose();closeHelp(null);
+  let done=false;
+  const restore=()=>{if(done)return;done=true;unfitPrint();window.removeEventListener("afterprint",restore);};
+  window.addEventListener("afterprint",restore);
+  fitForPrint().then(()=>{window.print();setTimeout(restore,30000);});
 }
 /* ── 표지 ──────────────────────────────────────────────────────────────
    금액 하나를 크게 박아 두면 영수증처럼 보입니다. 애널리스트 리포트는
    제목 → 초록 → 주요 수치 표 → 출처·면책 순서로 읽히므로 그 조판을 따릅니다.
    숫자는 전부 이미 계산된 값에서만 가져옵니다(표지용 별도 계산 없음). */
+/* 인쇄 폭으로 레이아웃을 좁히고 차트를 다시 그립니다.
+   Chart.js 는 캔버스에 화면 기준 인라인 크기(예: width:1341px)를 박아 두는데,
+   A4 인쇄 폭은 그 절반 남짓이라 그대로 두면 오른쪽이 잘려 나갑니다. */
+function fitForPrint(){
+  document.body.classList.add("print-fit");
+  return new Promise(res=>requestAnimationFrame(()=>{
+    for(const k in CHARTS){try{CHARTS[k].resize();}catch(e){}}
+    requestAnimationFrame(()=>setTimeout(res,90));
+  }));
+}
+function unfitPrint(){
+  document.body.classList.remove("print-fit");
+  requestAnimationFrame(()=>{for(const k in CHARTS){try{CHARTS[k].resize();}catch(e){}}});
+}
 function fillCover(){
   const b=STATE.basis, has=!!(DATA&&MODEL);
   const side=has?(b==="KRW"?MODEL.krw:MODEL.usd):null;
   const ms=has?DATA.months:[];
   const period=ms.length?`${ms[0]}–${ms[ms.length-1]}`:"—";
   $("#pc-kicker").textContent=has?"연간 성과 보고서":"시장 지표 보고서";
-  $("#pc-period-top").textContent=has?`${period} 회계연도`:todayStr();
-  $("#pc-period").innerHTML=has
-    ? `관찰 기간 <b>${fmtY(ms[0])} – ${fmtY(ms[ms.length-1])}</b> · ${ms.length}개년 · ${b==="KRW"?"원화":"달러"} 기준`
-    : "원장 없음 · 시장 지표만 수록";
+  $("#pc-period").textContent=has?`${period}`:todayStr().slice(0,4);
+  $("#pc-date").textContent=`${todayStr()} 작성`;
+  const by=(localStorage.getItem(AUTHOR_KEY)||"").trim();
+  $("#pc-by").textContent=by;
   if(!has){
     $("#pc-abstract").innerHTML="원장 파일이 열려 있지 않아 개인 성과는 포함되지 않았습니다. 이 문서에는 자동 수집된 공개 시장 지표만 실려 있습니다.";
     $("#pc-keys").innerHTML="";
     $("#pc-meta").innerHTML=[`작성 ${todayStr()}`,MARKET_DATA?`시장 기준일 ${MARKET_DATA.asOf}`:null].filter(Boolean)
       .map(x=>`<span>${x}</span>`).join("");
+    $("#pc-disc")&&($("#pc-disc").style.display="");
     return;
   }
   const ev=side.S.ev, lastEv=[...ev].reverse().find(isNum);
@@ -2637,13 +2799,14 @@ function printFullReport(){
   fillCover();
   let done=false;
   const restore=()=>{if(done)return;done=true;
+    unfitPrint();
     document.body.classList.remove("print-all");
     panels.forEach(p=>p.classList.toggle("on",p.dataset.page===STATE.tab));
     renderActive();window.removeEventListener("afterprint",restore);};
   window.addEventListener("afterprint",restore);
   // afterprint 가 표준 복귀 경로입니다. 타이머는 그것이 안 오는 브라우저용 누수 방지일 뿐이라
   // 넉넉히 잡습니다 — 짧게 두면 인쇄 대화상자가 열려 있는 동안 화면이 되돌아갑니다.
-  setTimeout(()=>{window.print();setTimeout(restore,30000);},250);
+  fitForPrint().then(()=>{window.print();setTimeout(restore,30000);});
 }
 $("#report-btn").addEventListener("click",e=>{e.stopPropagation();
   const m=$("#report-menu"),open=m.classList.toggle("hidden")===false;
@@ -2665,6 +2828,24 @@ $("#s-infl").addEventListener("input",e=>{STATE.infl=+e.target.value/100;syncSim
 $("#s-endyr").addEventListener("input",e=>{STATE.simEndYear=+e.target.value;syncSim();renderSim();});
 $("#optin").addEventListener("change",e=>{if(e.target.checked){localStorage.setItem(OPT,"1");if(DATA)saveCache();$("#optin-note").textContent="⚠ 이 브라우저에 데이터가 저장됩니다.";}else{localStorage.setItem(OPT,"0");try{localStorage.removeItem(CACHE);}catch(_){}$("#optin-note").textContent="저장이 꺼졌고 캐시를 삭제했습니다.";}});
 $("#mandala-reset").addEventListener("click",resetMandala);
+/* 만다라트 서식 도구 — 글꼴·크기·정렬은 표 전체, 굵게·색은 커서가 있는 칸에만 */
+$("#mt-font").addEventListener("change",e=>mdSetStyle({font:e.target.value}));
+$("#mt-size").addEventListener("click",e=>{const b=e.target.closest("button");if(b)mdSetStyle({size:b.dataset.s});});
+$("#mt-align").addEventListener("click",e=>{const b=e.target.closest("button");if(b)mdSetStyle({align:b.dataset.a});});
+$("#mt-style").addEventListener("mousedown",e=>e.preventDefault());   // 칸의 커서를 뺏지 않게
+$("#mt-style").addEventListener("click",e=>{const b=e.target.closest("button");if(b)mdExec(b.dataset.c);});
+$("#mt-color").innerHTML=MD_COLORS.map((c,i)=>
+  `<button data-col="${c}" title="${c?"글자색":"기본색"}" aria-label="${c?"글자색 "+c:"기본 글자색"}"
+     style="background:${c||"var(--card)"}${c?"":";border-style:dashed"}"></button>`).join("");
+$("#mt-color").addEventListener("mousedown",e=>e.preventDefault());
+$("#mt-color").addEventListener("click",e=>{const b=e.target.closest("button");if(!b)return;
+  $$("#mt-color button").forEach(x=>x.classList.toggle("on",x===b));
+  mdExec("foreColor",b.dataset.col||(cssVar("--ink")||"#111"));});
+$("#mt-clearfmt").addEventListener("mousedown",e=>e.preventDefault());
+$("#mt-clearfmt").addEventListener("click",()=>mdExec("removeFormat"));
+// 작성자 — 이 브라우저에만 저장됩니다(원장·서버와 무관)
+$("#set-author").value=localStorage.getItem(AUTHOR_KEY)||"";
+$("#set-author").addEventListener("input",e=>localStorage.setItem(AUTHOR_KEY,e.target.value));
 
 /* ─── 드로어 · 모달 · 새 토글 ─── */
 $("#dw-close").addEventListener("click",drawerClose);
