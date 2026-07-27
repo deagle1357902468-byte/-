@@ -64,6 +64,12 @@
 
 *{box-sizing:border-box}
 html,body{margin:0}
+/* 아이콘 — currentColor 를 따르므로 부모 색만 바꾸면 됩니다 */
+.i{width:19px;height:19px;display:block;flex:none}
+.i--sm{width:15px;height:15px;display:inline-block;vertical-align:-2px}
+.i--lg{width:22px;height:22px}
+.i--xl{width:34px;height:34px}
+.iconbtn .i{margin:0 auto}
 body{background:
    radial-gradient(1200px 600px at 15% -10%, var(--accent-weak), transparent 60%),
    var(--bg); color:var(--ink); font-family:var(--font); line-height:1.5; -webkit-font-smoothing:antialiased; letter-spacing:-.005em}
@@ -75,24 +81,37 @@ code{font-family:ui-monospace,SFMono-Regular,Menlo,monospace;font-size:.86em;bac
 .pos{color:var(--pos)} .neg{color:var(--neg)} .dim{color:var(--muted)}
 .hidden{display:none!important}
 
-/* Dropzone */
-#dropscreen{position:fixed;inset:0;z-index:50;display:flex;align-items:center;justify-content:center;padding:24px}
-.drop{width:min(640px,100%);text-align:center}
-.drop__zone{border:2px dashed var(--line);border-radius:24px;padding:52px 32px;background:var(--card);box-shadow:var(--shadow-lg);cursor:pointer;transition:.15s}
-.drop__zone.drag{border-color:var(--accent);background:var(--accent-weak)}
-.drop__mark{font-size:46px}
-.drop h1{font-size:clamp(1.4rem,3vw,1.9rem);margin:10px 0 6px;letter-spacing:-.03em}
-.drop p{color:var(--ink2);font-size:.96rem}
-.drop__hint{margin-top:10px;color:var(--muted);font-size:.85rem}
-.drop__btn{margin-top:20px;background:var(--accent);color:#fff;border:0;border-radius:12px;padding:12px 22px;font-size:.96rem;font-weight:700;cursor:pointer;box-shadow:0 6px 18px rgba(59,91,253,.35)}
-.drop__privacy{margin-top:18px;color:var(--muted);font-size:.8rem;line-height:1.6}
-.drop__err{margin-top:14px;color:var(--neg);font-size:.9rem;min-height:1.1em}
+/* 첫 화면 */
+#dropscreen{position:fixed;inset:0;z-index:50;display:flex;align-items:center;justify-content:center;padding:24px;
+  background:radial-gradient(760px 380px at 50% -12%,var(--accent-weak),transparent 66%),var(--bg);overflow:auto}
+.drop{width:min(560px,100%);text-align:center}
+.drop__zone{border:1.5px dashed color-mix(in srgb,var(--accent) 34%,var(--line));border-radius:22px;
+  padding:clamp(32px,6vw,54px) clamp(20px,4vw,36px);background:var(--card);box-shadow:var(--shadow-lg);cursor:pointer;
+  transition:border-color .16s,background .16s,transform .16s}
+.drop__zone:hover{border-color:var(--accent);transform:translateY(-2px)}
+.drop__zone.drag{border-color:var(--accent);background:var(--accent-weak);transform:scale(1.012)}
+.drop__zone:focus-visible{outline:2px solid var(--accent);outline-offset:3px}
+.drop__mark{width:62px;height:62px;margin:0 auto 18px;border-radius:18px;display:grid;place-items:center;
+  color:var(--accent);background:var(--accent-weak)}
+.drop h1{font-size:clamp(1.35rem,3.4vw,1.75rem);margin:0 0 8px;letter-spacing:-.03em;font-weight:800}
+.drop p{color:var(--ink2);font-size:.93rem;line-height:1.6;max-width:40ch;margin:0 auto}
+.drop__hint{margin-top:20px;color:var(--ink2);font-size:.9rem}
+.drop__btn{margin-top:14px;background:var(--accent);color:#fff;border:0;border-radius:11px;padding:12px 22px;
+  font-size:.92rem;font-weight:700;cursor:pointer;transition:filter .14s,transform .14s}
+.drop__btn:hover{filter:brightness(1.07);transform:translateY(-1px)}
+.drop__privacy{margin-top:20px;color:var(--muted);font-size:.8rem;line-height:1.7;
+  display:flex;align-items:center;justify-content:center;gap:6px;flex-wrap:wrap}
+.drop__err{margin-top:14px;color:var(--neg);font-size:.88rem;min-height:1.1em}
+#market-entry .btn{border-radius:11px;padding:10px 18px;font-size:.87rem}
 
 /* Top bar */
 .topbar{position:sticky;top:0;z-index:30;background:color-mix(in srgb,var(--bg) 82%,transparent);backdrop-filter:blur(10px);border-bottom:1px solid var(--line)}
-.topbar__in{display:flex;align-items:center;justify-content:space-between;gap:14px;padding:12px 0}
-.brand{display:flex;align-items:center;gap:11px}
-.brand__logo{width:38px;height:38px;border-radius:11px;background:linear-gradient(135deg,var(--accent),var(--accent2));display:grid;place-items:center;color:#fff;font-size:18px;box-shadow:0 4px 12px rgba(59,91,253,.4)}
+.topbar__in{display:flex;align-items:center;justify-content:space-between;gap:14px;padding:12px clamp(14px,3vw,28px)}
+/* flex:1 + min-width:0 이 있어야 브랜드가 줄어들고, 안 그러면 우측 버튼이 패딩을 밀어냅니다 */
+.brand{display:flex;align-items:center;gap:11px;flex:1 1 auto;min-width:0}
+.brand>div{min-width:0}
+.brand h1,.brand__meta{white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.brand__logo{width:38px;height:38px;border-radius:11px;background:linear-gradient(140deg,var(--accent),var(--accent2));display:grid;place-items:center;color:#fff;box-shadow:0 3px 10px color-mix(in srgb,var(--accent) 40%,transparent)}
 .brand h1{font-size:1.02rem;font-weight:800;letter-spacing:-.02em}
 .brand__meta{color:var(--ink2);font-size:.76rem;margin-top:1px}
 .brand__meta b{color:var(--ink);font-weight:700}
@@ -113,19 +132,27 @@ code{font-family:ui-monospace,SFMono-Regular,Menlo,monospace;font-size:.86em;bac
 .report-menu small{color:var(--muted);font-size:.75rem;font-weight:500}
 
 /* Tab nav */
-.tabs{position:sticky;top:63px;z-index:20;background:color-mix(in srgb,var(--bg) 82%,transparent);backdrop-filter:blur(10px);border-bottom:1px solid var(--line);overflow-x:auto}
-.tabs__in{display:flex;gap:2px;padding:6px 0}
-.tab{white-space:nowrap;border:0;background:transparent;color:var(--ink2);font-weight:700;font-size:.88rem;padding:9px 15px;border-radius:9px;cursor:pointer;position:relative;transition:color .12s,background .12s}
-.tab:hover{color:var(--ink);background:var(--card2)}
-.tab.on{color:var(--accent-ink);background:var(--accent-weak)}
-.tab:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
+.tabs{position:sticky;top:63px;z-index:20;background:color-mix(in srgb,var(--bg) 86%,transparent);backdrop-filter:blur(12px);border-bottom:1px solid var(--line);overflow-x:auto;scrollbar-width:none}
+.tabs::-webkit-scrollbar{display:none}
+.tabs__in{display:flex;gap:2px;padding:6px clamp(14px,3vw,28px) 0;position:relative}
+/* 슬라이딩 인디케이터 — 활성 탭 아래를 미끄러지듯 따라갑니다 */
+.tabs__ind{position:absolute;bottom:0;height:2.5px;border-radius:2px 2px 0 0;background:var(--accent);
+  transition:transform .26s cubic-bezier(.4,0,.2,1),width .26s cubic-bezier(.4,0,.2,1);pointer-events:none;
+  transform-origin:left;left:0;width:0}
+.tab{white-space:nowrap;border:0;background:transparent;color:var(--ink2);font-weight:650;font-size:.88rem;padding:10px 15px 12px;border-radius:9px 9px 0 0;cursor:pointer;position:relative;transition:color .14s}
+.tab:hover{color:var(--ink)}
+.tab.on{color:var(--accent-ink);font-weight:750}
+.tab:focus-visible{outline:2px solid var(--accent);outline-offset:-2px}
 .tab .dot{display:none}
 
 /* panels */
-main{padding:22px 0 60px}
+main{padding:26px 0 72px}
 .panel-page{display:none}
-.panel-page.on{display:block;animation:fade .22s ease}
-@keyframes fade{from{transform:translateY(6px)}to{transform:none}}
+.panel-page.on{display:block;animation:fade .24s cubic-bezier(.2,.7,.3,1)}
+@keyframes fade{from{transform:translateY(7px);opacity:.55}to{transform:none;opacity:1}}
+/* 카드가 살짝 떠오르며 반응 — 과하지 않게 */
+.card,.kpi{transition:box-shadow .18s ease,transform .18s ease,border-color .18s ease}
+.card:hover,.kpi:hover{box-shadow:var(--shadow-lg);border-color:color-mix(in srgb,var(--accent) 22%,var(--line))}
 .page-head{margin:2px 0 16px}
 .page-head h2{font-size:1.25rem;font-weight:800;letter-spacing:-.02em}
 .page-head p{color:var(--ink2);font-size:.86rem;margin-top:3px}
@@ -140,8 +167,8 @@ main{padding:22px 0 60px}
 .mb{margin-bottom:18px}
 
 /* quote */
-.quote{display:flex;gap:14px;align-items:center;background:linear-gradient(120deg,var(--card),var(--card2));border:1px solid var(--line);border-radius:var(--radius);padding:14px 18px;box-shadow:var(--shadow)}
-.quote__badge{flex:none;width:46px;height:46px;border-radius:12px;background:linear-gradient(135deg,var(--accent),var(--accent2));color:#fff;display:grid;place-items:center;font-size:30px;line-height:1;box-shadow:0 4px 12px rgba(59,91,253,.35)}
+.quote{display:flex;gap:15px;align-items:center;background:var(--card);border:1px solid var(--line);border-radius:var(--radius);padding:16px 20px;box-shadow:var(--shadow)}
+.quote__badge{flex:none;width:40px;height:40px;border-radius:11px;background:var(--accent-weak);color:var(--accent);display:grid;place-items:center}
 .quote__txt{font-size:.95rem;color:var(--ink);line-height:1.5}
 .quote__en{font-style:italic;color:var(--ink)}
 .quote__ko{color:var(--ink2);font-size:.86rem;margin-top:3px}
@@ -286,7 +313,34 @@ input[type=range]{width:100%;accent-color:var(--accent);height:4px}
 .banner--info{background:var(--accent-weak);border-color:color-mix(in srgb,var(--accent) 34%,transparent)}
 .empty{color:var(--muted);font-size:.9rem;text-align:center;padding:40px 12px}
 .foot{color:var(--muted);font-size:.78rem;text-align:center;padding:26px 0 10px}
-@media (prefers-reduced-motion:reduce){*{animation-duration:.001ms!important;transition-duration:.001ms!important}}
+/* 모바일 — 탭바·히어로·표를 좁은 화면에 맞춰 재배치 */
+@media(max-width:640px){
+  .wrap{padding:0 14px}
+  .topbar__in{padding:10px 14px;gap:8px}
+  .brand{min-width:0}                       /* 안 주면 브랜드가 안 줄어 버튼이 잘립니다 */
+  .brand>div{min-width:0}
+  .brand h1{font-size:.95rem;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+  .brand__meta{font-size:.72rem;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+  .brand__logo{width:34px;height:34px;border-radius:10px}
+  .top-actions{gap:6px;flex:none}
+  .tabs{top:57px}
+  .tab{padding:9px 12px 11px;font-size:.84rem}
+  .hero{padding:20px 18px}
+  .hero__val{font-size:clamp(1.9rem,8.4vw,2.5rem)}
+  .hero__spark{height:64px}
+  .h-tall{height:290px}.h-mid{height:250px}.h-short{height:200px}
+  .table th,.table td{padding:9px 8px;font-size:.82rem}
+  .iconbtn{width:34px;height:34px}
+  .seg button{padding:5px 11px;font-size:.78rem}
+  .readout .r{min-width:0;flex:1 1 44%}
+  .cmdk__foot span:last-child{display:none}
+}
+@media(max-width:430px){
+  .brand__meta{display:none}                /* 아주 좁으면 부제를 접어 버튼 자리를 지킵니다 */
+  .seg button{padding:5px 9px}
+}
+@media (prefers-reduced-motion:reduce){*{animation-duration:.001ms!important;transition-duration:.001ms!important}
+  .tabs__ind{transition:none}}
 /* 리포트(인쇄/PDF) */
 .print-head,.print-cover{display:none}
 /* 전체 리포트 모드: 인쇄 대상 탭을 모두 펼쳐 한 문서로 만듭니다 */
@@ -324,23 +378,40 @@ body.print-all .panel-page:not([data-report]){display:none!important}
 </head>
 <body>
 
+<!-- 아이콘 스프라이트 — 이모지는 OS마다 다르게 그려지고 저해상도라 SVG로 통일했습니다.
+     stroke=currentColor 이므로 부모 색을 그대로 따릅니다. -->
+<svg width="0" height="0" style="position:absolute" aria-hidden="true" focusable="false"><defs>
+  <symbol id="i-logo" viewBox="0 0 24 24"><path d="M3 17.5 9 11l4 4 8-8.5" stroke="currentColor" stroke-width="2.1" stroke-linecap="round" stroke-linejoin="round" fill="none"/><path d="M16 6.5h5v5" stroke="currentColor" stroke-width="2.1" stroke-linecap="round" stroke-linejoin="round" fill="none"/></symbol>
+  <symbol id="i-doc" viewBox="0 0 24 24"><path d="M14 3H7a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2V8l-5-5Z" stroke="currentColor" stroke-width="1.7" stroke-linejoin="round" fill="none"/><path d="M14 3v5h5M9 13h6M9 17h4" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" fill="none"/></symbol>
+  <symbol id="i-theme" viewBox="0 0 24 24"><circle cx="12" cy="12" r="8.4" stroke="currentColor" stroke-width="1.7" fill="none"/><path d="M12 3.6a8.4 8.4 0 0 1 0 16.8Z" fill="currentColor"/></symbol>
+  <symbol id="i-reload" viewBox="0 0 24 24"><path d="M20 11a8 8 0 1 0-.9 4.6" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" fill="none"/><path d="M20 4.6V11h-6.2" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" fill="none"/></symbol>
+  <symbol id="i-left" viewBox="0 0 24 24"><path d="M14.5 5.5 8 12l6.5 6.5" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" fill="none"/></symbol>
+  <symbol id="i-right" viewBox="0 0 24 24"><path d="M9.5 5.5 16 12l-6.5 6.5" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" fill="none"/></symbol>
+  <symbol id="i-lock" viewBox="0 0 24 24"><rect x="4.6" y="10.4" width="14.8" height="10" rx="2.4" stroke="currentColor" stroke-width="1.7" fill="none"/><path d="M8.2 10.4V7.6a3.8 3.8 0 0 1 7.6 0v2.8" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" fill="none"/></symbol>
+  <symbol id="i-upload" viewBox="0 0 24 24"><path d="M12 15.5V4.2M7.8 8.4 12 4.2l4.2 4.2" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round" fill="none"/><path d="M4.5 15v3.2a2 2 0 0 0 2 2h11a2 2 0 0 0 2-2V15" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" fill="none"/></symbol>
+  <symbol id="i-search" viewBox="0 0 24 24"><circle cx="11" cy="11" r="6.6" stroke="currentColor" stroke-width="1.9" fill="none"/><path d="m16 16 4.2 4.2" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" fill="none"/></symbol>
+  <symbol id="i-market" viewBox="0 0 24 24"><path d="M4 19h16M6.5 15.5v-4M11 15.5V7M15.5 15.5v-6M20 15.5V5" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" fill="none"/></symbol>
+  <symbol id="i-arrow" viewBox="0 0 24 24"><path d="M5 12h13M13 6.5 18.8 12 13 17.5" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round" fill="none"/></symbol>
+  <symbol id="i-quote" viewBox="0 0 24 24"><path d="M9.4 5.6C6.4 7 4.8 9.4 4.8 12.6v5.8h6.4v-6.2H7.9c.1-1.9 1-3.3 2.7-4.2l-1.2-2.4Zm9.4 0C15.8 7 14.2 9.4 14.2 12.6v5.8h6.4v-6.2h-3.3c.1-1.9 1-3.3 2.7-4.2l-1.2-2.4Z" fill="currentColor"/></symbol>
+</defs></svg>
+
 <!-- ── 파일 로드 전 ── -->
 <div id="dropscreen">
   <div class="drop">
     <div id="dropzone" class="drop__zone" tabindex="0" role="button">
-      <div class="drop__mark">📈</div>
+      <div class="drop__mark"><svg class="i i--xl" aria-hidden="true"><use href="#i-upload"/></svg></div>
       <h1>개인 투자 대시보드</h1>
-      <p>증권사 앱이 안 보여주는 것 — 진짜 수익률(TWR·XIRR), 환율 효과, 시장 심리, 복리 궤적</p>
-      <div class="drop__hint">여기로 <b>투자원장.xlsx</b> 를 끌어다 놓거나, 클릭해서 선택하세요.</div>
+      <p>증권사 앱은 보여주지 않는 것 — 진짜 수익률, 환율이 만든 손익, 그리고 복리의 궤적</p>
+      <div class="drop__hint"><b>투자원장.xlsx</b>를 끌어다 놓으세요</div>
       <button class="drop__btn" type="button" id="pickbtn">엑셀 파일 선택</button>
       <input id="fileinput" type="file" accept=".xlsx,.xls" class="hidden" />
       <div class="drop__err" id="droperr"></div>
     </div>
     <div id="market-entry" class="hidden" style="margin-top:14px">
-      <button class="btn" type="button" id="market-only-btn">📈 오늘의 시장만 보기 <span class="dim" style="font-weight:500">(원장 없이)</span></button>
-      <div class="drop__hint" id="market-entry-sub" style="margin-top:6px"></div>
+      <button class="btn" type="button" id="market-only-btn"><svg class="i i--sm" aria-hidden="true"><use href="#i-market"/></svg> 오늘의 시장 보기</button>
+      <div id="market-entry-sub" style="margin-top:8px;color:var(--muted);font-size:.8rem"></div>
     </div>
-    <div class="drop__privacy">🔒 데이터는 이 브라우저 안에서만 계산되고 <b>어디에도 전송되지 않습니다.</b></div>
+    <div class="drop__privacy"><svg class="i i--sm" aria-hidden="true"><use href="#i-lock"/></svg> 이 브라우저 안에서만 계산됩니다. 어디에도 전송되지 않습니다</div>
   </div>
 </div>
 
@@ -357,7 +428,7 @@ body.print-all .panel-page:not([data-report]){display:none!important}
   </div>
   <header class="topbar"><div class="wrap topbar__in">
     <div class="brand">
-      <div class="brand__logo">📈</div>
+      <div class="brand__logo"><svg class="i i--lg" aria-hidden="true"><use href="#i-logo"/></svg></div>
       <div>
         <h1>개인 투자 대시보드</h1>
         <div class="brand__meta" id="brand-meta">마지막 <b id="m-lastmonth">—</b> · 기록 <b id="m-nobs">—</b>년</div>
@@ -366,18 +437,18 @@ body.print-all .panel-page:not([data-report]){display:none!important}
     <div class="top-actions">
       <div class="seg" id="cur-toggle"><button data-cur="KRW" class="on">₩</button><button data-cur="USD">$</button></div>
       <div style="position:relative">
-        <button class="iconbtn" id="report-btn" title="리포트 저장(인쇄/PDF)" aria-haspopup="true" aria-expanded="false">📄</button>
+        <button class="iconbtn" id="report-btn" title="리포트 저장" aria-haspopup="true" aria-expanded="false"><svg class="i" aria-hidden="true"><use href="#i-doc"/></svg></button>
         <div class="report-menu hidden" id="report-menu" role="menu">
           <button data-r="all" role="menuitem"><b>전체 리포트</b><small>모든 탭을 표지와 함께 한 문서로</small></button>
           <button data-r="one" role="menuitem"><b>현재 탭만</b><small>지금 보고 있는 화면만</small></button>
         </div>
       </div>
-      <button class="iconbtn" id="theme-btn" title="테마">◐</button>
-      <button class="iconbtn" id="reload-btn" title="다른 파일 열기">⟳</button>
+      <button class="iconbtn" id="theme-btn" title="테마 전환"><svg class="i" aria-hidden="true"><use href="#i-theme"/></svg></button>
+      <button class="iconbtn" id="reload-btn" title="다른 원장 열기"><svg class="i" aria-hidden="true"><use href="#i-reload"/></svg></button>
     </div>
   </div></header>
 
-  <nav class="tabs"><div class="wrap tabs__in" id="tabnav">
+  <nav class="tabs"><div class="wrap tabs__in" id="tabnav"><span class="tabs__ind" id="tab-ind"></span>
     <button class="tab on" data-tab="overview">요약</button>
     <button class="tab" data-tab="perf">성과·구성</button>
     <button class="tab" data-tab="risk">리스크·심리</button>
@@ -397,29 +468,29 @@ body.print-all .panel-page:not([data-report]){display:none!important}
       <!-- 히어로: 이 화면이 답하는 단 하나의 숫자 -->
       <div class="hero mb">
         <div class="hero__main">
-          <div class="hero__label">총평가액 <span class="help" tabindex="0">?<span class="help__tip">모든 자산군의 최근 연말 평가액 합계.</span></span></div>
+          <div class="hero__label">총평가액 <span class="help" tabindex="0">?<span class="help__tip">모든 자산군의 최근 연말 평가액 합계</span></span></div>
           <div class="hero__val" id="kpi-ev">—</div>
           <div class="hero__sub" id="kpi-ev-sub"></div>
         </div>
         <div class="hero__spark"><canvas id="c-spark"></canvas></div>
       </div>
       <div class="kpi-grid kpi-grid--3 mb">
-        <div class="kpi"><div class="kpi__label">누적 TWR <span class="help" tabindex="0">?<span class="help__tip">시간가중수익률. 입출금 시점·규모 영향을 제거한 순수 운용 성과.</span></span></div><div class="kpi__val" id="kpi-twr">—</div><div class="kpi__sub" id="kpi-twr-sub"></div></div>
-        <div class="kpi"><div class="kpi__label">XIRR <span class="help" tabindex="0">?<span class="help__tip">입금 시점까지 감안한 내 돈의 실제 연수익률(내부수익률).</span></span></div><div class="kpi__val" id="kpi-xirr">—</div><div class="kpi__sub" id="kpi-xirr-sub"></div></div>
-        <div class="kpi"><div class="kpi__label">목표 진척률 <span class="help" tabindex="0">?<span class="help__tip">현재 총자산(원화) ÷ 목표금액.</span></span></div><div class="kpi__val" id="kpi-goal">—</div><div class="kpi__sub" id="kpi-goal-sub"></div></div>
+        <div class="kpi"><div class="kpi__label">누적 TWR <span class="help" tabindex="0">?<span class="help__tip">입출금 시점과 규모의 영향을 걷어낸 순수 운용 성과</span></span></div><div class="kpi__val" id="kpi-twr">—</div><div class="kpi__sub" id="kpi-twr-sub"></div></div>
+        <div class="kpi"><div class="kpi__label">XIRR <span class="help" tabindex="0">?<span class="help__tip">입금 시점까지 반영한 내 돈의 실제 연수익률</span></span></div><div class="kpi__val" id="kpi-xirr">—</div><div class="kpi__sub" id="kpi-xirr-sub"></div></div>
+        <div class="kpi"><div class="kpi__label">목표 진척률 <span class="help" tabindex="0">?<span class="help__tip">현재 총자산을 목표금액으로 나눈 값</span></span></div><div class="kpi__val" id="kpi-goal">—</div><div class="kpi__sub" id="kpi-goal-sub"></div></div>
       </div>
       <div class="card pad mb">
-        <div class="blocktitle"><div><h3>자산 성장 곡선</h3><div class="sub">평가액 vs 누적 투입원금 — 벌어지는 면적이 곧 손익</div></div></div>
+        <div class="blocktitle"><div><h3>자산 성장 곡선</h3><div class="sub">두 선이 벌어진 만큼이 손익입니다</div></div></div>
         <div class="chartbox h-tall"><canvas id="c-growth"></canvas></div>
-        <div class="note">진한 실선 = 평가액 · 회색 점선 = 누적 투입원금 · 초록 면적 = 수익 / 빨강 면적 = 손실</div>
+        <div class="note">색이 칠해진 면적이 누적 손익입니다</div>
       </div>
       <div class="card pad">
         <div class="blocktitle">
           <div><h3 id="ov-slide-title">더 보기</h3><div class="sub" id="ov-slide-sub"></div></div>
           <div style="display:flex;gap:8px;align-items:center">
-            <button class="iconbtn" id="ov-prev" aria-label="이전">◀</button>
+            <button class="iconbtn" id="ov-prev" aria-label="이전 슬라이드"><svg class="i" aria-hidden="true"><use href="#i-left"/></svg></button>
             <div id="ov-dots" style="display:flex;gap:6px"></div>
-            <button class="iconbtn" id="ov-next" aria-label="다음">▶</button>
+            <button class="iconbtn" id="ov-next" aria-label="다음 슬라이드"><svg class="i" aria-hidden="true"><use href="#i-right"/></svg></button>
           </div>
         </div>
         <div class="chartbox h-tall"><canvas id="c-ovslide"></canvas></div>
@@ -432,7 +503,7 @@ body.print-all .panel-page:not([data-report]){display:none!important}
       <div class="quote mb" data-qt="perf"></div>
       <div class="card pad mb">
         <div class="blocktitle">
-          <div><h3>벤치마크 비교</h3><div class="sub" id="perf-sub">시작=100 기준 누적 성과 (USD 기준 비교, §3.8)</div></div>
+          <div><h3>벤치마크 비교</h3><div class="sub" id="perf-sub">시작 시점을 100으로 맞춘 누적 성과 · 달러 기준 비교</div></div>
           <div class="pill-row" id="bm-pills"><button class="pill on" data-bm="sp">S&amp;P 500</button><button class="pill" data-bm="nq">NASDAQ</button><button class="pill" data-bm="dj">다우존스</button></div>
         </div>
         <div class="chartbox h-mid"><canvas id="c-perf"></canvas></div>
@@ -440,11 +511,11 @@ body.print-all .panel-page:not([data-report]){display:none!important}
         <div class="stat-row" id="perf-summary"></div>
       </div>
       <div class="card pad mb">
-        <div class="blocktitle"><div><h3>손익 분해 (전체 기간)</h3><div class="sub">원화 총수익이 자산군·환율 기여로 어떻게 쌓였는지</div></div></div>
+        <div class="blocktitle"><div><h3>손익 분해 (전체 기간)</h3><div class="sub">0에서 시작해 무엇이 얼마나 보탰는지</div></div></div>
         <div class="chartbox h-mid"><canvas id="c-waterfall"></canvas></div>
       </div>
       <div class="card pad">
-        <div class="blocktitle"><div><h3>자산 구성</h3><div class="sub" id="mix-class-sub">자산군 비중과 성과</div></div>
+        <div class="blocktitle"><div><h3>자산 구성</h3><div class="sub" id="mix-class-sub">자산군별 비중과 성과</div></div>
           <div class="miniseg" id="mix-mode"><button data-m="bar" class="on">구성 막대</button><button data-m="donut">도넛</button></div></div>
         <div class="chartbox h-bar" id="box-mix-class"><canvas id="c-mix-class"></canvas></div>
         <div style="overflow-x:auto"><table class="table" id="t-class"></table></div>
@@ -455,7 +526,7 @@ body.print-all .panel-page:not([data-report]){display:none!important}
         </div>
       </div>
       <div class="card pad" id="div-card" style="margin-top:16px">
-        <div class="blocktitle"><div><h3>배당</h3><div class="sub">연도별 수령 배당 · 배당수익률</div></div></div>
+        <div class="blocktitle"><div><h3>배당</h3><div class="sub">연도별 배당 수령액과 수익률</div></div></div>
         <div class="kpi-grid mb" id="div-cards"></div>
         <div class="chartbox h-mid"><canvas id="c-div"></canvas></div>
         <div class="note" id="div-note"></div>
@@ -477,10 +548,10 @@ body.print-all .panel-page:not([data-report]){display:none!important}
             <span><i style="background:#aab2c2"></i>중립</span><span><i style="background:#7bc96f"></i>탐욕</span><span><i style="background:#12a150"></i>극단적 탐욕</span>
           </div>
         </div>
-        <div class="note" id="fg-note" style="text-align:center">※ 원장에 '심리' 시트(자동수집)가 있으면 실제 CNN 지수로 자동 교체됩니다.</div>
+        <div class="note" id="fg-note" style="text-align:center">자동수집본을 쓰면 실제 CNN 지수로 바뀝니다</div>
       </div>
       <div class="card pad">
-        <div class="blocktitle"><div><h3>내 포트폴리오 낙폭</h3><div class="sub">고점 대비 얼마나 내려갔었나 — 하락과 회복의 기록</div></div></div>
+        <div class="blocktitle"><div><h3>내 포트폴리오 낙폭</h3><div class="sub">사상 최고점 대비 하락폭과 회복 과정</div></div></div>
         <div class="chartbox h-short"><canvas id="c-underwater"></canvas></div>
         <div class="kpi-grid" style="margin-top:16px" id="risk-cards"></div>
       </div>
@@ -490,14 +561,14 @@ body.print-all .panel-page:not([data-report]){display:none!important}
     <section class="panel-page" data-page="sim" data-report="1" data-title="복리 · 목표">
       <div class="quote mb" data-qt="sim"></div>
       <div class="card pad">
-        <div class="blocktitle"><div><h3>복리 시뮬레이터</h3><div class="sub">재투자(복리)·저축 증가·물가까지 반영한 미래 자산 궤적</div></div>
+        <div class="blocktitle"><div><h3>복리 시뮬레이터</h3><div class="sub">재투자·저축 증가·물가를 반영한 미래 자산</div></div>
           <div class="miniseg" id="sim-mode"><button data-m="nominal" class="on">명목금액</button><button data-m="real">실질금액</button></div></div>
         <div class="sim-grid mb">
           <div class="slider"><label>연복리 수익률 <b id="v-g">8.0%</b></label><input type="range" id="s-g" min="0" max="35" step="0.5" value="8"></div>
           <div class="slider"><label>월 저축액 <b id="v-pmt">200만원</b></label><input type="range" id="s-pmt" min="0" max="1000" step="10" value="200"></div>
-          <div class="slider"><label>월 저축액 연 증가율 <b id="v-sg">0.0%</b> <span class="help" tabindex="0">?<span class="help__tip">매년 저축액이 이만큼 늘어난다고 가정 (연봉 상승 등).</span></span></label><input type="range" id="s-sg" min="0" max="10" step="0.5" value="0"></div>
-          <div class="slider"><label>물가상승률 <b id="v-infl">2.5%</b> <span class="help" tabindex="0">?<span class="help__tip">미래 금액의 실질 구매력(오늘 돈 기준)을 함께 보여줍니다.</span></span></label><input type="range" id="s-infl" min="0" max="6" step="0.1" value="2.5"></div>
-          <div class="slider"><label>예측 종료 연도 <b id="v-endyr">2041년</b> <span class="help" tabindex="0">?<span class="help__tip">미래를 몇 년까지 그릴지. 최대 2060년.</span></span></label><input type="range" id="s-endyr" min="2030" max="2060" step="1" value="2041"></div>
+          <div class="slider"><label>월 저축액 연 증가율 <b id="v-sg">0.0%</b> <span class="help" tabindex="0">?<span class="help__tip">연봉 상승 등으로 저축액이 매년 늘어난다고 가정합니다</span></span></label><input type="range" id="s-sg" min="0" max="10" step="0.5" value="0"></div>
+          <div class="slider"><label>물가상승률 <b id="v-infl">2.5%</b> <span class="help" tabindex="0">?<span class="help__tip">오늘 돈 기준의 실질 구매력을 함께 계산합니다</span></span></label><input type="range" id="s-infl" min="0" max="6" step="0.1" value="2.5"></div>
+          <div class="slider"><label>예측 종료 연도 <b id="v-endyr">2041년</b> <span class="help" tabindex="0">?<span class="help__tip">어느 해까지 그릴지 정합니다 · 최대 2060년</span></span></label><input type="range" id="s-endyr" min="2030" max="2060" step="1" value="2041"></div>
         </div>
         <div class="readout" id="sim-readout"></div>
         <div class="chartbox h-tall"><canvas id="c-compound"></canvas></div>
@@ -511,13 +582,13 @@ body.print-all .panel-page:not([data-report]){display:none!important}
     <section class="panel-page" data-page="market" data-report="1" data-title="시장 지표">
       <div class="quote mb" data-qt="market"></div>
       <div class="card pad mb">
-        <div class="blocktitle"><div><h3>오늘의 시장</h3><div class="sub" id="market-asof">매일 자동 갱신 · 원장 파일과 무관</div></div></div>
+        <div class="blocktitle"><div><h3>오늘의 시장</h3><div class="sub" id="market-asof">매일 자동으로 갱신됩니다 · 원장 파일과 무관</div></div></div>
         <div class="kpi-grid mb" id="market-cards"></div>
         <div class="kpi-grid" id="market-cards2"></div>
         <div class="note" id="market-note"></div>
       </div>
       <div class="card pad">
-        <div class="blocktitle"><div><h3>미국 기준금리</h3><div class="sub">연준 목표범위와 실효금리(EFFR) — 유일하게 흐름을 쌓아 보는 지표</div></div></div>
+        <div class="blocktitle"><div><h3>미국 기준금리</h3><div class="sub">연준 목표범위와 실효금리 · 유일하게 흐름을 쌓는 지표</div></div></div>
         <div class="kpi-grid mb" id="rate-cards"></div>
         <div class="chartbox h-mid"><canvas id="c-rate"></canvas></div>
         <div class="note" id="rate-note"></div>
@@ -528,10 +599,10 @@ body.print-all .panel-page:not([data-report]){display:none!important}
     <section class="panel-page" data-page="mandala" data-report="1" data-title="만다라트">
       <div class="quote mb" data-qt="mandala"></div>
       <div class="card pad">
-        <div class="blocktitle"><div><h3>만다라트 — 투자 마음가짐</h3><div class="sub">가운데=핵심 목표, 둘레 8칸=핵심 실천(자동으로 바깥 블록 중앙에 복사). 클릭해서 채우세요 · 이 브라우저에 저장</div></div>
+        <div class="blocktitle"><div><h3>만다라트 — 투자 마음가짐</h3><div class="sub">가운데는 핵심 목표, 둘레 여덟 칸은 실천 항목입니다 · 칸을 눌러 채우세요</div></div>
           <button class="btn" id="mandala-reset">비우기</button></div>
         <div id="mandala-grid" class="mandala"></div>
-        <div class="note">※ 개인 마음가짐 메모입니다. 투자 데이터와 무관하며 이 브라우저에만 저장됩니다.</div>
+        <div class="note">투자 데이터와 무관한 개인 메모입니다 · 이 브라우저에만 저장됩니다</div>
       </div>
     </section>
 
@@ -539,7 +610,7 @@ body.print-all .panel-page:not([data-report]){display:none!important}
     <section class="panel-page" data-page="manage">
       <div class="quote mb" data-qt="manage"></div>
       <div class="card pad mb">
-        <div class="blocktitle"><div><h3>표시 설정</h3><div class="sub">기본값은 이 브라우저에 저장됩니다(개인 데이터 아님).</div></div></div>
+        <div class="blocktitle"><div><h3>표시 설정</h3><div class="sub">이 브라우저에 저장됩니다 · 개인 데이터는 포함되지 않습니다</div></div></div>
         <div class="set-row"><div class="k">테마<small>화면 밝기</small></div><div class="seg" id="set-theme"><button data-v="auto">시스템</button><button data-v="light">라이트</button><button data-v="dark">다크</button></div></div>
         <div class="set-row"><div class="k">기본 통화<small>처음 열 때 표시 통화</small></div><div class="seg" id="set-cur"><button data-v="KRW">₩ 원화</button><button data-v="USD">$ 달러</button></div></div>
         <div class="set-row"><div class="k">기본 벤치마크</div><div class="seg" id="set-bm"><button data-v="sp">S&amp;P</button><button data-v="nq">NASDAQ</button><button data-v="dj">다우</button></div></div>
@@ -548,12 +619,12 @@ body.print-all .panel-page:not([data-report]){display:none!important}
         <div class="set-row"><div class="k">데이터<small id="data-status"></small></div><button class="btn" id="reload-btn2">다른 파일 열기</button></div>
       </div>
       <div class="card pad">
-        <div class="blocktitle"><div><h3>자동화 (시장=매일 · 원장=연 1회)</h3><div class="sub">시장 데이터는 이 파일 안에 매일 새로 심겨 옵니다 — 원장 파일과 완전히 분리</div></div></div>
+        <div class="blocktitle"><div><h3>자동화 (시장=매일 · 원장=연 1회)</h3><div class="sub">시장 데이터는 매일 이 파일에 담겨 옵니다 · 원장과는 완전히 분리되어 있습니다</div></div></div>
         <ul style="color:var(--ink2);font-size:.88rem;line-height:1.9;margin:4px 0 0;padding-left:18px">
-          <li><b>매일 21시(KST) 자동</b>: 환율 · 지수 · 보유 종목 시세 · 시장지표 · 실제 Fear&amp;Greed · 미국 기준금리를 모아 <b>이 HTML을 새로 구워</b> 보내줍니다</li>
-          <li><b>시장지표는 그날 값만</b> 표시(누적 없음). 흐름을 쌓아 보는 건 <b>미국 기준금리</b> 하나뿐</li>
-          <li><b>원장 없이도</b> '오늘의 시장' 탭은 열립니다(첫 화면의 "오늘의 시장만 보기")</li>
-          <li><b>당신이 줄 것(연 1회)</b>: 자산군별 <b>연말 평가액</b> · 그해 <b>순입금</b> · 티커 없는 현금성 잔고(MMF·RP·현금)</li>
+          <li><b>매일 21시(KST) 자동</b>: 환율 · 지수 · 보유 종목 시세 · 시장지표 · 실제 Fear&amp;Greed · 미국 기준금리를 모아 <b>이 파일을 새로 만들어</b> 보내드립니다</li>
+          <li><b>시장지표는 그날 값만</b> 보여줍니다 · 흐름을 쌓는 건 <b>미국 기준금리</b> 하나뿐</li>
+          <li><b>원장 없이도</b> 첫 화면에서 '오늘의 시장 보기'로 바로 들어갈 수 있습니다</li>
+          <li><b>직접 입력(연 1회)</b> — 자산군별 연말 평가액, 그해 순입금, 현금성 잔고(MMF·RP·현금)</li>
         </ul>
       </div>
     </section>
@@ -561,24 +632,24 @@ body.print-all .panel-page:not([data-report]){display:none!important}
     <!-- 개발기록 -->
     <section class="panel-page" data-page="dev">
       <div class="quote mb" data-qt="dev"></div>
-      <div class="page-head"><h2>개발기록 · 로드맵</h2><p>이 대시보드가 어떻게 자라고 있는지</p></div>
+      <div class="page-head"><h2>개발기록 · 로드맵</h2><p>무엇을 만들었고 무엇이 남았는지</p></div>
       <div class="cols">
         <div class="card pad">
           <div class="blocktitle"><div><h3>변경 이력</h3></div></div>
           <div class="tl">
-            <div class="tl__i done"><h4>v11 — 전체 리포트 · 구성 토글 · 커맨드 팔레트<span class="tag">현재</span></h4><ul><li><b>전체 탭 리포트 인쇄</b> — 표지(총평가액·기간·TWR·XIRR)와 섹션별 페이지 분리로 한 문서 생성. 차트는 canvas라 인쇄 전 모든 탭을 렌더해야 빈 칸이 안 생깁니다</li><li><b>자산구성 도넛 ↔ 구성 막대 토글</b> — 근접값 비교는 막대, 한눈 파악은 도넛. 선택은 저장됩니다</li><li><b>커맨드 팔레트(⌘K / Ctrl+K)</b> — 탭 이동·통화·테마·벤치마크·리포트를 검색해 실행. 숫자키 1–8, ←→ 로도 탭 이동</li></ul></div>
-            <div class="tl__i done"><h4>v10 — 디자인 개편 (색각 검증 · 히어로 · 마크 스펙)<span class="tag">완료</span></h4><ul><li>카테고리 팔레트를 <b>검증기 통과본</b>으로 교체 — 기존 팔레트는 라이트/다크 모두 FAIL이었음(주황↔초록 색각 ΔE 3.5)</li><li>요약에 <b>히어로 넘버</b>(총평가액 + 스파크라인) 도입, 나머지 3개는 보조 타일로 위계 분리</li><li>자산구성 <b>도넛 → 구성 막대</b> — 17.5% vs 17.6% 같은 근접값이 도넛에선 구분 불가였음</li><li>마크 스펙 정리: 막대 ≤24px·데이터끝만 라운드, 마커 r4 + 2px 서피스 링, 영역 10% 워시</li><li>워터폴 커넥터·값 라벨이 <b>등록 누락으로 안 그려지던 버그</b> 수정</li></ul></div>
-            <div class="tl__i done"><h4>v9 — 원장 간소화 (9시트 → 6시트)<span class="tag">완료</span></h4><ul><li>시장 데이터가 HTML로 빠진 만큼 원장에서 <b>시장지표·심리 시트 제거</b></li><li>월별 <code>환율</code>+<code>벤치마크</code>(168줄) → <b><code>연말시장</code> 한 장</b>(연 1줄)</li><li><code>월말보유</code>→<code>연말보유</code>, 배당도 연 단위 → 약 800줄에서 <b>약 120줄</b>로</li><li>직접 채우는 건 <b>연별스냅샷·목표</b> 둘뿐. 옛 월별 원장도 그대로 읽힙니다(폴백)</li></ul></div>
-            <div class="tl__i done"><h4>v8 — 시장 데이터를 원장에서 분리 (매일 갱신)<span class="tag">완료</span></h4><ul><li>시장 스냅샷을 <b>HTML 안에 직접 내장</b> — 원장 파일과 무관하게 매일 그날 값으로 갱신</li><li>시장지표는 <b>그날 값만</b>(누적 제거), 누적은 <b>미국 기준금리</b>(연준 목표범위·EFFR, 뉴욕 연준 API) 하나만</li><li>원장 없이 '오늘의 시장'만 열람 가능 · F&amp;G도 매일 최신값 우선</li></ul></div>
-            <div class="tl__i done"><h4>v7 — 실데이터 연동 (Naver 시세 · 실제 CNN F&amp;G)<span class="tag">완료</span></h4><ul><li>환율·지수·시세·시장지표를 <b>Naver 금융 API</b>로 수집(Yahoo 429 대체) — 이 환경에서 실동작 확인</li><li>시장 심리를 <b>실제 CNN Fear &amp; Greed 지수</b>로 연결(원장 '심리' 시트), 없으면 자체 근사치로 폴백</li><li>일별 공개데이터 수집 매일 21:00 KST</li></ul></div>
-            <div class="tl__i done"><h4>v6 — 월별 → 연별 전환<span class="tag">완료</span></h4><ul><li>개인 성과 입력을 <b>연 1회</b>로 축소(연별스냅샷): 수익률·TWR·XIRR·기여·낙폭 모두 연 단위</li><li>연율화·표본 기준(≥3년), 라벨·워터폴·배당·캐러셀 전부 연 단위로</li><li>환율·벤치마크·시장지표·Fear&amp;Greed는 <b>일별/월별 그대로</b>(세밀 유지) — 심리 게이지는 월별 벤치마크로 계산</li><li>일별 공개데이터 자동수집 시각 오후 9시(KST)</li></ul></div>
-            <div class="tl__i done"><h4>v5 — 배당 · 리포트 · 성장곡선 슬라이드<span class="tag">완료</span></h4><ul><li>배당 트래킹(수령액·배당수익률), 리포트 저장(인쇄/PDF)</li><li>요약 성장곡선 분리 + 하단 캐러셀(VOO비교·연도별손익·누적손익)</li><li>워터폴 커넥터·라벨로 0부터 명확히, 복리 예측 2060년까지·기본 목표 1조</li></ul></div>
-            <div class="tl__i done"><h4>v4 — 시장지표 · 만다라트 · 워터폴<span class="tag">완료</span></h4><ul><li>시장지표 탭(미국채10년·금·WTI), 만다라트(마음가짐) 탭</li><li>손익 분해 워터폴, "VOO였다면"(수수료 0.03%) 비교선</li><li>일별/월별 자동수집 파이프라인(환율·벤치마크·시세·Fear&amp;Greed)</li><li>탭별 명언(4대 투자자·원문+번역), 툴팁 잘림 수정</li></ul></div>
-            <div class="tl__i done"><h4>v3 — 탭 구조 · 시장심리 · 상세 복리<span class="tag">완료</span></h4><ul><li>한 화면 스크롤 → 버튼으로 넘기는 탭 구조</li><li>학술 리스크지표 → Fear&amp;Greed 시장심리 게이지</li><li>복리 시뮬: 상한 35%·저축 증가율·물가(실질가치)·명목/실질 토글</li><li>종목별 표(평가액·비중·수익률·기여도), 벤치마크 누적 비교</li></ul></div>
-            <div class="tl__i done"><h4>v2 — 오프라인 단독 실행<span class="tag">완료</span></h4><ul><li>라이브러리 내장 → 인터넷 없이 더블클릭 실행</li></ul></div>
-            <div class="tl__i done"><h4>v1 — SPEC 6블록 구현<span class="tag">완료</span></h4><ul><li>TWR·XIRR·환율효과·리스크·자산구성·복리 (§3 계산 검증)</li></ul></div>
+            <div class="tl__i done"><h4>v12 — 화면 전체 다듬기<span class="tag">현재</span></h4><ul><li>아이콘을 직접 그려 넣어 어느 기기에서나 또렷하게</li><li>탭 아래 표시선이 따라 움직이도록</li><li>헤더·탭·카드의 왼쪽 끝을 하나로 정렬 (어긋나 있던 부분 수정)</li><li>문구에서 군더더기와 기술 용어를 걷어냄</li><li>휴대폰 화면 대응 정리</li></ul></div>
+            <div class="tl__i done"><h4>v11 — 전체 리포트 · 구성 토글 · 빠른 이동<span class="tag">완료</span></h4><ul><li>모든 탭을 표지와 함께 한 문서로 인쇄</li><li>자산구성을 구성 막대와 도넛 중에 골라 보기</li><li>⌘K 로 어디로든 바로 이동 · 숫자키 1–8 도 지원</li></ul></div>
+            <div class="tl__i done"><h4>v10 — 디자인 개편<span class="tag">완료</span></h4><ul><li>색각 이상이 있어도 구분되는 색으로 전면 교체</li><li>총평가액을 화면의 주인공으로, 나머지는 보조 지표로 정리</li><li>비중이 비슷한 자산도 눈으로 구분되도록 구성 막대 도입</li><li>손익 분해 그래프가 0부터 쌓이는 흐름으로 제대로 보이게 수정</li></ul></div>
+            <div class="tl__i done"><h4>v9 — 원장 간소화<span class="tag">완료</span></h4><ul><li>원장을 6장짜리로 축소 · 직접 채우는 건 두 곳뿐</li><li>예전 양식으로 만든 원장도 그대로 열립니다</li></ul></div>
+            <div class="tl__i done"><h4>v8 — 시장 데이터 분리<span class="tag">완료</span></h4><ul><li>시장 데이터를 원장에서 떼어내 매일 갱신</li><li>원장 없이도 '오늘의 시장'을 볼 수 있음</li><li>시장지표는 그날 값만 · 흐름은 미국 기준금리 하나만</li></ul></div>
+            <div class="tl__i done"><h4>v7 — 실시간 데이터 연결<span class="tag">완료</span></h4><ul><li>환율·지수·시세·시장지표를 매일 자동으로 수집</li><li>시장 심리를 실제 CNN 지수로 교체</li></ul></div>
+            <div class="tl__i done"><h4>v6 — 연 단위 전환<span class="tag">완료</span></h4><ul><li>직접 입력을 연 1회로 축소 · 성과 지표도 연 단위로</li><li>환율·지수·시장 심리는 세밀함 유지</li></ul></div>
+            <div class="tl__i done"><h4>v5 — 배당 · 리포트<span class="tag">완료</span></h4><ul><li>배당 수령액과 배당수익률 추적</li><li>리포트 인쇄, 요약 화면에 비교 슬라이드 추가</li></ul></div>
+            <div class="tl__i done"><h4>v4 — 시장지표 · 만다라트<span class="tag">완료</span></h4><ul><li>미국채·금·유가를 보는 시장지표 화면</li><li>손익 분해 그래프, VOO에 넣었다면 비교선</li><li>투자 마음가짐을 적는 만다라트</li></ul></div>
+            <div class="tl__i done"><h4>v3 — 탭 구조 · 시장 심리<span class="tag">완료</span></h4><ul><li>긴 스크롤을 탭으로 분리</li><li>어려운 리스크 지표 대신 시장 심리 게이지</li><li>복리 시뮬레이터에 저축 증가율·물가 반영</li></ul></div>
+            <div class="tl__i done"><h4>v2 — 오프라인 실행<span class="tag">완료</span></h4><ul><li>인터넷 없이 더블클릭만으로 열림</li></ul></div>
+            <div class="tl__i done"><h4>v1 — 첫 버전<span class="tag">완료</span></h4><ul><li>진짜 수익률·환율 효과·자산구성·복리 계산</li></ul></div>
           </div>
-        </div>
         <div class="card pad">
           <div class="blocktitle"><div><h3>로드맵</h3></div></div>
           <div class="tl">
@@ -594,7 +665,7 @@ body.print-all .panel-page:not([data-report]){display:none!important}
       </div>
     </section>
 
-    <div class="foot">SPEC.md 구현체 · 모든 계산은 브라우저 안에서 · 데이터 외부 전송 없음 · 엑셀 읽기 전용</div>
+    <div class="foot">모든 계산은 이 브라우저 안에서 · 데이터는 외부로 전송되지 않습니다 · 원장 파일은 읽기만 합니다</div>
   </main>
 </div>
 
@@ -681,7 +752,7 @@ const TAB_QUOTES = {
   dev:{en:"The big money is not in the buying and the selling, but in the waiting.", ko:"큰돈은 사고파는 데 있지 않고, 기다리는 데 있다.", by:"Charlie Munger"},
 };
 function fillQuotes(){for(const t in TAB_QUOTES){const el=document.querySelector(`.quote[data-qt="${t}"]`);if(!el)continue;const q=TAB_QUOTES[t];
-  el.innerHTML=`<div class="quote__badge">❝</div><div class="quote__txt"><div class="quote__en">${q.en}</div><div class="quote__ko">${q.ko}</div><div class="quote__by">— ${q.by}</div></div>`;}}
+  el.innerHTML=`<div class="quote__badge"><svg class="i i--lg" aria-hidden="true"><use href="#i-quote"/></svg></div><div class="quote__txt"><div class="quote__en">${q.en}</div><div class="quote__ko">${q.ko}</div><div class="quote__by">— ${q.by}</div></div>`;}}
 
 const ASSET_CLASSES=["해외주식","해외ETF","미국장기채","MMF","RP","달러현금"];
 const RISKFREE_CLASSES=["MMF","RP"];
@@ -1097,7 +1168,7 @@ function renderMarket(){
     cardsEl.innerHTML=`<div class="empty" style="grid-column:1/-1">시장 데이터가 아직 심어지지 않았습니다.<br>매일 21시 자동수집이 이 파일에 그날 값을 넣어 다시 만들어 보내줍니다.</div>`;
     cards2El.innerHTML="";$("#market-asof").textContent="—";$("#rate-cards").innerHTML="";return;
   }
-  $("#market-asof").textContent=`${M.asOf} 기준 · 매일 자동 갱신 · 원장 파일과 무관`;
+  $("#market-asof").textContent=`${M.asOf} 기준 · 매일 자동으로 갱신됩니다 · 원장 파일과 무관`;
   // 오늘 값만 (누적 없음)
   const c=(name,val,sub)=>`<div class="kpi"><div class="kpi__label">${name}</div><div class="kpi__val" >${val}</div><div class="kpi__sub dim">${sub||""}</div></div>`;
   const fx=M.fx||{},ix=M.index||{},id=M.indicators||{},fgv=M.fg||{};
@@ -1321,6 +1392,7 @@ const DATA_TABS=["overview","perf","risk","sim"];
 function applyTabVisibility(){
   const has=!!DATA;
   $$("#tabnav .tab").forEach(b=>b.classList.toggle("hidden",!has&&DATA_TABS.includes(b.dataset.tab)));
+  requestAnimationFrame(moveTabIndicator);   // 탭 개수가 바뀌면 인디케이터 위치도 다시 계산
 }
 function renderTab(t){
   if(!DATA&&DATA_TABS.includes(t))return;   // 원장 없으면 계산 탭은 그리지 않음
@@ -1333,12 +1405,21 @@ function renderTab(t){
   // manage/dev: 정적
 }
 function renderActive(){renderTab(STATE.tab);}
+function moveTabIndicator(){
+  const ind=$("#tab-ind"),on=$("#tabnav .tab.on");
+  if(!ind||!on){if(ind)ind.style.width="0";return;}
+  ind.style.width=on.offsetWidth+"px";
+  ind.style.transform=`translateX(${on.offsetLeft}px)`;
+}
 function switchTab(id){
   STATE.tab=id;
   $$("#tabnav .tab").forEach(b=>b.classList.toggle("on",b.dataset.tab===id));
   $$(".panel-page").forEach(p=>p.classList.toggle("on",p.dataset.page===id));
+  moveTabIndicator();
+  const on=$("#tabnav .tab.on"); if(on&&on.scrollIntoView)on.scrollIntoView({block:"nearest",inline:"nearest"});
   renderActive();
 }
+addEventListener("resize",moveTabIndicator);
 
 /* ─── 헤더 / 배너 ─── */
 function renderBanners(w){const box=$("#banners");box.innerHTML="";const add=(c,h)=>{const d=document.createElement("div");d.className="banner "+c;d.innerHTML=h;box.appendChild(d);};
