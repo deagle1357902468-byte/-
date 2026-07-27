@@ -32,6 +32,11 @@
   --font:"Pretendard Variable",Pretendard,-apple-system,BlinkMacSystemFont,"Apple SD Gothic Neo","Malgun Gothic","Noto Sans KR",system-ui,sans-serif;
   /* 검증 통과 순서: blue·orange·aqua·yellow·magenta·green·violet·red */
   --d1:#2a78d6;--d2:#eb6834;--d3:#1baf7a;--d4:#eda100;--d5:#e87ba4;--d6:#008300;--d7:#4a3aa7;--d8:#e34948;
+  /* 매매 판정색 — 등락색(pos/neg)과 분리합니다. 판정은 가격의 방향이 아니라
+     '그 결정이 옳았나'라서, 사용자의 상승/하락 색 설정을 따라가면 안 됩니다.
+     짙은 청록↔빨강: 검증기 통과 (protan ΔE 9.5 · 정상시야 28.1 · 대비 3:1↑). */
+  --vg:#00806a; --vg-weak:rgba(0,128,106,.11);
+  --vb:#d03b3b; --vb-weak:rgba(208,59,59,.11);
 }
 @media (prefers-color-scheme:dark){
   :root:not([data-theme=light]){
@@ -56,6 +61,8 @@
   --shadow:0 1px 2px rgba(0,0,0,.5);
   --shadow-lg:0 10px 34px rgba(0,0,0,.55);
   --d1:#3987e5;--d2:#d95926;--d3:#199e70;--d4:#c98500;--d5:#d55181;--d6:#008300;--d7:#9085e9;--d8:#e66767;
+  --vg:#12a17f; --vg-weak:rgba(18,161,127,.17);
+  --vb:#e66767; --vb-weak:rgba(230,103,103,.17);
 }
 /* up=red convention (한국식) override — 상태색만 뒤집고 카테고리 색은 건드리지 않음 */
 :root[data-updown=krlike]{ --pos:#d03b3b; --pos-weak:rgba(208,59,59,.12); --neg:#1c5cab; --neg-weak:rgba(28,92,171,.12); }
@@ -161,6 +168,11 @@ main{padding:26px 0 72px}
 .pad{padding:clamp(18px,2.2vw,26px)}
 .grid{display:grid;gap:18px}
 .blocktitle{display:flex;justify-content:space-between;align-items:flex-end;gap:12px;flex-wrap:wrap;margin-bottom:18px}
+@media(max-width:560px){
+  .blocktitle>div:last-child:not(:only-child){max-width:100%;overflow-x:auto;padding-bottom:2px;
+    scrollbar-width:none;-ms-overflow-style:none}
+  .blocktitle>div:last-child:not(:only-child)::-webkit-scrollbar{display:none}
+}
 .blocktitle h3{font-size:1.05rem;font-weight:750;letter-spacing:-.015em}
 .blocktitle .sub{color:var(--ink2);font-size:.82rem;margin-top:4px;line-height:1.5}
 .blocktitle .sub b{color:var(--ink);font-weight:750}
@@ -261,6 +273,69 @@ tr.rowlink:hover .go,tr.rowlink:focus-within .go{opacity:1}
 .acc__h .i{color:var(--muted);transition:transform .18s ease;flex:none}
 .acc[open] .acc__h .i{transform:rotate(180deg)}
 .acc__b{padding:2px 2px 16px}
+
+/* ── 매매 판정 ──────────────────────────────────────────────────────
+   판정색은 절대 단독으로 쓰지 않습니다 — 아이콘 + 글자 + 0선 기준 좌우 위치가
+   같은 정보를 세 번 말합니다. 색은 거들 뿐입니다. */
+.vhero{display:grid;grid-template-columns:minmax(0,1.15fr) minmax(0,1fr);gap:clamp(16px,3vw,32px);align-items:center;
+  border-radius:var(--radius);border:1px solid var(--line);box-shadow:var(--shadow);
+  padding:clamp(20px,3vw,30px) clamp(20px,3vw,32px);position:relative;overflow:hidden;
+  background:radial-gradient(680px 260px at 90% -40%,var(--vh-wash),transparent 70%),var(--card)}
+.vhero::before{content:"";position:absolute;left:0;top:0;bottom:0;width:4px;background:var(--vh)}
+@media(max-width:820px){.vhero{grid-template-columns:1fr;gap:16px}}
+.vhero__k{display:flex;align-items:center;gap:7px;color:var(--ink2);font-size:.86rem;font-weight:700}
+.vhero__v{font-size:clamp(2.1rem,5vw,2.9rem);font-weight:800;letter-spacing:-.012em;line-height:1.06;margin-top:10px;
+  font-variant-numeric:proportional-nums;word-break:keep-all;color:var(--vh)}
+.vhero__v .hero__cur{font-weight:600;opacity:.5;margin-right:.1em;font-size:.7em;vertical-align:.06em}
+.vhero__s{margin-top:12px;font-size:.86rem;color:var(--ink2);line-height:1.7}
+.vhero__tally{display:flex;flex-direction:column;gap:11px;min-width:0}
+.tally{display:flex;align-items:center;gap:10px;font-size:.85rem;font-weight:700;color:var(--ink2)}
+.tally b{color:var(--ink);font-variant-numeric:tabular-nums}
+.tally__bar{flex:1;height:9px;border-radius:99px;background:var(--line2);overflow:hidden;display:flex;min-width:60px}
+.tally__f{height:100%}
+.tally__f--g{background:var(--vg)} .tally__f--b{background:var(--vb)}
+
+.vbadge{display:inline-flex;align-items:center;gap:4px;font-size:.72rem;font-weight:800;
+  padding:3px 9px 3px 7px;border-radius:999px;white-space:nowrap}
+.vbadge--g{background:var(--vg-weak);color:var(--vg)} .vbadge--b{background:var(--vb-weak);color:var(--vb)}
+.vbadge--n{background:var(--line2);color:var(--muted)}
+.vbadge .i{width:13px;height:13px}
+.sidechip{display:inline-flex;font-size:.7rem;font-weight:800;padding:2px 7px;border-radius:5px;
+  background:var(--line2);color:var(--ink2);letter-spacing:.02em}
+.sidechip--sell{background:var(--accent-weak);color:var(--accent-ink)}
+
+/* 거래 카드 — 왼쪽 리본이 판정을 먼저 말합니다 */
+.tcards{display:grid;gap:9px}
+.tcard{display:grid;grid-template-columns:auto minmax(0,1fr) auto;gap:14px;align-items:center;
+  background:var(--card);border:1px solid var(--line);border-left:3px solid var(--tc);
+  border-radius:var(--radius-sm);padding:12px 15px 12px 13px;cursor:pointer;text-align:left;
+  font-family:inherit;width:100%;transition:box-shadow .16s,transform .16s,border-color .16s}
+.tcard:hover,.tcard:focus-visible{box-shadow:var(--shadow-lg);transform:translateX(2px);outline:none;
+  border-color:color-mix(in srgb,var(--tc) 40%,var(--line))}
+.tcard__d{font-size:.74rem;font-weight:800;color:var(--muted);font-variant-numeric:tabular-nums;min-width:56px}
+.tcard__m{min-width:0}
+.tcard__t{display:flex;align-items:center;gap:7px;flex-wrap:wrap}
+.tcard__t b{font-size:.92rem;font-weight:800;letter-spacing:-.01em}
+.tcard__s{font-size:.76rem;color:var(--ink2);margin-top:4px;
+  overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.tcard__r{text-align:right;display:flex;flex-direction:column;align-items:flex-end;gap:5px}
+.tcard__v{font-size:.95rem;font-weight:800;color:var(--tc);font-variant-numeric:proportional-nums;white-space:nowrap}
+@media(max-width:560px){
+  .tcard{grid-template-columns:auto minmax(0,1fr);row-gap:9px}
+  .tcard__r{grid-column:1/-1;flex-direction:row;align-items:center;justify-content:space-between}
+}
+/* 필터 바 — 한 줄에 모읍니다 */
+.fbar{display:flex;gap:8px;align-items:center;flex-wrap:wrap;margin-bottom:16px}
+.fbar__sp{flex:1;min-width:0}
+.chip{border:1px solid var(--line);background:var(--card);color:var(--ink2);border-radius:999px;
+  padding:5px 12px;font-size:.79rem;font-weight:700;cursor:pointer;font-family:inherit}
+.chip.on{background:var(--ink);border-color:var(--ink);color:var(--bg)}
+/* 계산 근거 — 드로어 안의 식 */
+.calc{font-variant-numeric:tabular-nums}
+.calc div{display:flex;justify-content:space-between;gap:14px;padding:9px 0;border-bottom:1px solid var(--line2);font-size:.87rem}
+.calc div:last-child{border-bottom:0;font-weight:800;font-size:.95rem;padding-top:12px}
+.calc .k{color:var(--ink2);font-weight:600}
+.calc .op{color:var(--muted);font-weight:700;font-size:.8rem}
 /* 연대표 안에서는 왼쪽 점과 줄을 맞춰야 하므로 위 여백을 없앱니다 */
 .tl__i--acc .acc{border-top:0}
 .tl__i--acc .acc__h{padding:0 2px 2px;font-size:.95rem;font-weight:800}
@@ -272,7 +347,7 @@ tr.rowlink:hover .go,tr.rowlink:focus-within .go{opacity:1}
 .pill{border:1px solid var(--line);background:var(--card);color:var(--ink2);border-radius:999px;padding:6px 13px;font-size:.82rem;font-weight:700;cursor:pointer}
 .pill.on{background:var(--accent);border-color:var(--accent);color:#fff}
 .miniseg{display:inline-flex;background:var(--line2);border:1px solid var(--line);border-radius:999px;padding:2px}
-.miniseg button{border:0;background:transparent;color:var(--ink2);font-weight:700;font-size:.78rem;padding:4px 11px;border-radius:999px;cursor:pointer}
+.miniseg button{border:0;background:transparent;color:var(--ink2);font-weight:700;font-size:.78rem;padding:4px 11px;border-radius:999px;cursor:pointer;white-space:nowrap;font-family:inherit}
 .miniseg button.on{background:var(--card);color:var(--ink);box-shadow:var(--shadow)}
 .miniseg:empty{display:none}   /* 기록이 짧아 선택지가 없으면 빈 껍데기를 남기지 않습니다 */
 
@@ -464,6 +539,9 @@ body.print-all .panel-page:not([data-report]){display:none!important}
   <symbol id="i-quote" viewBox="0 0 24 24"><path d="M9.4 5.6C6.4 7 4.8 9.4 4.8 12.6v5.8h6.4v-6.2H7.9c.1-1.9 1-3.3 2.7-4.2l-1.2-2.4Zm9.4 0C15.8 7 14.2 9.4 14.2 12.6v5.8h6.4v-6.2h-3.3c.1-1.9 1-3.3 2.7-4.2l-1.2-2.4Z" fill="currentColor"/></symbol>
   <symbol id="i-x" viewBox="0 0 24 24"><path d="M6.4 6.4 17.6 17.6M17.6 6.4 6.4 17.6" stroke="currentColor" stroke-width="2" stroke-linecap="round" fill="none"/></symbol>
   <symbol id="i-chev" viewBox="0 0 24 24"><path d="M6 9.5 12 15.5 18 9.5" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" fill="none"/></symbol>
+  <symbol id="i-check" viewBox="0 0 24 24"><path d="m5 12.6 4.6 4.6L19 7.4" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" fill="none"/></symbol>
+  <symbol id="i-alert" viewBox="0 0 24 24"><path d="M12 4.4 21 19.6H3L12 4.4Z" stroke="currentColor" stroke-width="1.9" stroke-linejoin="round" fill="none"/><path d="M12 10v3.6" stroke="currentColor" stroke-width="2.1" stroke-linecap="round"/><circle cx="12" cy="16.7" r="1.05" fill="currentColor"/></symbol>
+  <symbol id="i-trade" viewBox="0 0 24 24"><path d="M4 8.5h13M13.5 4.8 17.4 8.5l-3.9 3.7" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round" fill="none"/><path d="M20 15.5H7M10.5 11.8 6.6 15.5l3.9 3.7" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round" fill="none"/></symbol>
   <symbol id="i-open" viewBox="0 0 24 24"><path d="M13.5 4.5H19.5V10.5M19.5 4.5 12 12" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round" fill="none"/><path d="M18 14.5v4a1.6 1.6 0 0 1-1.6 1.6H5.6A1.6 1.6 0 0 1 4 18.5V7.6A1.6 1.6 0 0 1 5.6 6h4" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" fill="none"/></symbol>
 </defs></svg>
 
@@ -523,6 +601,7 @@ body.print-all .panel-page:not([data-report]){display:none!important}
   <nav class="tabs"><div class="wrap tabs__in" id="tabnav"><span class="tabs__ind" id="tab-ind"></span>
     <button class="tab on" data-tab="overview">요약</button>
     <button class="tab" data-tab="perf">성과·구성</button>
+    <button class="tab" data-tab="trade">매매일지</button>
     <button class="tab" data-tab="risk">리스크·심리</button>
     <button class="tab" data-tab="market">시장지표</button>
     <button class="tab" data-tab="sim">복리·목표</button>
@@ -609,6 +688,48 @@ body.print-all .panel-page:not([data-report]){display:none!important}
         <div class="kpi-grid mb" id="div-cards"></div>
         <div class="chartbox h-mid"><canvas id="c-div"></canvas></div>
         <div class="note" id="div-note"></div>
+      </div>
+    </section>
+
+    <!-- 매매일지 -->
+    <section class="panel-page" data-page="trade" data-report="1" data-title="매매일지">
+      <div class="quote mb" data-qt="trade"></div>
+      <div class="vhero mb" id="v-hero">
+        <div>
+          <div class="vhero__k">매매가 만든 차이 <span class="help" tabindex="0" role="button" data-g="active" aria-label="매매가 만든 차이 설명">?</span></div>
+          <div class="vhero__v" id="v-net">—</div>
+          <div class="vhero__s" id="v-net-sub"></div>
+        </div>
+        <div class="vhero__tally" id="v-tally"></div>
+      </div>
+
+      <div class="card pad mb">
+        <div class="blocktitle">
+          <div><h3>거래별 판정</h3><div class="sub" id="v-sub">0선 오른쪽이 잘한 결정, 왼쪽이 아쉬운 결정입니다</div></div>
+          <div style="display:flex;gap:8px;flex-wrap:wrap;align-items:center">
+            <div class="miniseg" id="v-base"><button data-b="hold" class="on">안 했다면</button><button data-b="bench">S&amp;P에 넣었다면</button></div>
+            <div class="miniseg" id="v-asof"></div>
+          </div>
+        </div>
+        <div class="chartbox" id="box-vbar"><canvas id="c-vbar"></canvas></div>
+        <div class="note" id="v-chart-note"></div>
+      </div>
+
+      <div class="card pad mb">
+        <div class="blocktitle"><div><h3>거래 하나씩</h3><div class="sub">카드를 누르면 그 판정이 어떻게 나왔는지 계산식이 전부 보입니다</div></div></div>
+        <div class="fbar">
+          <div class="pill-row" id="v-years"></div>
+          <div class="fbar__sp"></div>
+          <div class="miniseg" id="v-sort"><button data-s="date" class="on">최신순</button><button data-s="best">잘한순</button><button data-s="worst">아쉬운순</button></div>
+        </div>
+        <div class="tcards" id="v-cards"></div>
+        <div class="note" id="v-cards-note"></div>
+      </div>
+
+      <div class="card pad">
+        <div class="blocktitle"><div><h3>종목별 성적</h3><div class="sub">한 종목에서 매매가 도움이 됐는지</div></div></div>
+        <div style="overflow-x:auto"><table class="table" id="t-vticker"></table></div>
+        <div class="note">판정은 <b>지금 가격 한 시점</b> 기준입니다. 매도 대금을 무엇에 다시 넣었는지는 반영하지 않은 단순 비교이고, 세금·수수료는 단가에 적어 넣은 만큼만 반영됩니다.</div>
       </div>
     </section>
 
@@ -716,9 +837,10 @@ body.print-all .panel-page:not([data-report]){display:none!important}
         <div class="card pad">
           <div class="blocktitle"><div><h3>변경 이력</h3><div class="sub">최신 두 개만 펼쳐 둡니다 · 제목을 누르면 열립니다</div></div></div>
           <div class="tl" id="tl-hist">
-            <div class="tl__i done"><h4>v13 — 눌러서 파고들기<span class="tag">현재</span></h4><ul><li>자산구성 표의 줄이나 그래프 조각을 누르면 그 자산군만 자세히 열립니다</li><li>모르는 용어 옆 <b>?</b> 를 누르면 뜻이 나옵니다 — 휴대폰에서도 동작</li><li>성장 곡선을 금액과 수익률 중에 골라 보고, 최근 5년·10년만 잘라 볼 수 있습니다</li><li>범례를 누르면 그 선을 잠시 끌 수 있습니다</li><li>시장지표 카드를 누르면 그 지표가 무엇이고 어디서 왔는지 나옵니다</li><li>⌘K 에서 용어를 바로 찾을 수 있습니다</li><li>변경 이력이 길어져 접었습니다 · 만다라트 비우기는 앱 안에서 확인합니다</li></ul></div>
+            <div class="tl__i done"><h4>v14 — 매매일지<span class="tag">현재</span></h4><ul><li>원장에 <b>거래일지</b> 시트를 적으면 새 탭이 켜집니다 — 거래일·구분·티커·수량·단가만</li><li>거래 하나하나에 <b>잘한 선택 / 아쉬운 선택</b> 판정. 매도는 계속 들고 있었을 때와, 매수는 그 돈을 안 썼을 때와 비교합니다</li><li>판정 기준을 <b>S&amp;P에 넣었다면</b>으로 바꿔 볼 수 있습니다 — 매매가 지수를 이겼는지</li><li><b>지금 / 2024년말 / 2023년말</b> 기준으로 되감아, 판정이 시점에 얼마나 흔들리는지 직접 확인합니다</li><li>거래를 누르면 계산식이 전부 나오고, 그 종목 연말 종가 위에 <b>내 거래 가격</b>이 점선으로 그려집니다</li><li>연도 필터 · 최신순/잘한순/아쉬운순 정렬 · 종목별 성적표</li></ul></div>
+            <div class="tl__i done"><h4>v13 — 눌러서 파고들기<span class="tag">완료</span></h4><ul><li>자산구성 표의 줄이나 그래프 조각을 누르면 그 자산군만 자세히 열립니다</li><li>모르는 용어 옆 <b>?</b> 를 누르면 뜻이 나옵니다 — 휴대폰에서도 동작</li><li>성장 곡선을 금액과 수익률 중에 골라 보고, 최근 5년·10년만 잘라 볼 수 있습니다</li><li>범례를 누르면 그 선을 잠시 끌 수 있습니다</li><li>시장지표 카드를 누르면 그 지표가 무엇이고 어디서 왔는지 나옵니다</li><li>⌘K 에서 용어를 바로 찾을 수 있습니다</li><li>변경 이력이 길어져 접었습니다 · 만다라트 비우기는 앱 안에서 확인합니다</li></ul></div>
             <div class="tl__i done"><h4>v12 — 화면 전체 다듬기<span class="tag">완료</span></h4><ul><li>아이콘을 직접 그려 넣어 어느 기기에서나 또렷하게</li><li>탭 아래 표시선이 따라 움직이도록</li><li>헤더·탭·카드의 왼쪽 끝을 하나로 정렬 (어긋나 있던 부분 수정)</li><li>문구에서 군더더기와 기술 용어를 걷어냄</li><li>휴대폰 화면 대응 정리</li></ul></div>
-            <div class="tl__i done"><h4>v11 — 전체 리포트 · 구성 토글 · 빠른 이동<span class="tag">완료</span></h4><ul><li>모든 탭을 표지와 함께 한 문서로 인쇄</li><li>자산구성을 구성 막대와 도넛 중에 골라 보기</li><li>⌘K 로 어디로든 바로 이동 · 숫자키 1–8 도 지원</li></ul></div>
+            <div class="tl__i done"><h4>v11 — 전체 리포트 · 구성 토글 · 빠른 이동<span class="tag">완료</span></h4><ul><li>모든 탭을 표지와 함께 한 문서로 인쇄</li><li>자산구성을 구성 막대와 도넛 중에 골라 보기</li><li>⌘K 로 어디로든 바로 이동 · 숫자키 1–9 도 지원</li></ul></div>
             <div class="tl__i done"><h4>v10 — 디자인 개편<span class="tag">완료</span></h4><ul><li>색각 이상이 있어도 구분되는 색으로 전면 교체</li><li>총평가액을 화면의 주인공으로, 나머지는 보조 지표로 정리</li><li>비중이 비슷한 자산도 눈으로 구분되도록 구성 막대 도입</li><li>손익 분해 그래프가 0부터 쌓이는 흐름으로 제대로 보이게 수정</li></ul></div>
             <div class="tl__i done"><h4>v9 — 원장 간소화<span class="tag">완료</span></h4><ul><li>원장을 6장짜리로 축소 · 직접 채우는 건 두 곳뿐</li><li>예전 양식으로 만든 원장도 그대로 열립니다</li></ul></div>
             <div class="tl__i done"><h4>v8 — 시장 데이터 분리<span class="tag">완료</span></h4><ul><li>시장 데이터를 원장에서 떼어내 매일 갱신</li><li>원장 없이도 '오늘의 시장'을 볼 수 있음</li><li>시장지표는 그날 값만 · 흐름은 미국 기준금리 하나만</li></ul></div>
@@ -755,7 +877,7 @@ body.print-all .panel-page:not([data-report]){display:none!important}
   <div class="cmdk__box">
     <input id="cmdk-in" class="cmdk__in" type="text" placeholder="탭 이동 · 통화 · 테마 · 리포트 · 자산군 · 용어(TWR, XIRR, MDD…)" autocomplete="off" spellcheck="false">
     <div id="cmdk-list" class="cmdk__list" role="listbox"></div>
-    <div class="cmdk__foot"><span>↑↓ 이동</span><span>↵ 실행</span><span>Esc 닫기</span><span style="margin-left:auto">숫자키 1–8 로 탭 바로 이동</span></div>
+    <div class="cmdk__foot"><span>↑↓ 이동</span><span>↵ 실행</span><span>Esc 닫기</span><span style="margin-left:auto">숫자키 1–9 로 탭 바로 이동</span></div>
   </div>
 </div>
 
@@ -845,6 +967,7 @@ const MARKET_DATA = /*__MARKET_DATA__*/ {"asOf":"2026-07-26","fx":{"date":"2026-
 const TAB_QUOTES = {
   overview:{en:"Know what you own, and know why you own it.", ko:"무엇을 갖고 있는지, 왜 갖고 있는지 알라.", by:"Peter Lynch"},
   perf:{en:"In the short run, the market is a voting machine, but in the long run, it is a weighing machine.", ko:"단기적으로 시장은 인기투표기이지만, 장기적으로는 저울이다.", by:"Benjamin Graham"},
+  trade:{en:"The stock market is designed to transfer money from the active to the patient.", ko:"주식시장은 부지런한 사람의 돈을 인내하는 사람에게 옮기도록 설계돼 있다.", by:"Warren Buffett"},
   risk:{en:"Be fearful when others are greedy, and greedy when others are fearful.", ko:"남들이 탐욕스러울 때 두려워하고, 남들이 두려워할 때 탐욕스러워져라.", by:"Warren Buffett"},
   market:{en:"The stock market is a device for transferring money from the impatient to the patient.", ko:"주식시장은 조급한 사람의 돈을 인내심 있는 사람에게 옮기는 장치다.", by:"Warren Buffett"},
   sim:{en:"The first rule of compounding: never interrupt it unnecessarily.", ko:"복리의 제1원칙 — 불필요하게 중단하지 마라.", by:"Charlie Munger"},
@@ -890,6 +1013,7 @@ function moneyShort(v,cur){if(!isNum(v))return "—";
 function pct(v,dp=2){if(!isNum(v))return "—";const s=v>0?"+":v<0?"−":"";return s+Math.abs(v*100).toFixed(dp)+"%";}
 function pctMag(v,dp=2){return isNum(v)?Math.abs(v*100).toFixed(dp)+"%":"—";}
 function pp(v,dp=1){if(!isNum(v))return "—";const s=v>0?"+":v<0?"−":"";return s+Math.abs(v*100).toFixed(dp)+"%p";}
+function moneySigned(v,cur){if(!isNum(v))return "—";return (v>0?"+":v<0?"−":"")+money(Math.abs(v),cur);}
 function signClass(v){return !isNum(v)?"dim":v>0?"pos":v<0?"neg":"dim";}
 function mean(a){const x=a.filter(isNum);return x.length?sum(x)/x.length:null;}
 function sampleStd(a){const x=a.filter(isNum);const n=x.length;if(n<2)return null;const mu=sum(x)/n;return Math.sqrt(sum(x.map(v=>(v-mu)**2))/(n-1));}
@@ -948,6 +1072,19 @@ function parseWorkbook(wb){
   const dividends=[];
   if(wb.Sheets["배당"])for(const r of rowsFrom(wb.Sheets["배당"])){const p=toYM(r[0])||toY(r[0]);if(!p)continue;const amt=num(r[2]);if(amt==null)continue;
     dividends.push({ym:p,ticker:(r[1]??"").toString(),amt});}
+  /* 거래일지 (선택) — 있으면 '매매일지' 탭이 켜집니다.
+     거래일(YYYY-MM) · 구분(매수/매도) · 티커 · 종목명 · 수량 · 단가 · 통화 · 메모 */
+  const trades=[];
+  if(wb.Sheets["거래일지"])for(const r of rowsFrom(wb.Sheets["거래일지"])){
+    const ym=toYM(r[0]);if(!ym)continue;
+    const raw=(r[1]??"").toString().trim();
+    const side=/매도|매각|SELL|매수취소/i.test(raw)?"sell":/매수|매입|BUY/i.test(raw)?"buy":null;
+    const qty=num(r[4]),px=num(r[5]);
+    if(!side||qty==null||px==null||qty<=0)continue;
+    trades.push({ym,side,ticker:(r[2]??"").toString().trim(),name:(r[3]??"").toString().trim(),
+      qty,px,cur:((r[6]??"USD").toString().trim().toUpperCase()==="KRW")?"KRW":"USD",memo:(r[7]??"").toString()});
+  }
+  trades.sort((a,b)=>a.ym<b.ym?-1:a.ym>b.ym?1:0);
   // 심리 (선택): 실제 CNN Fear&Greed — 기준일·score·rating. 가장 최근 행을 사용
   let fgReal=null;
   if(wb.Sheets["심리"])for(const r of rowsFrom(wb.Sheets["심리"])){
@@ -955,7 +1092,7 @@ function parseWorkbook(wb){
     if(!fgReal||d>fgReal.date)fgReal={date:d,score:sc,rating:(r[2]??"").toString()};}
   const years=[]; for(const y of [...new Set(Object.keys(snap))].sort()){if(fxY[y]!=null)years.push(y);else warn.missingFx.push(y);}
   // months=연도 토큰, fx=연말환율, bm=연말지수 → 기존 엔진 그대로 동작
-  return {months:years,fx:fxY,fxM,snap,bm:bmY,bmM,bmMonths,holdings,goal,dividends,fgReal,warn};
+  return {months:years,fx:fxY,fxM,snap,bm:bmY,bmM,bmMonths,holdings,goal,dividends,trades,fgReal,warn};
 }
 
 /* ─── §3 계산 엔진 (v1 검증본 그대로) ─── */
@@ -1004,6 +1141,78 @@ function contributions(D,windowN){const{months}=D,n=months.length,start=Math.max
   const wUsd=(()=>{let p=1,ok=false;for(let i=start;i<n;i++)if(isNum(rUsdTot[i])){p*=(1+rUsdTot[i]);ok=true;}return ok?p-1:null;})();
   const wKrw=(()=>{let p=1,ok=false;for(let i=start;i<n;i++)if(isNum(rKrwTot[i])){p*=(1+rKrwTot[i]);ok=true;}return ok?p-1:null;})();
   return{perClass,windowUsd:wUsd,windowKrw:wKrw,fxContrib:(isNum(wKrw)&&isNum(wUsd))?wKrw-wUsd:null};}
+/* ═══════════════════ 매매 판정 (액티브 손익) ═══════════════════
+   "그때 그 매매를 하지 않았다면 지금 얼마였을까?" 를 거래 하나씩 계산합니다.
+
+   기준가(refPx) — 지금 값을 알아야 비교가 됩니다. 우선순위:
+     ① 매일 자동수집된 시세(MARKET_DATA.quotes)  ② 원장 '연말보유'의 마지막 연말 종가
+   둘 다 없으면 그 종목은 **판정하지 않고 '기준가 없음'으로 남깁니다**(추정하지 않음).
+
+   판정 기준(baseline) 두 가지:
+     hold  "안 했다면"      — 매도: 계속 들고 있었다면 / 매수: 그 돈을 안 썼다면(현금)
+     bench "S&P에 넣었다면" — 같은 돈이 지수에 있었다면
+
+   한계(화면에도 적습니다):
+     · 매도 대금을 무엇에 다시 넣었는지는 반영하지 않습니다(단순 비교).
+     · 세금·수수료는 단가에 포함해 적은 만큼만 반영됩니다.
+     · 기준가는 '지금' 한 시점 — 시점이 바뀌면 판정도 바뀝니다.
+     · 벤치마크 기준은 연말 지수를 월로 선형보간한 근사입니다.                */
+function refPrices(D,asOf){
+  const ref={},src={};
+  const last={};                                   // 티커별 마지막 연말 종가 (asOf 이전까지)
+  for(const h of D.holdings){if(!h.ticker||!isNum(h.px))continue;
+    if(asOf&&String(h.ym).slice(0,4)>asOf)continue;
+    if(!last[h.ticker]||h.ym>last[h.ticker].ym)last[h.ticker]={ym:h.ym,px:h.px};}
+  for(const t in last){ref[t]=last[t].px;src[t]=`${last[t].ym} 연말 종가`;}
+  if(!asOf){                                       // 과거 시점으로 볼 땐 오늘 시세를 쓰면 안 됩니다
+    const q=(typeof MARKET_DATA!=="undefined"&&MARKET_DATA&&MARKET_DATA.quotes)||null;
+    if(q)for(const t in q){const p=Number(q[t]&&q[t].close!=null?q[t].close:q[t]);
+      if(isFinite(p)&&p>0){ref[t]=p;src[t]=`자동수집 시세 ${(q[t]&&q[t].date)||MARKET_DATA.asOf||""}`.trim();}}
+  }
+  return {ref,src};
+}
+/* 연말 지수를 월로 선형보간 — 3월 거래를 그해 12월 지수로 재는 걸 피하려고. */
+function bmAtMonth(D,key,ym){
+  const y=+ym.slice(0,4),m=+ym.slice(5,7);
+  const at=yy=>{const b=D.bm[String(yy)];return b&&isNum(b[key])?b[key]:null;};
+  const cur=at(y),prev=at(y-1);
+  if(cur==null)return null;
+  if(prev==null)return cur;
+  return prev+(cur-prev)*(m/12);                  // 12월이면 정확히 그해 연말값
+}
+function tradeVerdicts(D,basis,baseline,bmKey,asOf){
+  const{ref,src}=refPrices(D,asOf);
+  const lastY=asOf||D.months[D.months.length-1];
+  const out=[];
+  for(const t of D.trades||[]){
+    if(asOf&&t.ym.slice(0,4)>asOf)continue;        // 그 시점엔 아직 없던 거래
+    const rp=ref[t.ticker];
+    const row={...t,refPx:isNum(rp)?rp:null,refSrc:src[t.ticker]||null,verdict:null,delta:null,deltaCur:null,alt:null};
+    if(isNum(rp)){
+      const bmNow=(D.bm[lastY]&&isNum(D.bm[lastY][bmKey]))?D.bm[lastY][bmKey]:null;
+      const bmThen=bmAtMonth(D,bmKey,t.ym);
+      const g=(baseline==="bench"&&isNum(bmNow)&&isNum(bmThen)&&bmThen>0)?bmNow/bmThen:1;  // 지수 배수
+      // 매도: 받은 돈(g배로 굴렸다면) − 계속 들고 있었을 때의 가치
+      // 매수: 지금 가치 − 그 돈(g배로 굴렸다면)
+      const dPer=(t.side==="sell")?(t.px*g-rp):(rp-t.px*g);
+      row.alt={g,bmThen,bmNow};
+      row.delta=dPer*t.qty;                        // 거래 통화 기준
+      row.deltaCur=conv(row.delta,t.cur,basis,rateAt(D,t.ym,basis));
+      row.verdict=row.delta>0?"good":row.delta<0?"bad":"flat";
+    }
+    out.push(row);
+  }
+  const judged=out.filter(r=>r.verdict);
+  const net=sum(judged.map(r=>r.deltaCur).filter(isNum));
+  const good=judged.filter(r=>r.verdict==="good").length;
+  const bad=judged.filter(r=>r.verdict==="bad").length;
+  const gross=sum(judged.map(r=>Math.abs(r.deltaCur)).filter(isNum));
+  const best=[...judged].sort((a,b)=>(b.deltaCur||0)-(a.deltaCur||0));
+  return {rows:out,judged,net,good,bad,gross,
+    winRate:judged.length?good/judged.length:null,
+    best:best.slice(0,3),worst:best.slice(-3).reverse(),
+    unpriced:out.filter(r=>!r.verdict).length};
+}
 function computeModel(D){
   const krwR=modifiedDietz(...Object.values(seriesFor(D,"KRW"))),usdR=modifiedDietz(...Object.values(seriesFor(D,"USD")));
   const m={D,krw:{S:seriesFor(D,"KRW"),r:krwR,twr:twrStats(krwR),xirr:buildXirr(D,"KRW")},usd:{S:seriesFor(D,"USD"),r:usdR,twr:twrStats(usdR),xirr:buildXirr(D,"USD")}};
@@ -1071,7 +1280,7 @@ function holdingStats(D,basis){
 }
 
 /* ════════════════ 렌더링 ════════════════ */
-const STATE={basis:"KRW",bmKey:"sp",tab:"overview",mixMode:"bar",simMode:"nominal",g:0.08,pmt:2000000,sg:0,infl:0.025,simEndYear:2041,ovSlide:0,
+const STATE={basis:"KRW",bmKey:"sp",tab:"overview",mixMode:"bar",simMode:"nominal",g:0.08,pmt:2000000,sg:0,infl:0.025,simEndYear:2041,ovSlide:0,vBase:"hold",vSort:"date",vYear:"",vAsOf:"",
   growthMode:"amt",   // amt(금액) | pct(수익률)
   span:0};            // 0=전체 · 그 외=최근 N년
 let DATA=null,MODEL=null,CHARTS={},OV_DATA=null;
@@ -1101,6 +1310,10 @@ const GLOSSARY={
   fng   :["Fear & Greed","CNN이 7개 시장 지표를 묶어 0~100으로 낸 투자 심리 지수. 0에 가까울수록 공포, 100에 가까울수록 탐욕입니다. <b>예측이 아니라 현재 온도계</b>입니다."],
   usdkrw:["USD/KRW","원-달러 환율. 해외자산은 달러로 굴러가므로 이 값이 원화 평가액을 직접 흔듭니다."],
   goal  :["목표 진척률","현재 총자산 ÷ 목표금액. 원장의 '목표' 시트에서 읽어옵니다."],
+  active:["매매가 만든 차이","기록한 매매를 <b>전부 하지 않았을 때</b>와 지금을 비교한 값. 플러스면 매매가 도움이 됐고, 마이너스면 가만히 있는 편이 나았다는 뜻입니다."],
+  refpx :["기준가","'지금 얼마인가'를 재는 가격. 자동수집 시세가 있으면 그걸, 없으면 원장 <b>연말보유</b>의 마지막 연말 종가를 씁니다. 둘 다 없으면 그 종목은 판정하지 않습니다."],
+  vbase :["판정 기준","<b>안 했다면</b> — 매도는 계속 들고 있었을 때, 매수는 그 돈을 안 썼을 때와 비교합니다. <b>S&P에 넣었다면</b> — 같은 돈이 지수에 있었다면과 비교합니다."],
+  winr2 :["결정 승률","판정한 거래 중 잘한 쪽의 비율. 표본이 적으면 실력보다 운입니다."],
   growth:["자산 성장 곡선","실선은 평가액, 점선은 지금까지 넣은 원금 누계. 두 선 사이의 색칠된 면적이 곧 누적 손익입니다."]
 };
 /* 툴팁은 필요할 때 만들어 붙입니다(초기 DOM을 가볍게) */
@@ -1590,6 +1803,206 @@ function openMarketDrawer(key){
     <div class="note">시장 지표는 <b>그날 값만</b> 담습니다. 흐름을 쌓아 보는 건 미국 기준금리 하나입니다.</div>`);
 }
 
+/* ═══════════════════ 매매일지 ═══════════════════ */
+const BM_LABEL={sp:"S&P 500",nq:"NASDAQ",dj:"다우존스"};
+/* 한 종목의 연말 종가 흐름 — 원장 '연말보유'에 있는 값만. 없으면 빈 배열. */
+function tickerPxSeries(D,ticker,asOf){
+  const m={};for(const h of D.holdings){if(h.ticker!==ticker||!isNum(h.px))continue;
+    const y=String(h.ym).slice(0,4);if(asOf&&y>asOf)continue;
+    if(!m[y]||h.ym>=m[y].ym)m[y]={ym:h.ym,px:h.px};}
+  const years=Object.keys(m).sort();
+  return {years,px:years.map(y=>m[y].px)};
+}
+let VD=null;                                  // 마지막 판정 결과 (드로어가 재사용)
+const vIcon=v=>v==="good"?"#i-check":v==="bad"?"#i-alert":"#i-quote";
+const vWord=v=>v==="good"?"잘한 선택":v==="bad"?"아쉬운 선택":"본전";
+function vBadge(v){return v?`<span class="vbadge vbadge--${v==="good"?"g":v==="bad"?"b":"n"}"><svg class="i" aria-hidden="true"><use href="${vIcon(v)}"/></svg>${vWord(v)}</span>`
+  :`<span class="vbadge vbadge--n">기준가 없음</span>`;}
+function renderTrade(){
+  chDefaults();
+  const b=STATE.basis;
+  const V=tradeVerdicts(DATA,b,STATE.vBase,STATE.bmKey,STATE.vAsOf);VD=V;
+  const hero=$("#v-hero");
+  const tone=V.net>0?"good":V.net<0?"bad":"flat";
+  hero.style.setProperty("--vh",tone==="good"?cssVar("--vg"):tone==="bad"?cssVar("--vb"):cssVar("--gray"));
+  hero.style.setProperty("--vh-wash",tone==="good"?cssVar("--vg-weak"):tone==="bad"?cssVar("--vb-weak"):"transparent");
+  if(!V.judged.length){
+    $("#v-net").textContent="—";
+    $("#v-net-sub").innerHTML=V.rows.length
+      ? `거래 ${V.rows.length}건을 읽었지만 <b>기준가</b>가 없어 판정하지 못했습니다. 원장 '연말보유'에 그 종목의 연말 종가가 있으면 자동으로 켜집니다.`
+      : `원장에 <b>거래일지</b> 시트가 없습니다. 거래일·구분·티커·수량·단가만 적으면 이 화면이 켜집니다.`;
+    $("#v-tally").innerHTML="";$("#v-cards").innerHTML=`<div class="empty">판정할 거래가 없습니다</div>`;
+    $("#t-vticker").innerHTML="";$("#v-years").innerHTML="";destroy("vbar");
+    $("#v-chart-note").textContent="";$("#v-cards-note").textContent="";return;
+  }
+  // 히어로
+  $("#v-net").innerHTML=(V.net>0?"+":V.net<0?"−":"")+moneyHero(Math.abs(V.net),b);
+  const verdictLine=V.net>0
+    ? `매매를 <b>하지 않았을 때보다 ${money(Math.abs(V.net),b)} 앞섭니다.</b>`
+    : V.net<0 ? `가만히 뒀다면 <b>${money(Math.abs(V.net),b)} 더 있었습니다.</b>` : `매매를 해도 안 해도 같았습니다.`;
+  $("#v-net-sub").innerHTML=verdictLine+`<br><span class="dim">판정 ${V.judged.length}건 · ${STATE.vBase==="hold"?"안 했다면":"S&P에 넣었다면"} 기준`
+    +(STATE.vAsOf?` · <b>${STATE.vAsOf}년말 가격으로</b> 되감아 본 판정`:"")
+    +(V.unpriced?` · 기준가 없어 제외 ${V.unpriced}건`:"")+`</span>`;
+  const gp=V.judged.length?V.good/V.judged.length*100:0;
+  $("#v-tally").innerHTML=`
+    <div class="tally"><svg class="i" style="color:var(--vg)" aria-hidden="true"><use href="#i-check"/></svg>
+      잘한 선택 <b>${V.good}</b>건
+      <span class="tally__bar"><span class="tally__f tally__f--g" style="width:${gp}%"></span><span class="tally__f tally__f--b" style="width:${100-gp}%"></span></span>
+      아쉬운 <b>${V.bad}</b>건</div>
+    <div class="tally">결정 승률 ${hlp("winr2")} <b style="margin-left:auto">${V.winRate==null?"—":(V.winRate*100).toFixed(0)+"%"}</b></div>
+    <div class="tally">가장 잘한 결정 <b style="margin-left:auto">${V.best[0]?`${V.best[0].ticker} ${moneySigned(V.best[0].deltaCur,b)}`:"—"}</b></div>
+    <div class="tally">가장 아쉬운 결정 <b style="margin-left:auto">${V.worst[0]?`${V.worst[0].ticker} ${moneySigned(V.worst[0].deltaCur,b)}`:"—"}</b></div>`;
+  // 다이버징 막대 — 0선 좌우 위치가 판정을 먼저 말합니다(색은 거들 뿐)
+  const rows=[...V.judged].sort((x,y)=>(y.deltaCur||0)-(x.deltaCur||0));
+  $("#box-vbar").style.height=Math.max(200,rows.length*24+52)+"px";
+  destroy("vbar");
+  CHARTS.vbar=new Chart($("#c-vbar"),{type:"bar",
+    data:{labels:rows.map(r=>`${r.ticker} ${r.ym.slice(2)}`),datasets:[
+      barMark(rows.map(r=>r.deltaCur>0?cssVar("--vg"):cssVar("--vb")),{data:rows.map(r=>r.deltaCur),borderSkipped:false,maxBarThickness:15})]},
+    options:{indexAxis:"y",responsive:true,maintainAspectRatio:false,layout:{padding:{right:64,left:8}},
+      onClick:(e,els)=>{if(els.length)openTradeDrawer(rows[els[0].index]);},
+      onHover:(e,els)=>{if(e.native&&e.native.target)e.native.target.style.cursor=els.length?"pointer":"default";},
+      plugins:{legend:{display:false},tooltip:{callbacks:{
+        title:c=>`${rows[c[0].dataIndex].ym} · ${rows[c[0].dataIndex].side==="sell"?"매도":"매수"} ${rows[c[0].dataIndex].ticker}`,
+        label:c=>`${vWord(rows[c.dataIndex].verdict)} ${moneySigned(c.raw,b)}`}}},
+      scales:{x:{grid:{color:gridClr()},ticks:{callback:v=>b==="KRW"?moneyShort(v,"KRW"):"$"+nfKRW.format(v)}},
+              y:{grid:{display:false},ticks:{font:{size:10.5},autoSkip:false}}}},
+    plugins:[{id:"vlab",afterDatasetsDraw(ch){          // 막대 끝에 직접 라벨 — 색 단독 금지
+      const m=ch.getDatasetMeta(0),ctx=ch.ctx;ctx.save();
+      ctx.font="800 10.5px "+(cssVar("--font")||"sans-serif");ctx.textBaseline="middle";
+      m.data.forEach((p,i)=>{const v=rows[i].deltaCur;if(!isNum(v))return;
+        ctx.fillStyle=v>0?cssVar("--vg"):cssVar("--vb");ctx.textAlign=v>0?"left":"right";
+        ctx.fillText((v>0?"+":"−")+moneyShort(Math.abs(v),b),p.x+(v>0?7:-7),p.y);});
+      ctx.restore();}},
+      {id:"vzero",beforeDatasetsDraw(ch){const x=ch.scales.x.getPixelForValue(0),a=ch.chartArea,ctx=ch.ctx;
+        ctx.save();ctx.strokeStyle=cssVar("--axis");ctx.lineWidth=1.5;
+        ctx.beginPath();ctx.moveTo(x,a.top);ctx.lineTo(x,a.bottom);ctx.stroke();ctx.restore();}}]});
+  // 기준 시점 — 판정이 '지금 가격'에 얼마나 기대고 있는지 직접 보게 합니다
+  const past=DATA.months.slice(-3,-1).reverse();
+  $("#v-asof").innerHTML=past.length            // 되감을 과거가 없으면 토글 자체를 만들지 않습니다
+    ? [`<button data-a=""${STATE.vAsOf?"":' class="on"'}>지금</button>`]
+      .concat(past.map(y=>`<button data-a="${y}"${STATE.vAsOf===y?' class="on"':""}>${y}년말</button>`)).join("")
+    : "";
+  $("#v-chart-note").innerHTML=STATE.vBase==="bench"
+    ? `같은 돈이 ${BM_LABEL[STATE.bmKey]}에 있었다면과 비교합니다 · 거래 시점 지수는 연말 지수를 월로 나눈 근사입니다`
+    : `매도는 계속 들고 있었을 때, 매수는 그 돈을 안 썼을 때와 비교합니다 · 막대를 눌러 계산식을 볼 수 있습니다`;
+  // 연도 칩
+  const years=[...new Set(V.judged.map(r=>r.ym.slice(0,4)))].sort();
+  $("#v-years").innerHTML=[`<button class="pill${STATE.vYear?"":" on"}" data-y="">전체</button>`]
+    .concat(years.map(y=>`<button class="pill${STATE.vYear===y?" on":""}" data-y="${y}">${y}</button>`)).join("");
+  renderTradeCards();
+  // 종목별
+  const byT={};
+  for(const r of V.judged){const t=byT[r.ticker]=byT[r.ticker]||{n:0,good:0,net:0,name:r.name};
+    t.n++;if(r.verdict==="good")t.good++;t.net+=r.deltaCur||0;}
+  const tk=Object.keys(byT).sort((x,y)=>byT[y].net-byT[x].net);
+  $("#t-vticker").innerHTML=`<thead><tr><th>종목</th><th>거래</th><th>잘한 결정</th><th>판정 합계</th><th>한 줄</th></tr></thead><tbody>`
+    +tk.map(t=>{const v=byT[t];const vd=v.net>0?"good":v.net<0?"bad":"flat";
+      return `<tr><td><b>${t}</b> <span class="dim" style="font-size:.82em">${(v.name||"").slice(0,16)}</span></td><td>${v.n}건</td>
+        <td>${v.good}/${v.n}</td><td style="color:${v.net>0?"var(--vg)":v.net<0?"var(--vb)":"inherit"};font-weight:800">${moneySigned(v.net,b)}</td>
+        <td>${vBadge(vd)}</td></tr>`;}).join("")+`</tbody>`;
+}
+function renderTradeCards(){
+  if(!VD)return;const b=STATE.basis;
+  let rows=VD.rows.filter(r=>!STATE.vYear||r.ym.slice(0,4)===STATE.vYear);
+  if(STATE.vSort==="best")rows=[...rows].sort((x,y)=>(y.deltaCur??-Infinity)-(x.deltaCur??-Infinity));
+  else if(STATE.vSort==="worst")rows=[...rows].sort((x,y)=>(x.deltaCur??Infinity)-(y.deltaCur??Infinity));
+  else rows=[...rows].reverse();
+  $("#v-cards").innerHTML=rows.length?rows.map(r=>{
+    const c=r.verdict==="good"?"var(--vg)":r.verdict==="bad"?"var(--vb)":"var(--line)";
+    return `<button class="tcard" style="--tc:${c}" data-tid="${VD.rows.indexOf(r)}">
+      <span class="tcard__d">${r.ym}</span>
+      <span class="tcard__m">
+        <span class="tcard__t"><span class="sidechip${r.side==="sell"?" sidechip--sell":""}">${r.side==="sell"?"매도":"매수"}</span><b>${r.ticker}</b>
+          <span class="dim" style="font-size:.78rem">${r.qty}주 @ ${r.cur==="USD"?"$"+nfUSD.format(r.px):money(r.px,"KRW")}</span></span>
+        <span class="tcard__s">${r.memo||(r.name||"")}</span>
+      </span>
+      <span class="tcard__r">${vBadge(r.verdict)}<span class="tcard__v">${r.verdict?moneySigned(r.deltaCur,b):"—"}</span></span>
+    </button>`;}).join(""):`<div class="empty">그 조건에 맞는 거래가 없습니다</div>`;
+  $("#v-cards-note").textContent=`${rows.length}건 표시 · 전체 ${VD.rows.length}건`
+    +(VD.unpriced?` · 기준가 없어 판정 못 한 거래 ${VD.unpriced}건`:"");
+}
+/* 거래 하나 — 계산 근거를 통째로 */
+function openTradeDrawer(r){
+  if(!r)return;const b=STATE.basis;
+  const c=r.cur,f=v=>c==="USD"?"$"+nfUSD.format(v):money(v,"KRW");
+  const sell=r.side==="sell";
+  if(!r.verdict){
+    drawerOpen("거래",`${r.ticker} ${sell?"매도":"매수"}`,
+      `<div class="dw__grid">${["거래일",r.ym,"수량",r.qty+"주","단가",f(r.px),"금액",f(r.px*r.qty)]
+        .reduce((a,v,i,A)=>i%2?a+`<div class="dw__m"><div class="k">${A[i-1]}</div><div class="v">${v}</div></div>`:a,"")}</div>
+       <div class="note">이 종목의 <b>기준가</b>를 찾지 못해 판정하지 않았습니다. ${hlp("refpx")}<br>
+         원장 '연말보유' 시트에 <code>${r.ticker}</code> 의 연말 종가가 있으면 자동으로 켜집니다.</div>`);
+    return;
+  }
+  const PXS=tickerPxSeries(DATA,r.ticker,STATE.vAsOf);
+  const g=r.alt.g,useBench=STATE.vBase==="bench"&&Math.abs(g-1)>1e-9;
+  const gross=r.px*r.qty, altGross=gross*g, nowVal=r.refPx*r.qty;
+  const L=[];
+  if(sell){
+    L.push(["판 금액",`${r.qty}주 × ${f(r.px)}`,f(gross)]);
+    if(useBench)L.push([`그 돈을 ${BM_LABEL[STATE.bmKey]}에 넣었다면`,`× ${g.toFixed(3)}`,f(altGross)]);
+    L.push(["계속 들고 있었다면",`${r.qty}주 × ${f(r.refPx)}`,f(nowVal)]);
+  }else{
+    L.push(["산 금액",`${r.qty}주 × ${f(r.px)}`,f(gross)]);
+    if(useBench)L.push([`같은 돈을 ${BM_LABEL[STATE.bmKey]}에 넣었다면`,`× ${g.toFixed(3)}`,f(altGross)]);
+    L.push(["지금 가치",`${r.qty}주 × ${f(r.refPx)}`,f(nowVal)]);
+  }
+  const why=sell
+    ? (r.verdict==="good"
+        ? `팔고 나서 가격이 내려갔습니다. 계속 들고 있었다면 <b>${f(Math.abs(r.delta))} 손해</b>였을 것입니다.`
+        : `팔고 나서 가격이 올랐습니다. 계속 들고 있었다면 <b>${f(Math.abs(r.delta))} 더</b> 있었을 것입니다.`)
+    : (r.verdict==="good"
+        ? `산 뒤로 가격이 올랐습니다. 이 매수가 <b>${f(Math.abs(r.delta))}</b> 벌어줬습니다.`
+        : `산 뒤로 가격이 내렸습니다. 이 매수로 <b>${f(Math.abs(r.delta))}</b> 잃었습니다.`);
+  drawerOpen("거래 판정",`${r.ticker} ${r.ym} ${sell?"매도":"매수"}`,`
+    <div style="display:flex;gap:8px;align-items:center;flex-wrap:wrap">
+      <span class="sidechip${sell?" sidechip--sell":""}">${sell?"매도":"매수"}</span>${vBadge(r.verdict)}
+      <span class="dim" style="font-size:.8rem;margin-left:auto">${STATE.vBase==="hold"?"안 했다면":"S&P에 넣었다면"} 기준</span>
+    </div>
+    <div class="dw__m" style="border-color:${r.verdict==="good"?"var(--vg)":"var(--vb)"}">
+      <div class="k">판정</div>
+      <div class="v" style="color:${r.verdict==="good"?"var(--vg)":"var(--vb)"};font-size:1.5rem">${(r.delta>0?"+":"−")+f(Math.abs(r.delta))}</div>
+      <div class="k" style="margin-top:6px;font-weight:500">${b!==c?moneySigned(r.deltaCur,b)+" · 표시 통화 환산":"&nbsp;"}</div>
+    </div>
+    <div><div class="dw__sec">어떻게 나온 숫자인가</div>
+      <div class="calc">
+        ${L.map(([k,d,v])=>`<div><span class="k">${k}<br><span class="op">${d}</span></span><span>${v}</span></div>`).join("")}
+        <div><span class="k">판정 = ${sell?(useBench?"굴린 돈 − 들고 있었을 값":"판 값 − 들고 있었을 값"):(useBench?"지금 값 − 굴린 돈":"지금 값 − 산 값")}</span>
+          <span style="color:${r.verdict==="good"?"var(--vg)":"var(--vb)"}">${(r.delta>0?"+":"−")+f(Math.abs(r.delta))}</span></div>
+      </div></div>
+    <div><div class="dw__sec">한 줄로</div>
+      <p style="color:var(--ink2);font-size:.92rem;line-height:1.75">${why}</p>
+      ${r.memo?`<p style="color:var(--muted);font-size:.85rem;margin-top:8px">그때 메모: “${r.memo}”</p>`:""}</div>
+    ${PXS.years.length>=2?`<div><div class="dw__sec">${r.ticker} 연말 종가와 내 거래 가격</div>
+      <div class="chartbox" style="height:180px"><canvas id="c-dw1"></canvas></div>
+      <div class="note">선은 연말 종가, 가로 점선이 <b>내가 ${sell?"판":"산"} 가격</b>입니다. 선이 점선 위에 있던 해는 그때 내 거래 가격보다 비쌌다는 뜻입니다.</div></div>`:""}
+    <div class="note">기준가 ${f(r.refPx)} — ${r.refSrc||"출처 미상"} ${hlp("refpx")}<br>
+      이 판정은 <b>그 한 시점</b>의 가격으로 잰 값입니다. 매도 대금을 무엇에 다시 넣었는지는 반영하지 않았습니다.</div>`);
+  // 가격 경로 — 원장 '연말보유'에 이미 있는 값만 씁니다(월별 시세는 우리에게 없습니다)
+  if(PXS.years.length>=2){
+    chDefaults();destroy("dw1");
+    const tradeY=r.ym.slice(0,4);
+    CHARTS.dw1=new Chart($("#c-dw1"),{type:"line",data:{labels:PXS.years.map(fmtY),datasets:[
+      lineMark(cssVar("--d1"),{label:"연말 종가",data:PXS.px,
+        pointRadius:PXS.years.map(y=>y===tradeY?7:4),
+        pointBackgroundColor:PXS.years.map(y=>y===tradeY?cssVar(r.verdict==="good"?"--vg":"--vb"):cssVar("--d1"))})]},
+      options:{responsive:true,maintainAspectRatio:false,layout:{padding:{right:8,top:10}},
+        plugins:{legend:{display:false},tooltip:{callbacks:{label:c=>`연말 ${f(c.raw)}`}}},
+        scales:{y:{grid:{color:gridClr()},ticks:{callback:v=>c==="USD"?"$"+nfKRW.format(v):moneyShort(v,"KRW")}},
+                x:{grid:{display:false},ticks:{maxTicksLimit:7}}}},
+      plugins:[{id:"tpx",afterDatasetsDraw(ch){       // 내 거래 단가 = 가로 점선 + 직접 라벨
+        const y=ch.scales.y.getPixelForValue(r.px),a=ch.chartArea,ctx=ch.ctx;
+        if(!isFinite(y)||y<a.top||y>a.bottom)return;
+        const col=cssVar(r.verdict==="good"?"--vg":"--vb");
+        ctx.save();ctx.strokeStyle=col;ctx.lineWidth=1.6;ctx.setLineDash([5,4]);
+        ctx.beginPath();ctx.moveTo(a.left,y);ctx.lineTo(a.right,y);ctx.stroke();ctx.setLineDash([]);
+        ctx.font="800 10.5px "+(cssVar("--font")||"sans-serif");ctx.fillStyle=col;
+        ctx.textAlign="left";ctx.textBaseline="bottom";
+        ctx.fillText(`${sell?"판":"산"} 가격 ${f(r.px)}`,a.left+4,y-4);ctx.restore();}}]});
+  }
+}
+
 /* 리스크·심리 */
 function renderRisk(){
   chDefaults();const{months}=DATA;
@@ -1681,16 +2094,19 @@ function renderSim(){
 
 /* ─── 탭 전환 ─── */
 // 원장(xlsx)이 있어야 의미 있는 탭들. 시장지표·만다라트·관리·개발기록은 원장 없이도 열람 가능.
-const DATA_TABS=["overview","perf","risk","sim"];
+const DATA_TABS=["overview","perf","trade","risk","sim"];
 function applyTabVisibility(){
-  const has=!!DATA;
-  $$("#tabnav .tab").forEach(b=>b.classList.toggle("hidden",!has&&DATA_TABS.includes(b.dataset.tab)));
+  const has=!!DATA, hasTrades=!!(DATA&&DATA.trades&&DATA.trades.length);
+  $$("#tabnav .tab").forEach(b=>{
+    const off=(!has&&DATA_TABS.includes(b.dataset.tab))||(b.dataset.tab==="trade"&&!hasTrades);
+    b.classList.toggle("hidden",off);});
   requestAnimationFrame(moveTabIndicator);   // 탭 개수가 바뀌면 인디케이터 위치도 다시 계산
 }
 function renderTab(t){
   if(!DATA&&DATA_TABS.includes(t))return;   // 원장 없으면 계산 탭은 그리지 않음
   if(t==="overview")renderOverview();
   else if(t==="perf")renderPerf();
+  else if(t==="trade")renderTrade();
   else if(t==="risk")renderRisk();
   else if(t==="market")renderMarket();
   else if(t==="sim")renderSim();
@@ -1864,6 +2280,17 @@ document.addEventListener("keydown",e=>{
   const el=document.activeElement;if(!el)return;
   if(el.matches("tr.rowlink,[data-mk]")&&openFromEl(el))e.preventDefault();
 });
+// 매매일지: 판정 기준 · 정렬 · 연도 · 카드
+$("#v-base").addEventListener("click",e=>{const b=e.target.closest("button");if(!b)return;
+  STATE.vBase=b.dataset.b;$$("#v-base button").forEach(x=>x.classList.toggle("on",x===b));renderTrade();});
+$("#v-asof").addEventListener("click",e=>{const b=e.target.closest("button");if(!b)return;
+  STATE.vAsOf=b.dataset.a;STATE.vYear="";renderTrade();});
+$("#v-sort").addEventListener("click",e=>{const b=e.target.closest("button");if(!b)return;
+  STATE.vSort=b.dataset.s;$$("#v-sort button").forEach(x=>x.classList.toggle("on",x===b));renderTradeCards();});
+$("#v-years").addEventListener("click",e=>{const b=e.target.closest("button");if(!b)return;
+  STATE.vYear=b.dataset.y;$$("#v-years button").forEach(x=>x.classList.toggle("on",x===b));renderTradeCards();});
+$("#v-cards").addEventListener("click",e=>{const c=e.target.closest(".tcard");
+  if(c&&VD)openTradeDrawer(VD.rows[+c.dataset.tid]);});
 // 성장 곡선: 금액 ↔ 수익률 · 기간
 $("#growth-mode").addEventListener("click",e=>{const b=e.target.closest("button");if(!b)return;
   STATE.growthMode=b.dataset.m;$$("#growth-mode button").forEach(x=>x.classList.toggle("on",x===b));renderOverview();});
@@ -1893,7 +2320,7 @@ matchMedia("(prefers-color-scheme:dark)").addEventListener("change",()=>{if((doc
 /* ─── 커맨드 팔레트 (⌘K / Ctrl+K) + 키보드 내비게이션 ───────────────────────
    대시보드가 깊어질수록 "그 화면 어디였지"가 늘어납니다. 검색 한 번으로
    탭 이동·통화·테마·리포트를 전부 실행할 수 있게 했습니다. */
-const TAB_LABELS={overview:"요약",perf:"성과·구성",risk:"리스크·심리",market:"시장지표",sim:"복리·목표",mandala:"만다라트",manage:"관리",dev:"개발기록"};
+const TAB_LABELS={overview:"요약",perf:"성과·구성",trade:"매매일지",risk:"리스크·심리",market:"시장지표",sim:"복리·목표",mandala:"만다라트",manage:"관리",dev:"개발기록"};
 function cmdkCommands(){
   const c=[],vis=id=>!DATA?!DATA_TABS.includes(id):true;
   Object.keys(TAB_LABELS).forEach((id,i)=>{if(!vis(id))return;
@@ -1910,6 +2337,12 @@ function cmdkCommands(){
       c.push({ic:"≈",tt:"벤치마크 — "+n,ds:"비교 지수 변경",run:()=>setBm(k)}));
     MIX_CLASSES.forEach(cls=>
       c.push({ic:"◧",tt:cls+" 자세히",ds:"자산군 상세",run:()=>{switchTab("perf");openClassDrawer(cls);}}));
+    if(DATA.trades&&DATA.trades.length){
+      c.push({ic:"⇄",tt:"매매 판정 — 안 했다면",ds:"판정 기준",run:()=>{switchTab("trade");STATE.vBase="hold";$$("#v-base button").forEach(x=>x.classList.toggle("on",x.dataset.b==="hold"));renderTrade();}});
+      c.push({ic:"⇄",tt:"매매 판정 — S&P에 넣었다면",ds:"판정 기준",run:()=>{switchTab("trade");STATE.vBase="bench";$$("#v-base button").forEach(x=>x.classList.toggle("on",x.dataset.b==="bench"));renderTrade();}});
+      c.push({ic:"★",tt:"가장 아쉬웠던 결정",ds:"매매일지",run:()=>{switchTab("trade");setTimeout(()=>{if(VD&&VD.worst[0])openTradeDrawer(VD.worst[0]);},60);}});
+      c.push({ic:"★",tt:"가장 잘한 결정",ds:"매매일지",run:()=>{switchTab("trade");setTimeout(()=>{if(VD&&VD.best[0])openTradeDrawer(VD.best[0]);},60);}});
+    }
   }
   // 용어 — ⌘K 에 'TWR' 만 쳐도 뜻이 열립니다
   Object.keys(GLOSSARY).forEach(k=>{const g=GLOSSARY[k];
@@ -1967,7 +2400,7 @@ document.addEventListener("keydown",e=>{
   const t=e.target,typing=t&&(t.tagName==="INPUT"||t.tagName==="TEXTAREA"||t.isContentEditable);
   if(typing||mod||$("#app").classList.contains("hidden"))return;
   const tabs=$$("#tabnav .tab").filter(b=>!b.classList.contains("hidden"));
-  if(/^[1-8]$/.test(k)){const b=tabs[+k-1];if(b){e.preventDefault();switchTab(b.dataset.tab);}}
+  if(/^[1-9]$/.test(k)){const b=tabs[+k-1];if(b){e.preventDefault();switchTab(b.dataset.tab);}}
   else if(k==="ArrowRight"||k==="ArrowLeft"){
     const i=tabs.findIndex(b=>b.dataset.tab===STATE.tab);if(i<0)return;e.preventDefault();
     switchTab(tabs[(i+(k==="ArrowRight"?1:tabs.length-1))%tabs.length].dataset.tab);}

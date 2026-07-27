@@ -13,10 +13,11 @@
     연별스냅샷   자산군별 연말평가액 + 그해 순입금   ← 오직 이것만 직접 입력
     연말시장     연말 USD/KRW·S&P·NASDAQ·다우      ← 자동수집이 채움 (연 1줄)
     연말보유     티커·수량·종가·평가액              ← 자동수집이 채움 (선택)
+    거래일지     거래일·구분·티커·수량·단가          ← 직접 입력 (선택 · 매매 판정용)
     배당         연도·티커·배당금                   ← 선택
     목표         목표금액·목표일·월저축액           ← 한 번만
 
-시트 9장·약 800줄 → **6장·약 120줄**. 헤더는 4행, 데이터는 5행부터(§2).
+시트 9장·약 800줄 → **7장·약 150줄**. 헤더는 4행, 데이터는 5행부터(§2).
 seed 고정이라 실행할 때마다 동일하게 재현되고, 전부 **가짜 값**이라 커밋해도 안전합니다.
 
 사용법:
@@ -95,6 +96,8 @@ def build(years: list[int]):
         "  연별스냅샷 — 자산군별 연말평가액 + 그해 순입금 (연 1회)",
         "  목표       — 목표금액·목표일·월저축액 (한 번만)",
         "",
+        "  거래일지   — 사고판 기록 (있으면 '매매일지' 탭이 켜집니다 · 없어도 무방)",
+        "",
         "[자동수집이 채움]",
         "  연말시장   — 연말 USD/KRW·S&P500·NASDAQ·다우",
         "  연말보유   — 티커·수량·종가·평가액",
@@ -165,6 +168,24 @@ def build(years: list[int]):
         mk.cell(row=5 + i, column=4, value=round(nq, 2))
         mk.cell(row=5 + i, column=5, value=round(dj, 2))
 
+    # ── 월별 시세 경로 (거래일지용) ────────────────────────────────────
+    # 매매 판정을 하려면 '거래한 달의 가격'이 필요합니다. 월 단위로 시뮬레이션한 뒤
+    # 12월 값을 그대로 연말 종가로 씁니다 — 연말보유와 거래일지가 어긋나지 않게.
+    px_path: dict[str, dict[str, float]] = {}     # {티커: {"YYYY-MM": 가격}}
+    for (tkr, nm, qty0, px0, mu, sig, cls, dy) in HOLDINGS:
+        mu_m, sig_m = mu / 12.0, sig / (12 ** 0.5)
+        px = float(px0)
+        path = {}
+        for yi, year in enumerate(years):
+            for m in range(1, 13):
+                if not (yi == 0 and m == 12):     # 첫 해 12월은 시드가를 그대로
+                    r = random.gauss(mu_m, sig_m)
+                    if year == 2022:              # 2022 하락장
+                        r -= 0.020
+                    px = max(px * (1 + r), 1.0)
+                path[f"{year}-{m:02d}"] = round(px, 2)
+        px_path[tkr] = path
+
     # ── 연말보유 (자동수집 · 선택) ──────────────────────────────────────
     hold = wb.create_sheet("연말보유")
     write_header(
@@ -173,14 +194,16 @@ def build(years: list[int]):
         [12, 10, 26, 10, 12, 14, 12],
     )
     dv_rows = []          # 배당 시트에서 재사용
+    qty_by_year: dict[str, dict[int, int]] = {}
     hr = 5
     for (tkr, nm, qty0, px0, mu, sig, cls, dy) in HOLDINGS:
-        px, qty = float(px0), qty0
+        qty = qty0
+        qty_by_year[tkr] = {}
         for yi, year in enumerate(years):
             if yi > 0:
-                px = max(px * (1 + random.gauss(mu, sig)), 1.0)
                 qty += random.randint(0, 6)      # 연중 추가 매수
-            px_r = round(px, 2)
+            qty_by_year[tkr][year] = qty
+            px_r = px_path[tkr][f"{year}-12"]
             hold.cell(row=hr, column=1, value=str(year))
             hold.cell(row=hr, column=2, value=tkr)
             hold.cell(row=hr, column=3, value=nm)
@@ -191,6 +214,38 @@ def build(years: list[int]):
             hr += 1
             if dy > 0:
                 dv_rows.append((year, tkr, round(px_r * qty * dy, 2)))
+
+    # ── 거래일지 (직접 입력 · 선택) ─────────────────────────────────────
+    # 이 시트가 있으면 '매매일지' 탭이 켜집니다. 없어도 나머지는 전부 정상 동작합니다.
+    # 샘플은 잘한 결정과 아쉬운 결정을 일부러 섞습니다(둘 다 보여야 화면이 정직해집니다).
+    tr = wb.create_sheet("거래일지")
+    write_header(
+        tr, "거래일지 — 사고판 기록 (직접 입력 · 선택)",
+        "이 기록이 있으면 '그때 안 했다면?' 을 계산해 매매 판정을 보여줍니다. 단가는 수수료·세금 포함가로 적으면 더 정확합니다.",
+        ["거래일\n(YYYY-MM)", "구분\n(매수/매도)", "티커", "종목명", "수량", "단가\n(USD)", "통화", "메모"],
+        [13, 12, 10, 24, 10, 12, 8, 30],
+    )
+    NAME = {h[0]: h[1] for h in HOLDINGS}
+    trades = []
+    last_ym = f"{years[-1]}-12"
+    for (tkr, nm, qty0, px0, mu, sig, cls, dy) in HOLDINGS:
+        path = px_path[tkr]
+        ref = path[last_ym]
+        cand = [ym for ym in path if ym < last_ym and ym >= f"{years[0]}-04"]
+        for ym in random.sample(cand, k=min(6, len(cand))):
+            px = path[ym]
+            side = "매도" if random.random() < 0.42 else "매수"
+            qty = random.choice([3, 5, 8, 10, 12, 15, 20])
+            memo = ""
+            if side == "매도":
+                memo = "고점 같아서 정리" if px > ref else "겁나서 정리"
+            else:
+                memo = "떨어진 김에 추가" if px < ref else "쫓아 들어감"
+            trades.append((ym, side, tkr, NAME[tkr], qty, px, "USD", memo))
+    trades.sort()
+    for i, t in enumerate(trades):
+        for j, v in enumerate(t, start=1):
+            tr.cell(row=5 + i, column=j, value=v)
 
     # ── 배당 (연 단위 · 선택) ───────────────────────────────────────────
     dv = wb.create_sheet("배당")
