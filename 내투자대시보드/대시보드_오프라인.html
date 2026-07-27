@@ -456,7 +456,6 @@ input[type=range]{width:100%;accent-color:var(--accent);height:4px}
 .mtsel:focus-visible{border-color:var(--accent);box-shadow:0 0 0 3px var(--accent-weak)}
 .mtdiv{width:1px;height:20px;background:var(--line);margin:0 2px}
 .mtool .miniseg button{min-width:30px;font-size:.82rem;line-height:1.2}
-.mtool .miniseg button .i{margin:1px auto}
 .mtool .miniseg button b,.mtool .miniseg button i,.mtool .miniseg button u,.mtool .miniseg button s{font-style:inherit}
 .mtool .miniseg button[data-c=italic] i{font-style:italic}
 .mtcolors{display:inline-flex;gap:4px;align-items:center}
@@ -472,20 +471,27 @@ input[type=range]{width:100%;accent-color:var(--accent);height:4px}
 .mandala[data-font=myeongjo]{font-family:"Nanum Myeongjo","Batang",바탕,serif}
 .mandala[data-font=round]{font-family:"Jua","Nanum Pen Script","Gaegu","Malgun Gothic",sans-serif}
 .mandala[data-font=mono]{font-family:"D2Coding",Consolas,"Courier New",monospace}
-.mandala[data-size=xs] .mc{font-size:.52rem}
-.mandala[data-size=s]  .mc{font-size:.57rem}
-.mandala[data-size=l]  .mc{font-size:.70rem;line-height:1.3}
-.mandala[data-align=center] .mc{text-align:center;display:flex;align-items:center;justify-content:center}
+.mandala[data-size=xs] .mc{font-size:.78rem}
+.mandala[data-size=s]  .mc{font-size:.86rem}
+.mandala[data-size=l]  .mc{font-size:1.08rem;line-height:1.28}
+.mandala[data-size=xl] .mc{font-size:1.2rem;line-height:1.26}
 /* mandala (만다라트) */
-.mandala{display:grid;grid-template-columns:repeat(9,1fr);gap:3px;max-width:860px;margin:4px auto}
-.mandala .mc{aspect-ratio:1;border:1px solid var(--line);border-radius:6px;padding:5px;font-size:.62rem;line-height:1.22;overflow:auto;background:var(--card2);color:var(--ink);outline:none;word-break:break-word}
+/* 좁은 화면에서 9칸을 억지로 욱여넣으면 글자가 못 읽을 만큼 작아집니다.
+   가로로 스크롤시키고 글자 크기는 지킵니다. */
+.mandala-wrap{overflow-x:auto;margin:4px -2px;padding:2px}
+.mandala{display:grid;grid-template-columns:repeat(9,1fr);gap:3px;max-width:980px;min-width:680px;margin:0 auto}
+/* 글은 언제나 칸 정중앙에 놓입니다 — safe 를 붙여야 내용이 넘칠 때 윗부분이 잘리지 않습니다 */
+.mandala .mc{aspect-ratio:1;border:1px solid var(--line);border-radius:6px;padding:5px;
+  font-size:.95rem;line-height:1.3;overflow:auto;background:var(--card2);color:var(--ink);
+  outline:none;word-break:break-word;
+  display:flex;flex-direction:column;align-items:center;justify-content:safe center;text-align:center}
 .mandala .mc:focus{border-color:var(--accent);background:var(--card);box-shadow:0 0 0 2px var(--accent-weak)}
 .mandala .mc.core{background:var(--accent-weak)}
 .mandala .mc.mirror{background:color-mix(in srgb,var(--accent-weak) 55%,var(--card2));font-weight:700}
 .mandala .mc.goal{background:linear-gradient(135deg,var(--accent),var(--accent2));color:#fff;font-weight:800}
 .mandala .mc.bt{border-top:2px solid var(--axis)}
 .mandala .mc.bl{border-left:2px solid var(--axis)}
-@media(max-width:640px){.mandala .mc{font-size:.48rem;padding:2px;border-radius:4px}}
+@media(max-width:640px){.mandala{min-width:600px}.mandala .mc{padding:3px;border-radius:4px}}
 /* 커맨드 팔레트 (⌘K / Ctrl+K) */
 #cmdk{position:fixed;inset:0;z-index:100;display:flex;align-items:flex-start;justify-content:center;
   padding:12vh 16px 16px;background:rgba(8,11,18,.5);backdrop-filter:blur(3px)}
@@ -658,6 +664,8 @@ body.print-all .panel-page:not([data-report]){display:none!important}
   .note{padding-top:5mm}
   .page-head{margin-top:0}
   .cols{gap:8mm}
+  .mandala-wrap{overflow:visible!important;margin:0!important;padding:0!important}
+  .mandala{min-width:0!important;max-width:none!important}
   .kpi-grid{grid-template-columns:repeat(4,1fr)!important}
   .kpi-grid--3{grid-template-columns:repeat(3,1fr)!important}
   #ov-dots{display:none!important}          /* 종이에서는 슬라이드 점이 뜻이 없습니다 */
@@ -685,8 +693,6 @@ body.print-all .panel-page:not([data-report]){display:none!important}
   <symbol id="i-quote" viewBox="0 0 24 24"><path d="M9.4 5.6C6.4 7 4.8 9.4 4.8 12.6v5.8h6.4v-6.2H7.9c.1-1.9 1-3.3 2.7-4.2l-1.2-2.4Zm9.4 0C15.8 7 14.2 9.4 14.2 12.6v5.8h6.4v-6.2h-3.3c.1-1.9 1-3.3 2.7-4.2l-1.2-2.4Z" fill="currentColor"/></symbol>
   <symbol id="i-x" viewBox="0 0 24 24"><path d="M6.4 6.4 17.6 17.6M17.6 6.4 6.4 17.6" stroke="currentColor" stroke-width="2" stroke-linecap="round" fill="none"/></symbol>
   <symbol id="i-chev" viewBox="0 0 24 24"><path d="M6 9.5 12 15.5 18 9.5" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" fill="none"/></symbol>
-  <symbol id="i-alignl" viewBox="0 0 24 24"><path d="M4 6h16M4 11h10M4 16h14M4 21h8" stroke="currentColor" stroke-width="2" stroke-linecap="round" fill="none"/></symbol>
-  <symbol id="i-alignc" viewBox="0 0 24 24"><path d="M4 6h16M7 11h10M5 16h14M8 21h8" stroke="currentColor" stroke-width="2" stroke-linecap="round" fill="none"/></symbol>
   <symbol id="i-check" viewBox="0 0 24 24"><path d="m5 12.6 4.6 4.6L19 7.4" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" fill="none"/></symbol>
   <symbol id="i-alert" viewBox="0 0 24 24"><path d="M12 4.4 21 19.6H3L12 4.4Z" stroke="currentColor" stroke-width="1.9" stroke-linejoin="round" fill="none"/><path d="M12 10v3.6" stroke="currentColor" stroke-width="2.1" stroke-linecap="round"/><circle cx="12" cy="16.7" r="1.05" fill="currentColor"/></symbol>
   <symbol id="i-trade" viewBox="0 0 24 24"><path d="M4 8.5h13M13.5 4.8 17.4 8.5l-3.9 3.7" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round" fill="none"/><path d="M20 15.5H7M10.5 11.8 6.6 15.5l3.9 3.7" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round" fill="none"/></symbol>
@@ -972,8 +978,8 @@ body.print-all .panel-page:not([data-report]){display:none!important}
             <option value="mono">고정폭</option>
           </select>
           <div class="miniseg" id="mt-size" role="group" aria-label="글자 크기">
-            <button data-s="xs">아주 작게</button><button data-s="s">작게</button>
-            <button data-s="m" class="on">보통</button><button data-s="l">크게</button>
+            <button data-s="xs">작게</button><button data-s="s">조금 작게</button>
+            <button data-s="m" class="on">보통</button><button data-s="l">크게</button><button data-s="xl">아주 크게</button>
           </div>
           <span class="mtdiv"></span>
           <div class="miniseg" id="mt-style" role="group" aria-label="글자 서식">
@@ -984,13 +990,9 @@ body.print-all .panel-page:not([data-report]){display:none!important}
           </div>
           <div class="mtcolors" id="mt-color" role="group" aria-label="글자색"></div>
           <span class="mtdiv"></span>
-          <div class="miniseg" id="mt-align" role="group" aria-label="정렬">
-            <button data-a="left" class="on" title="왼쪽 정렬" aria-label="왼쪽 정렬"><svg class="i i--sm" aria-hidden="true"><use href="#i-alignl"/></svg></button>
-            <button data-a="center" title="가운데 정렬" aria-label="가운데 정렬"><svg class="i i--sm" aria-hidden="true"><use href="#i-alignc"/></svg></button>
-          </div>
           <button class="btn btn--sm" id="mt-clearfmt" title="선택한 글자의 서식만 지웁니다">서식 지우기</button>
         </div>
-        <div id="mandala-grid" class="mandala"></div>
+        <div class="mandala-wrap"><div id="mandala-grid" class="mandala"></div></div>
         <div class="note">투자 데이터와 무관한 개인 메모입니다 · 이 브라우저에만 저장됩니다</div>
       </div>
     </section>
@@ -1028,7 +1030,7 @@ body.print-all .panel-page:not([data-report]){display:none!important}
         <div class="card pad">
           <div class="blocktitle"><div><h3>변경 이력</h3><div class="sub">최신 두 개만 펼쳐 둡니다 · 제목을 누르면 열립니다</div></div></div>
           <div class="tl" id="tl-hist">
-            <div class="tl__i done"><h4>v17 — 겉지 · 인쇄 서식 · 만다라트 서식 도구<span class="tag">현재</span></h4><ul><li>리포트 <b>첫 장을 겉지로</b> — 제목·부제·기간·작성자·날짜만. 숫자는 다음 장 요약으로 옮겼습니다</li><li>표지·제목 글꼴을 <b>화면과 같은 고딕</b>으로 되돌렸습니다 (명조는 낡아 보였습니다)</li><li><b>그래프가 종이 밖으로 잘리던 문제</b> — 인쇄 직전 본문을 A4 인쇄 폭과 똑같이 만들어 차트를 다시 그립니다</li><li>모든 쪽의 좌우 여백을 13mm로 맞추고, 그래프가 칼럼을 정확히 채웁니다</li><li>장이 바뀌며 이어지는 쪽에서 <b>내용이 종이 위쪽 끝에 붙던 것</b>을 고쳤습니다 (6쪽 → 0쪽)</li><li>만다라트에 <b>서식 도구</b> — 글꼴 5종 · 크기 4단 · 굵게/기울임/밑줄/취소선 · 글자색 6가지 · 정렬 · 서식 지우기</li><li>관리 탭에 <b>리포트 작성자</b> 입력 (겉지에 들어갑니다 · 이 브라우저에만 저장)</li></ul></div>
+            <div class="tl__i done"><h4>v17 — 겉지 · 인쇄 서식 · 만다라트 서식 도구<span class="tag">현재</span></h4><ul><li>리포트 <b>첫 장을 겉지로</b> — 제목·부제·기간·작성자·날짜만. 숫자는 다음 장 요약으로 옮겼습니다</li><li>표지·제목 글꼴을 <b>화면과 같은 고딕</b>으로 되돌렸습니다 (명조는 낡아 보였습니다)</li><li><b>그래프가 종이 밖으로 잘리던 문제</b> — 인쇄 직전 본문을 A4 인쇄 폭과 똑같이 만들어 차트를 다시 그립니다</li><li>모든 쪽의 좌우 여백을 13mm로 맞추고, 그래프가 칼럼을 정확히 채웁니다</li><li>장이 바뀌며 이어지는 쪽에서 <b>내용이 종이 위쪽 끝에 붙던 것</b>을 고쳤습니다 (6쪽 → 0쪽)</li><li>만다라트에 <b>서식 도구</b> — 글꼴 5종 · 크기 5단 · 굵게/기울임/밑줄/취소선 · 글자색 6가지 · 서식 지우기</li><li>만다라트 글자를 <b>크게</b> 키우고(9.9px → 15.2px), 글은 <b>언제나 칸 정중앙</b>에 놓입니다</li><li>좁은 화면에서는 격자를 가로로 밀어 보게 해 글자 크기를 지킵니다</li><li>관리 탭에 <b>리포트 작성자</b> 입력 (겉지에 들어갑니다 · 이 브라우저에만 저장)</li></ul></div>
             <div class="tl__i done"><h4>v16 — 리포트 조판<span class="tag">완료</span></h4><ul><li>인쇄할 때 브라우저가 찍던 <b>날짜 머리글과 파일 경로 바닥글</b>이 사라집니다</li><li>전체 리포트 첫 장을 <b>애널리스트 리포트 조판</b>으로 — 제목·초록·주요 수치·출처·면책</li><li>본문에서 카드 상자를 걷어내고 괘선과 여백으로만 구분 — 종이에서 훨씬 읽기 쉽습니다</li><li>Fear &amp; Greed 구간 정의가 네 곳에 흩어져 있던 것을 한 곳으로 (서로 어긋날 수 있던 문제)</li><li>보조 글자색을 어둡게 조정 (흰 배경 대비 3.08:1 → 4.63:1)</li><li>아이콘 버튼에 읽어 주는 이름 추가</li></ul></div>
             <div class="tl__i done"><h4>v15 — 모든 숫자에 근거<span class="tag">완료</span></h4><ul><li>숫자 카드를 누르면 <b>그게 무엇이고 어떻게 나온 값인지</b> 열립니다 — 총평가액·TWR·XIRR·목표·낙폭·심리·벤치마크·배당·복리·기준금리 열 가지</li><li><b>Fear &amp; Greed</b>: 0–24 극단적 공포부터 75–100 극단적 탐욕까지 다섯 구간이 각각 무슨 뜻인지, CNN이 어떤 일곱 가지로 만드는지, 그리고 이 숫자를 어떻게 읽으면 안 되는지</li><li>XIRR은 <b>검산</b>까지 보여줍니다 — 그 수익률에서 현금흐름의 현재가치 합이 0인지</li><li>모든 설명 끝에 <b>이 숫자가 말하지 않는 것</b>을 붙였습니다</li></ul></div>
             <div class="tl__i done"><h4>v14 — 매매일지<span class="tag">완료</span></h4><ul><li>원장에 <b>거래일지</b> 시트를 적으면 새 탭이 켜집니다 — 거래일·구분·티커·수량·단가만</li><li>거래 하나하나에 <b>잘한 선택 / 아쉬운 선택</b> 판정. 매도는 계속 들고 있었을 때와, 매수는 그 돈을 안 썼을 때와 비교합니다</li><li>판정 기준을 <b>S&amp;P에 넣었다면</b>으로 바꿔 볼 수 있습니다 — 매매가 지수를 이겼는지</li><li><b>지금 / 2024년말 / 2023년말</b> 기준으로 되감아, 판정이 시점에 얼마나 흔들리는지 직접 확인합니다</li><li>거래를 누르면 계산식이 전부 나오고, 그 종목 연말 종가 위에 <b>내 거래 가격</b>이 점선으로 그려집니다</li><li>연도 필터 · 최신순/잘한순/아쉬운순 정렬 · 종목별 성적표</li></ul></div>
@@ -1871,15 +1873,14 @@ function mdClean(html){
 }
 const MD_STYLE_KEY="dash_mandala_style_v1";
 const MD_COLORS=["","#d03b3b","#eb6834","#eda100","#00806a","#2a78d6","#4a3aa7"];
-function mdStyle(){let o={font:"",size:"m",align:"left"};
+function mdStyle(){let o={font:"",size:"m"};
   try{Object.assign(o,JSON.parse(localStorage.getItem(MD_STYLE_KEY)||"{}"));}catch(e){}
   return o;}
 function mdApplyStyle(){
   const g=$("#mandala-grid"),o=mdStyle();if(!g)return;
-  g.dataset.font=o.font;g.dataset.size=o.size;g.dataset.align=o.align;
+  g.dataset.font=o.font;g.dataset.size=o.size;
   const sel=$("#mt-font");if(sel)sel.value=o.font;
   $$("#mt-size button").forEach(b=>b.classList.toggle("on",b.dataset.s===o.size));
-  $$("#mt-align button").forEach(b=>b.classList.toggle("on",b.dataset.a===o.align));
 }
 function mdSetStyle(patch){
   const o=Object.assign(mdStyle(),patch);
@@ -2887,7 +2888,6 @@ $("#mandala-reset").addEventListener("click",resetMandala);
 /* 만다라트 서식 도구 — 글꼴·크기·정렬은 표 전체, 굵게·색은 커서가 있는 칸에만 */
 $("#mt-font").addEventListener("change",e=>mdSetStyle({font:e.target.value}));
 $("#mt-size").addEventListener("click",e=>{const b=e.target.closest("button");if(b)mdSetStyle({size:b.dataset.s});});
-$("#mt-align").addEventListener("click",e=>{const b=e.target.closest("button");if(b)mdSetStyle({align:b.dataset.a});});
 $("#mt-style").addEventListener("mousedown",e=>e.preventDefault());   // 칸의 커서를 뺏지 않게
 $("#mt-style").addEventListener("click",e=>{const b=e.target.closest("button");if(b)mdExec(b.dataset.c);});
 $("#mt-color").innerHTML=MD_COLORS.map((c,i)=>
