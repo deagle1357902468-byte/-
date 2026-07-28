@@ -950,7 +950,7 @@ body.print-all .panel-page:not([data-report]){display:none!important}
     <section class="panel-page" data-page="market" data-report="1" data-title="시장 지표">
       <div class="quote mb" data-qt="market"></div>
       <div class="card pad mb">
-        <div class="blocktitle"><div><h3>오늘의 시장</h3><div class="sub" id="market-asof">이 파일을 만든 날의 값 · 원장 파일과 무관</div></div></div>
+        <div class="blocktitle"><div><h3>오늘의 시장</h3><div class="sub" id="market-asof">—</div></div></div>
         <div class="kpi-grid mb" id="market-cards"></div>
         <div class="kpi-grid" id="market-cards2"></div>
         <div class="note" id="market-note"></div>
@@ -1820,8 +1820,7 @@ function renderMarket(){
     cardsEl.innerHTML=`<div class="empty" style="grid-column:1/-1">시장 데이터가 아직 심어지지 않았습니다.<br>매일 21시 자동수집이 이 파일에 그날 값을 넣어 다시 만들어 보내줍니다.</div>`;
     cards2El.innerHTML="";$("#market-asof").textContent="—";$("#rate-cards").innerHTML="";return;
   }
-  const mA=snapAge(M.asOf);
-  $("#market-asof").textContent=`${M.asOf}${mA?` (${mA.text})`:" 기준"} · 이 파일을 만든 날의 값이라 스스로 바뀌지 않습니다 · 원장 파일과 무관`;
+  $("#market-asof").textContent=`${M.asOf} 기준`;
   // 오늘 값만 (누적 없음) — 카드를 누르면 그 지표의 뜻과 출처가 열립니다
   const c=(name,val,sub,key)=>`<div class="kpi${key?" rowlink":""}"${key?` role="button" tabindex="0" data-mk="${key}"`:""}><div class="kpi__label">${name}</div><div class="kpi__val" >${val}</div><div class="kpi__sub dim">${sub||""}</div></div>`;
   const fx=M.fx||{},ix=M.index||{},id=M.indicators||{},fgv=M.fg||{};
@@ -2357,7 +2356,7 @@ function fgDrawerBody(score,date,isReal){
       `<p class="mixnote"><b>온도계지 일기예보가 아닙니다.</b> 지금 시장이 어떤 기분인지 알려줄 뿐, 내일 오를지 내릴지는 말해주지 않습니다.<br><br>
        쓸모 있는 방식은 하나뿐입니다 — <b>내 결정이 지금 분위기에 끌려가고 있지 않은지 확인하는 것.</b>
        공포 구간에서 팔고 싶어졌다면, 탐욕 구간에서 더 사고 싶어졌다면, 그 마음이 시장 기분에서 온 건지 내 계획에서 온 건지 되물어 보라는 뜻입니다.</p>`)}
-    ${exWarn(isReal?`출처: CNN Business 공식 지수 · 기준일 ${date||"—"}. <b>이 값은 파일에 심겨 있어 스스로 바뀌지 않습니다</b> — 최신 값은 새로 만든 파일에 들어옵니다.`
+    ${exWarn(isReal?`출처: CNN Business 공식 지수 · 기준일 ${date||"—"}. 파일에 심긴 값이라 새 파일을 받아야 바뀝니다.`
       :`지금 화면은 <b>자체 계산 근사치</b>입니다. 자동수집본을 쓰면 CNN 공식 지수로 바뀝니다.`)}`;
 }
 const EXPLAIN={
@@ -2575,12 +2574,12 @@ function renderRisk(){
   if(fgSrc){const s=Math.round(fgSrc.score),bd=fgBand(s);fg={score:s,label:bd[0],color:bd[1],desc:bd[2]};}
   else fg=DATA?fearGreed(DATA,STATE.bmKey):null;
   const fgA=fgSnap?snapAge(fgSnap.date):null;
-  $("#fg-sub").textContent=fgSnap?`실제 CNN Fear & Greed 지수 · ${fgSnap.date}${fgA?` (${fgA.text})`:""}`
-    :fgSheet?`실제 CNN Fear & Greed 지수 · 기준일 ${fgSheet.date} (원장 기준)`
+  $("#fg-sub").textContent=fgSnap?`실제 CNN Fear & Greed 지수 · ${fgSnap.date}`
+    :fgSheet?`실제 CNN Fear & Greed 지수 · ${fgSheet.date} (원장)`
     :"벤치마크 모멘텀·변동성 기반 자체 계산 · 참고용";
+  // 평소엔 비워 둡니다. 오래된 파일일 때만 한 줄.
   $("#fg-note").textContent=!fgSrc?"※ 자동수집본을 쓰면 실제 CNN 지수로 바뀝니다."
-    :fgA&&fgA.stale?`※ 이 파일에 심긴 값입니다 — 만들어진 뒤로는 바뀌지 않습니다. 최신 값은 새 파일을 받아야 합니다.`
-    :"CNN Business 공식 Fear & Greed 지수입니다.";
+    :fgA&&fgA.stale?`※ ${fgA.days}일 전 파일입니다.`:"";
   $("#fg-legend").innerHTML=FG_BANDS.map(x=>`<span><i style="background:${x[3]}"></i>${x[2]}</span>`).join("");
   destroy("gauge");
   if(fg){
