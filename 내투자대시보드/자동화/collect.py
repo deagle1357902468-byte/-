@@ -93,12 +93,26 @@ def fx_usdkrw():
     return _date_of(ci.get("localTradedAt")), px
 
 
+def _settled(d) -> bool:
+    """정규장이 끝나 종가가 확정됐는가.
+
+    거래소가 직접 알려주는 marketStatus 를 그대로 믿습니다. 시계로 계산하지 않으므로
+    미국 서머타임이 시작되든 끝나든 영향을 받지 않습니다 — 수집 시각이 장중이면
+    그날 값은 아예 받지 않고, 직전에 확정된 종가를 그대로 씁니다.
+    (환율·금·WTI·미국채처럼 사실상 24시간 도는 시장은 이 검사를 적용하지 않습니다.)
+    """
+    return str((d or {}).get("marketStatus", "")).upper() == "CLOSE"
+
+
 def index_close(code: str):
     d = naver(f"/index/{code}/basic")
     if not isinstance(d, dict):
         return None
     px = _price(d.get("closePrice"))
     if px is None:
+        return None
+    if not _settled(d):
+        print(f"  지수 {code} 장중(marketStatus={d.get('marketStatus')}) — 종가 아님, 건너뜀", file=sys.stderr)
         return None
     return _date_of(d.get("localTradedAt")), px
 
@@ -110,8 +124,24 @@ def stock_close(ticker: str):
         if isinstance(d, dict):
             px = _price(d.get("closePrice"))
             if px is not None:
+                if not _settled(d):
+                    print(f"  시세 {ticker} 장중(marketStatus={d.get('marketStatus')}) — 종가 아님, 건너뜀",
+                          file=sys.stderr)
+                    return None
                 return _date_of(d.get("localTradedAt")), px
     return None
+
+
+def last_csv_row(path: str):
+    """가장 최근 기록 한 줄. 장중이라 새로 못 받았을 때 직전 종가로 되돌아갑니다."""
+    if not os.path.exists(path):
+        return None
+    try:
+        with open(path, newline="", encoding="utf-8") as f:
+            rows = [r for r in csv.reader(f) if r]
+    except OSError:
+        return None
+    return rows[-1] if len(rows) > 1 else None
 
 
 def marketindex_close(path: str):
@@ -229,12 +259,22 @@ def main():
         r = index_close(code)
         if r:
             bm[name] = r
+    bm_csv = os.path.join(DATA_DIR, "벤치마크_일별.csv")
     if bm:
         d = (bm.get("sp") or next(iter(bm.values())))[0]
-        upsert_csv(os.path.join(DATA_DIR, "벤치마크_일별.csv"), ["date", "sp", "nasdaq", "dow"], 0,
+        upsert_csv(bm_csv, ["date", "sp", "nasdaq", "dow"], 0,
                    [d, bm.get("sp", ("", ""))[1], bm.get("nasdaq", ("", ""))[1], bm.get("dow", ("", ""))[1]])
         snap["index"] = {"date": d, **{k: v[1] for k, v in bm.items()}}
         print(f"  벤치마크 {d} sp={bm.get('sp')} nasdaq={bm.get('nasdaq')} dow={bm.get('dow')}")
+    else:
+        # 장중이라 종가를 못 받았습니다 — 직전에 확정된 종가를 그대로 씁니다(추정하지 않음).
+        prev = last_csv_row(bm_csv)
+        if prev:
+            snap["index"] = {"date": prev[0],
+                             **{k: _price(v) for k, v in zip(("sp", "nasdaq", "dow"), prev[1:4]) if _price(v) is not None}}
+            print(f"  벤치마크 장중 — 직전 종가 유지 ({prev[0]})")
+        else:
+            print("  벤치마크 실패", file=sys.stderr)
     # 종목 시세
     quotes = {}
     for tk in read_tickers():
