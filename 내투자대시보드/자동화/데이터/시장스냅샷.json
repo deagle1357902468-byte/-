@@ -2,19 +2,41 @@
  "asOf": "2026-07-30",
  "fx": {
   "date": "2026-07-31",
-  "usdkrw": 1425.5
+  "usdkrw": 1426.2,
+  "chg": -19.8,
+  "chgPct": -1.37
  },
  "index": {
   "date": "2026-07-30",
   "sp": 7437.63,
   "nasdaq": 25122.18,
-  "dow": 52208.06
+  "dow": 52208.06,
+  "chg": {
+   "sp": 121.48,
+   "nasdaq": 679.24,
+   "dow": 613.92
+  },
+  "chgPct": {
+   "sp": 1.66,
+   "nasdaq": 2.78,
+   "dow": 1.19
+  }
  },
  "indicators": {
   "date": "2026-07-30",
   "us10y": 4.673,
   "gold": 4100.1,
-  "wti": 83.59
+  "wti": 84.05,
+  "chg": {
+   "us10y": 0.0512,
+   "gold": 0.0,
+   "wti": 0.46
+  },
+  "chgPct": {
+   "us10y": 1.11,
+   "gold": 0.0,
+   "wti": 0.55
+  }
  },
  "policyRate": {
   "current": {
@@ -317,6 +339,7 @@
  "fg": {
   "date": "2026-07-30",
   "score": 38.9,
-  "rating": "fear"
+  "rating": "fear",
+  "prev": 32.3
  }
 }

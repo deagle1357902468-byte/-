@@ -84,13 +84,28 @@ def _date_of(iso, fallback=None):
     return fallback or datetime.now(timezone.utc).strftime("%Y-%m-%d")
 
 
+def _delta(d):
+    """전일 종가 대비 변화 (절대값, %).
+
+    우리 CSV 의 직전 기록과 비교하지 않습니다 — 수집이 하루 걸러 돌면 '직전 기록'이
+    전일이 아니기 때문입니다. 대신 거래소가 계산해 주는 값을 그대로 씁니다.
+    지수는 compareToPreviousClosePrice, 나머지는 fluctuations 에 절대값이 들어옵니다.
+    둘 중 없는 값은 None 으로 두고 화면에서 표시하지 않습니다.
+    """
+    d = d or {}
+    chg = _price(d.get("compareToPreviousClosePrice"))
+    if chg is None:
+        chg = _price(d.get("fluctuations"))
+    return chg, _price(d.get("fluctuationsRatio"))
+
+
 def fx_usdkrw():
     d = naver("/marketindex/exchange/FX_USDKRW")
     ci = (d or {}).get("exchangeInfo") or d or {}
     px = _price(ci.get("closePrice"))
     if px is None:
         return None
-    return _date_of(ci.get("localTradedAt")), px
+    return (_date_of(ci.get("localTradedAt")), px, *_delta(ci))
 
 
 def _settled(d) -> bool:
@@ -114,7 +129,7 @@ def index_close(code: str):
     if not _settled(d):
         print(f"  지수 {code} 장중(marketStatus={d.get('marketStatus')}) — 종가 아님, 건너뜀", file=sys.stderr)
         return None
-    return _date_of(d.get("localTradedAt")), px
+    return (_date_of(d.get("localTradedAt")), px, *_delta(d))
 
 
 def stock_close(ticker: str):
@@ -128,7 +143,7 @@ def stock_close(ticker: str):
                     print(f"  시세 {ticker} 장중(marketStatus={d.get('marketStatus')}) — 종가 아님, 건너뜀",
                           file=sys.stderr)
                     return None
-                return _date_of(d.get("localTradedAt")), px
+                return (_date_of(d.get("localTradedAt")), px, *_delta(d))
     return None
 
 
@@ -151,7 +166,7 @@ def marketindex_close(path: str):
     px = _price(d.get("closePrice"))
     if px is None:
         return None
-    return _date_of(d.get("localTradedAt")), px
+    return (_date_of(d.get("localTradedAt")), px, *_delta(d))
 
 
 def cnn_fear_greed():
@@ -159,7 +174,11 @@ def cnn_fear_greed():
     try:
         d = _get_json(url, {"Referer": "https://edition.cnn.com/", "Accept": "*/*"})
         fg = d["fear_and_greed"]
-        return datetime.now(timezone.utc).strftime("%Y-%m-%d"), round(float(fg["score"]), 1), str(fg.get("rating", ""))
+        # 심리 지수는 % 가 아니라 점수라, 전일 종가 점수를 그대로 넘겨 화면에서 'p' 로 표시합니다.
+        prev = fg.get("previous_close")
+        prev = round(float(prev), 1) if isinstance(prev, (int, float)) else None
+        return (datetime.now(timezone.utc).strftime("%Y-%m-%d"),
+                round(float(fg["score"]), 1), str(fg.get("rating", "")), prev)
     except Exception as exc:  # noqa: BLE001
         print(f"  CNN F&G 실패(건너뜀): {exc}", file=sys.stderr)
         return None
@@ -242,6 +261,27 @@ def upsert_csv(path: str, header: list[str], key_idx, row: list):
         w.writerows(rows)
 
 
+def _with_delta(obj, r, i=2):
+    """수집 결과 튜플의 (변화값, 변화율)을 스냅샷 항목에 붙입니다. 없으면 키를 만들지 않습니다."""
+    if len(r) > i and r[i] is not None:
+        obj["chg"] = r[i]
+    if len(r) > i + 1 and r[i + 1] is not None:
+        obj["chgPct"] = r[i + 1]
+    return obj
+
+
+def _delta_maps(m):
+    """{이름: (날짜, 값, 변화, 변화율)} → 변화 맵과 변화율 맵. 빈 맵은 만들지 않습니다."""
+    out = {}
+    chg = {k: v[2] for k, v in m.items() if len(v) > 2 and v[2] is not None}
+    pct = {k: v[3] for k, v in m.items() if len(v) > 3 and v[3] is not None}
+    if chg:
+        out["chg"] = chg
+    if pct:
+        out["chgPct"] = pct
+    return out
+
+
 def main():
     print("== 일별 수집 시작 (Naver) ==")
     snap = {"asOf": datetime.now(timezone.utc).strftime("%Y-%m-%d")}
@@ -249,8 +289,8 @@ def main():
     fx = fx_usdkrw()
     if fx:
         upsert_csv(os.path.join(DATA_DIR, "환율_일별.csv"), ["date", "usdkrw"], 0, [fx[0], fx[1]])
-        snap["fx"] = {"date": fx[0], "usdkrw": fx[1]}
-        print(f"  환율 {fx[0]} USD/KRW={fx[1]}")
+        snap["fx"] = _with_delta({"date": fx[0], "usdkrw": fx[1]}, fx)
+        print(f"  환율 {fx[0]} USD/KRW={fx[1]} ({fx[3] if len(fx) > 3 else '—'}%)")
     else:
         print("  환율 실패", file=sys.stderr)
     # 벤치마크
@@ -264,7 +304,7 @@ def main():
         d = (bm.get("sp") or next(iter(bm.values())))[0]
         upsert_csv(bm_csv, ["date", "sp", "nasdaq", "dow"], 0,
                    [d, bm.get("sp", ("", ""))[1], bm.get("nasdaq", ("", ""))[1], bm.get("dow", ("", ""))[1]])
-        snap["index"] = {"date": d, **{k: v[1] for k, v in bm.items()}}
+        snap["index"] = {"date": d, **{k: v[1] for k, v in bm.items()}, **_delta_maps(bm)}
         print(f"  벤치마크 {d} sp={bm.get('sp')} nasdaq={bm.get('nasdaq')} dow={bm.get('dow')}")
     else:
         # 장중이라 종가를 못 받았습니다 — 직전에 확정된 종가를 그대로 씁니다(추정하지 않음).
@@ -301,7 +341,7 @@ def main():
         d = next(iter(mk.values()))[0]
         upsert_csv(os.path.join(DATA_DIR, "시장지표_일별.csv"), ["date", "us10y", "gold", "wti"], 0,
                    [d, mk.get("us10y", ("", ""))[1], mk.get("gold", ("", ""))[1], mk.get("wti", ("", ""))[1]])
-        snap["indicators"] = {"date": d, **{k: v[1] for k, v in mk.items()}}
+        snap["indicators"] = {"date": d, **{k: v[1] for k, v in mk.items()}, **_delta_maps(mk)}
         print(f"  시장지표 {d} {mk}")
     # 미국 기준금리 (유일하게 히스토리를 쌓는 지표)
     latest, hist = fed_policy_rate()
@@ -315,9 +355,11 @@ def main():
     # Fear & Greed (실제 CNN 지수)
     fg = cnn_fear_greed()
     if fg:
-        upsert_csv(os.path.join(DATA_DIR, "fear_greed_일별.csv"), ["date", "score", "rating"], 0, list(fg))
+        upsert_csv(os.path.join(DATA_DIR, "fear_greed_일별.csv"), ["date", "score", "rating"], 0, list(fg[:3]))
         snap["fg"] = {"date": fg[0], "score": fg[1], "rating": fg[2]}
-        print(f"  Fear&Greed {fg[0]} score={fg[1]} ({fg[2]})")
+        if len(fg) > 3 and fg[3] is not None:
+            snap["fg"]["prev"] = fg[3]          # 전일 종가 점수 — 화면에서 'p' 단위 증감으로 표시
+        print(f"  Fear&Greed {fg[0]} score={fg[1]} ({fg[2]}) 전일={fg[3] if len(fg) > 3 else '—'}")
     # 당일 스냅샷 저장 — build_dashboard.py 가 이 값을 HTML에 심습니다
     os.makedirs(DATA_DIR, exist_ok=True)
     with open(os.path.join(DATA_DIR, "시장스냅샷.json"), "w", encoding="utf-8") as f:

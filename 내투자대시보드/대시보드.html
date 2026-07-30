@@ -210,6 +210,9 @@ main{padding:26px 0 72px}
 .kpi__val{font-size:clamp(1.4rem,2.6vw,1.65rem);font-weight:780;letter-spacing:-.02em;margin-top:8px;line-height:1.12;
   font-variant-numeric:proportional-nums;word-break:keep-all}
 .kpi__sub{margin-top:7px;font-size:.78rem;color:var(--ink2);line-height:1.6}
+/* 값 옆 전일 대비 — 값보다 확실히 작게, 숫자 폭을 고정해 세로로 흔들리지 않게 */
+.kpi__chg{font-size:.7rem;font-weight:800;letter-spacing:0;margin-left:6px;white-space:nowrap;
+  font-variant-numeric:tabular-nums;vertical-align:.18em}
 .help{position:relative;display:inline-flex;width:15px;height:15px;margin-left:4px;border-radius:50%;border:1px solid var(--muted);color:var(--muted);font-size:10px;align-items:center;justify-content:center;cursor:help;font-weight:800;flex:none;vertical-align:1px}
 .help:hover .help__tip,.help:focus .help__tip{opacity:1;transform:none}
 .help__tip{position:fixed;left:0;top:0;opacity:0;transform:translateY(4px);transition:opacity .14s,transform .14s;
@@ -1776,21 +1779,28 @@ function renderMarket(){
   }
   $("#market-asof").textContent=`${M.asOf} 기준`;
   // 오늘 값만 (누적 없음) — 카드를 누르면 그 지표의 뜻과 출처가 열립니다
-  const c=(name,val,sub,key)=>`<div class="kpi${key?" rowlink":""}"${key?` role="button" tabindex="0" data-mk="${key}"`:""}><div class="kpi__label">${name}</div><div class="kpi__val" >${val}</div><div class="kpi__sub dim">${sub||""}</div></div>`;
+  // 전일 대비는 거래소가 계산해 준 값(chg·chgPct)만 씁니다. 없으면 아무것도 그리지 않습니다.
+  const chip=(v,unit)=>!isNum(v)?""    // 점수(p)는 소수 한 자리면 충분합니다
+    :`<span class="kpi__chg ${signClass(v)}">${v>0?"+":v<0?"−":""}${Math.abs(v).toFixed(unit==="p"?1:2)}${unit}</span>`;
+  const c=(name,val,sub,key,chg)=>`<div class="kpi${key?" rowlink":""}"${key?` role="button" tabindex="0" data-mk="${key}"`:""}><div class="kpi__label">${name}</div><div class="kpi__val" >${val}${chg||""}</div><div class="kpi__sub dim">${sub||""}</div></div>`;
   const fx=M.fx||{},ix=M.index||{},id=M.indicators||{},fgv=M.fg||{};
+  const ixP=ix.chgPct||{},idP=id.chgPct||{},idA=id.chg||{};
   cardsEl.innerHTML=
-    c("USD/KRW",isNum(fx.usdkrw)?nfKRW.format(fx.usdkrw)+"원":"—",fx.date||"","usdkrw")+
-    c("S&P 500",isNum(ix.sp)?nfUSD.format(ix.sp):"—",ix.date||"","sp")+
-    c("NASDAQ",isNum(ix.nasdaq)?nfUSD.format(ix.nasdaq):"—",ix.date||"","nasdaq")+
-    c("다우존스",isNum(ix.dow)?nfUSD.format(ix.dow):"—",ix.date||"","dow");
+    c("USD/KRW",isNum(fx.usdkrw)?nfKRW.format(fx.usdkrw)+"원":"—",fx.date||"","usdkrw",chip(fx.chgPct,"%"))+
+    c("S&P 500",isNum(ix.sp)?nfUSD.format(ix.sp):"—",ix.date||"","sp",chip(ixP.sp,"%"))+
+    c("NASDAQ",isNum(ix.nasdaq)?nfUSD.format(ix.nasdaq):"—",ix.date||"","nasdaq",chip(ixP.nasdaq,"%"))+
+    c("다우존스",isNum(ix.dow)?nfUSD.format(ix.dow):"—",ix.date||"","dow",chip(ixP.dow,"%"));
   const fgBd=isNum(fgv.score)?fgBand(Math.round(fgv.score)):null;
+  // 금리는 '수익률의 몇 %'가 아니라 몇 %p 움직였는지가 통용되는 단위입니다.
+  // 심리 지수도 비율이 아니라 점수라 p 로 적습니다.
+  const fgD=(isNum(fgv.score)&&isNum(fgv.prev))?fgv.score-fgv.prev:null;
   cards2El.innerHTML=
-    c("미국채 10년",isNum(id.us10y)?id.us10y.toFixed(2)+"%":"—",id.date||"","us10y")+
-    c("금 (USD/oz)",isNum(id.gold)?"$"+nfKRW.format(id.gold):"—",id.date||"","gold")+
-    c("WTI 원유",isNum(id.wti)?"$"+id.wti.toFixed(2):"—",id.date||"","wti")+
-    (fgBd?`<div class="kpi rowlink" role="button" tabindex="0" data-mk="fng"><div class="kpi__label">Fear &amp; Greed</div><div class="kpi__val" style="color:${fgBd[1]}">${Math.round(fgv.score)} <span style="font-size:.9rem">${fgBd[0]}</span></div><div class="kpi__sub dim">${fgv.date||""}</div></div>`
+    c("미국채 10년",isNum(id.us10y)?id.us10y.toFixed(2)+"%":"—",id.date||"","us10y",chip(idA.us10y,"%p"))+
+    c("금 (USD/oz)",isNum(id.gold)?"$"+nfKRW.format(id.gold):"—",id.date||"","gold",chip(idP.gold,"%"))+
+    c("WTI 원유",isNum(id.wti)?"$"+id.wti.toFixed(2):"—",id.date||"","wti",chip(idP.wti,"%"))+
+    (fgBd?`<div class="kpi rowlink" role="button" tabindex="0" data-mk="fng"><div class="kpi__label">Fear &amp; Greed</div><div class="kpi__val" style="color:${fgBd[1]}">${Math.round(fgv.score)} <span style="font-size:.9rem">${fgBd[0]}</span>${chip(fgD,"p")}</div><div class="kpi__sub dim">${fgv.date||""}</div></div>`
           :c("Fear & Greed","—","","fng"));
-  $("#market-note").innerHTML=`그날 값만 보여줍니다(누적 없음). 흐름을 쌓아 보는 건 아래 기준금리 하나입니다. <span class="dim">카드를 누르면 그 지표가 무엇인지 열립니다.</span>`;
+  $("#market-note").innerHTML=`그날 값만 보여줍니다(누적 없음). 값 옆 작은 숫자는 <b>전일 종가 대비</b>입니다. <span class="dim">카드를 누르면 그 지표가 무엇인지 열립니다.</span>`;
   // 기준금리 — 유일한 누적 지표
   const rc0=(name,val,sub)=>`<div class="kpi rowlink" role="button" tabindex="0" data-ex="rate"><div class="kpi__label">${name}</div><div class="kpi__val">${val}</div><div class="kpi__sub dim">${sub||""}</div></div>`;
   const pr=M.policyRate,rc=$("#rate-cards");
