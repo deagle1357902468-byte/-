@@ -73,6 +73,10 @@ RELATED_KW = ("괴리율", "추적오차", "자산구성내역 오류", "지수 
 ACTIVE_KW = "액티브"
 THRESHOLD = {"passive": 0.9, "active": 0.7}
 
+# 관리종목 지정 요건: 상관계수 미달이 **3개월(달력 기준)** 지속되면 해당.
+# 영업일이 아니라 달력일로 세므로, 위반 시작일에 3개월을 더한 날짜를 기한으로 씁니다.
+WATCH_MONTHS = 3
+
 CSV_HEADER = [
     "checked_kst",      # 실행 시각 (KST)
     "check_date",       # 확인 대상 영업일 (YYYY-MM-DD)
@@ -84,6 +88,9 @@ CSV_HEADER = [
     "url",
     "etf_type",         # passive(기준 0.9) / active(기준 0.7)
     "threshold",        # 해당 유형의 상관계수 기준값
+    "calendar_days",    # 위반 시작일부터 경과한 달력일 (3개월 요건 기준)
+    "deadline_3m",      # 3개월(달력) 도달일
+    "days_to_3m",       # 도달까지 남은 달력일 (음수면 이미 경과)
     "streak_days",      # 위반이 연속된 영업일 수 (오늘 포함), 위반이 아니면 빈 값
     "streak_since",     # 그 연속 구간이 시작된 날짜
     "manager",
@@ -263,6 +270,28 @@ def load_history() -> tuple[list[str], dict[str, set[str]]]:
     return dates, violations
 
 
+def add_months(date_iso: str, months: int) -> str:
+    """달력 기준으로 개월을 더합니다 (말일은 해당 월의 마지막 날로 맞춤)."""
+    y, m, d = (int(x) for x in date_iso.split("-"))
+    m += months
+    y, m = y + (m - 1) // 12, (m - 1) % 12 + 1
+    for day in range(d, 27, -1):  # 3/31 + 1개월 -> 4/30
+        try:
+            return datetime(y, m, day).strftime("%Y-%m-%d")
+        except ValueError:
+            continue
+    return datetime(y, m, d).strftime("%Y-%m-%d")
+
+
+def calendar_span(since_iso: str, today_iso: str) -> tuple[int, str, int]:
+    """(경과 달력일, 3개월 도달일, 도달까지 남은 달력일)."""
+    since = datetime.strptime(since_iso, "%Y-%m-%d")
+    today = datetime.strptime(today_iso, "%Y-%m-%d")
+    deadline_iso = add_months(since_iso, WATCH_MONTHS)
+    deadline = datetime.strptime(deadline_iso, "%Y-%m-%d")
+    return (today - since).days + 1, deadline_iso, (deadline - today).days
+
+
 def streak_for(ticker: str, check_date: str, dates: list[str],
                violations: dict[str, set[str]]) -> tuple[int, str]:
     """오늘 포함, 이 종목의 위반이 몇 영업일째 이어지는지와 시작일.
@@ -357,6 +386,10 @@ def check(date_kst: datetime, workers: int = 8, source: str = "auto") -> dict:
             f["streak_days"], f["streak_since"] = streak_for(
                 f["ticker"] or f["etf_name"], date_iso, dates, history
             )
+            # 3개월 요건은 영업일이 아니라 달력일 기준입니다.
+            f["calendar_days"], f["deadline_3m"], f["days_to_3m"] = calendar_span(
+                f["streak_since"], date_iso
+            )
 
     findings.sort(key=lambda f: ({"violation": 0, "resolved": 1, "related": 2}[f["status"]], f["ticker"]))
     return {
@@ -381,8 +414,12 @@ def report(result: dict) -> None:
             days, since = f.get("streak_days", 1), f.get("streak_since", result["check_date"])
             cont = f"{days}영업일째" + (f" (최초 {since})" if days > 1 else " (오늘 최초)")
             kind_ko = "액티브" if f["etf_type"] == "active" else "패시브"
+            left = f["days_to_3m"]
+            span = (f"달력 {f['calendar_days']}일 경과 / 3개월 요건 "
+                    + (f"{left}일 남음 ({f['deadline_3m']})" if left > 0
+                       else f"⚠️ 도달 ({f['deadline_3m']})"))
             print(f"  - [{f['ticker']}] {f['etf_name']} [{kind_ko}·기준 {f['threshold']}] — {cont}"
-                  f"\n      {f['title']}\n      {f['url']}")
+                  f"\n      {span}\n      {f['title']}\n      {f['url']}")
     else:
         print("\n✅ 상관계수 미달(위반) 공시 없음")
     if resolved:
@@ -409,12 +446,14 @@ def persist(result: dict) -> None:
             rows.append({**base, **{k: f.get(k, "") for k in
                                     ("status", "ticker", "etf_name", "title",
                                      "disclosure_date", "url", "etf_type",
-                                     "threshold", "streak_days", "streak_since")}})
+                                     "threshold", "calendar_days", "deadline_3m",
+                                     "days_to_3m", "streak_days", "streak_since")}})
     else:
         # 위반이 없었다는 사실도 기록으로 남깁니다.
         rows.append({**base, "status": "none", "ticker": "", "etf_name": "",
                      "title": "상관계수 관련 공시 없음", "disclosure_date": result["check_date"],
                      "url": "", "etf_type": "", "threshold": "",
+                     "calendar_days": "", "deadline_3m": "", "days_to_3m": "",
                      "streak_days": "", "streak_since": ""})
 
     write_header = not os.path.exists(CSV_PATH) or os.path.getsize(CSV_PATH) == 0
