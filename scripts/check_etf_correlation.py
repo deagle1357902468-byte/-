@@ -66,6 +66,13 @@ RESOLVED_KW = ("해소", "해제", "종료")
 # 함께 보고하면 유용한 인접 유형 (위반은 아니지만 지수 추종 품질 이슈)
 RELATED_KW = ("괴리율", "추적오차", "자산구성내역 오류", "지수 이용")
 
+# 상관계수 기준은 상품 유형에 따라 다릅니다.
+#   패시브(지수추종) ETF : 0.9 미만이면 미달
+#   액티브 ETF          : 0.7 미만이면 미달
+# 액티브 ETF는 거래소 규정상 종목명에 '액티브'를 반드시 표기하므로 이름으로 구분합니다.
+ACTIVE_KW = "액티브"
+THRESHOLD = {"passive": 0.9, "active": 0.7}
+
 CSV_HEADER = [
     "checked_kst",      # 실행 시각 (KST)
     "check_date",       # 확인 대상 영업일 (YYYY-MM-DD)
@@ -75,6 +82,8 @@ CSV_HEADER = [
     "title",            # 공시 전체 제목
     "disclosure_date",
     "url",
+    "etf_type",         # passive(기준 0.9) / active(기준 0.7)
+    "threshold",        # 해당 유형의 상관계수 기준값
     "streak_days",      # 위반이 연속된 영업일 수 (오늘 포함), 위반이 아니면 빈 값
     "streak_since",     # 그 연속 구간이 시작된 날짜
     "manager",
@@ -212,6 +221,11 @@ def notice_title(link: str) -> str:
     return strip_tags(m.group(1)) if m else ""
 
 
+def etf_type(*texts: str) -> str:
+    """종목명/공시제목으로 액티브 여부를 판정합니다."""
+    return "active" if any(ACTIVE_KW in (t or "") for t in texts) else "passive"
+
+
 def classify(title: str) -> str | None:
     if CORRELATION_KW in title:
         return "resolved" if any(k in title for k in RESOLVED_KW) else "violation"
@@ -251,7 +265,12 @@ def load_history() -> tuple[list[str], dict[str, set[str]]]:
 
 def streak_for(ticker: str, check_date: str, dates: list[str],
                violations: dict[str, set[str]]) -> tuple[int, str]:
-    """오늘 포함, 이 종목의 위반이 몇 영업일째 이어지는지와 시작일."""
+    """오늘 포함, 이 종목의 위반이 몇 영업일째 이어지는지와 시작일.
+
+    **최신 날짜에서 과거로 거꾸로** 세어 나가다가, 위반이 없던 날을 만나는 순간
+    멈춥니다. 즉 항상 "지금 이어지고 있는 구간"만 세며, 그보다 더 과거에 있던
+    별개의 위반 구간은 (중간에 회복된 적이 있으므로) 합산하지 않습니다.
+    """
     days = 1
     since = check_date
     for day in reversed([d for d in dates if d < check_date]):
@@ -294,6 +313,7 @@ def check(date_kst: datetime, workers: int = 8, source: str = "auto") -> dict:
                 "status": kind_,
                 "ticker": ticker,
                 "etf_name": row["company"],
+                "etf_type": etf_type(row["company"], row["title"]),
                 "title": row["title"],
                 "disclosure_date": date_iso,
                 "url": row["url"],
@@ -319,10 +339,15 @@ def check(date_kst: datetime, workers: int = 8, source: str = "auto") -> dict:
                 "status": kind_,
                 "ticker": code,
                 "etf_name": name,
+                "etf_type": etf_type(name, title),
                 "title": title,
                 "disclosure_date": date_iso,
                 "url": NOTICE_BASE + link,
             })
+
+    for f in findings:
+        f.setdefault("etf_type", "passive")
+        f["threshold"] = THRESHOLD[f["etf_type"]]
 
     # 연속 영업일 수: 중간에 "위반 없음"으로 확인된 날이 끼면 처음부터 다시 셉니다.
     # (상관계수가 회복되면 그 이전 구간은 상장폐지 판단에서 의미가 없기 때문)
@@ -355,13 +380,16 @@ def report(result: dict) -> None:
         for f in violations:
             days, since = f.get("streak_days", 1), f.get("streak_since", result["check_date"])
             cont = f"{days}영업일째" + (f" (최초 {since})" if days > 1 else " (오늘 최초)")
-            print(f"  - [{f['ticker']}] {f['etf_name']} — {cont}\n      {f['title']}\n      {f['url']}")
+            kind_ko = "액티브" if f["etf_type"] == "active" else "패시브"
+            print(f"  - [{f['ticker']}] {f['etf_name']} [{kind_ko}·기준 {f['threshold']}] — {cont}"
+                  f"\n      {f['title']}\n      {f['url']}")
     else:
         print("\n✅ 상관계수 미달(위반) 공시 없음")
     if resolved:
         print(f"\n☑️  상관계수 미달 해소 공시 {len(resolved)}건")
         for f in resolved:
-            print(f"  - [{f['ticker']}] {f['etf_name']} : {f['title']}")
+            kind_ko = "액티브" if f["etf_type"] == "active" else "패시브"
+            print(f"  - [{f['ticker']}] {f['etf_name']} [{kind_ko}] : {f['title']}")
     if related:
         print(f"\nℹ️  참고(괴리율/추적오차 등) {len(related)}건")
         for f in related:
@@ -380,13 +408,14 @@ def persist(result: dict) -> None:
         for f in result["findings"]:
             rows.append({**base, **{k: f.get(k, "") for k in
                                     ("status", "ticker", "etf_name", "title",
-                                     "disclosure_date", "url", "streak_days",
-                                     "streak_since")}})
+                                     "disclosure_date", "url", "etf_type",
+                                     "threshold", "streak_days", "streak_since")}})
     else:
         # 위반이 없었다는 사실도 기록으로 남깁니다.
         rows.append({**base, "status": "none", "ticker": "", "etf_name": "",
                      "title": "상관계수 관련 공시 없음", "disclosure_date": result["check_date"],
-                     "url": "", "streak_days": "", "streak_since": ""})
+                     "url": "", "etf_type": "", "threshold": "",
+                     "streak_days": "", "streak_since": ""})
 
     write_header = not os.path.exists(CSV_PATH) or os.path.getsize(CSV_PATH) == 0
     with open(CSV_PATH, "a", newline="", encoding="utf-8") as fh:
