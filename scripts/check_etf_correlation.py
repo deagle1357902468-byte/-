@@ -235,8 +235,19 @@ def fetch_kind_etf_disclosures(date_iso: str, max_pages: int = 20) -> list[dict]
             break
 
         collected += [r for r in rows if r["date"] == date_iso]
-        if any(r["date"] < date_iso for r in rows):
-            break  # 최신순이므로 어제 건이 보이면 오늘자는 끝
+        if len(rows) < 100:
+            break  # 마지막 페이지 (날짜 범위로 당일만 조회하므로 여기서 끝납니다)
+
+    # 페이지 경계에서 같은 공시가 겹쳐 들어올 수 있어 한 번 걸러냅니다.
+    seen: set[tuple] = set()
+    deduped = []
+    for r in collected:
+        key = (r["datetime"], r["etf_name"], r["title"])
+        if key not in seen:
+            seen.add(key)
+            deduped.append(r)
+    collected = deduped
+
     # 제출인(운용사) 기준으로 우리 회사 건만 남깁니다.
     return [r for r in collected
             if "아문디" in r["submitter"] or BRAND_PREFIX in r["etf_name"]]
