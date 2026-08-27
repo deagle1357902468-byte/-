@@ -45,7 +45,7 @@ CSV_PATH = os.path.join(DATA_DIR, "etf_correlation_checks.csv")
 LATEST_PATH = os.path.join(DATA_DIR, "etf_correlation_latest.json")
 
 KIND_ETF_URL = "https://kind.krx.co.kr/disclosure/disclosurebystocktype.do"
-KIND_VIEWER = "https://kind.krx.co.kr/common/disclsviewer.do?method=search&acptNo={acpt}"
+KIND_VIEWER = "https://kind.krx.co.kr/common/disclsviewer.do?method=search&acptno={acpt}&docno=&viewerhost=&viewerport="
 
 ETF_LIST_URL = "https://finance.naver.com/api/sise/etfItemList.nhn"
 NOTICE_LIST_URL = "https://finance.naver.com/item/news_notice.naver?code={code}&page={page}"
@@ -127,62 +127,83 @@ def strip_tags(html: str) -> str:
     return re.sub(r"\s+", " ", re.sub(r"<[^>]+>", "", html)).strip()
 
 
-def fetch_kind_etf_disclosures(date_dotted: str) -> list[dict] | None:
-    """KIND의 'ETF 공시' 목록(최신순)을 한 번의 요청으로 읽습니다.
+def parse_kind_rows(html: str) -> list[dict]:
+    """KIND 'ETF 공시' 목록 HTML에서 행을 뽑습니다.
 
-    거래소 원본이므로 이쪽이 1순위입니다. 다만 이 실행 환경에서는 kind.krx.co.kr이
-    403으로 차단돼 있어 실제 응답을 확인할 수 없었습니다. 그래서 응답을 파싱하지
-    못하면 조용히 None을 돌려주고 네이버 경로로 넘어갑니다(사내망처럼 KIND가
-    열려 있는 곳에서는 이 경로가 그대로 동작합니다).
+    컬럼: 번호 | 시간(YYYY-MM-DD HH:MM) | 종목명 | 공시제목 | 제출인(운용사)
+    공시 원문은 ``openDisclsViewer('접수번호','')`` 의 접수번호로 링크합니다.
     """
-    body = urllib.parse.urlencode({
-        "method": "searchDisclosureByStockTypeSub",
-        "forward": "disclosurebystocktype_sub",
-        "currentPageSize": "100",
-        "pageIndex": "1",
-        "orderMode": "0",
-        "orderStat": "D",
-        "disclosureType": "ETF",
-        "searchCorpName": "",
-        "fromDate": date_dotted.replace(".", "-"),
-        "toDate": date_dotted.replace(".", "-"),
-    }).encode()
-    req = urllib.request.Request(
-        KIND_ETF_URL,
-        data=body,
-        headers={
-            "User-Agent": UA,
-            "Referer": KIND_ETF_URL + "?method=searchDisclosureByStockTypeEtf",
-            "X-Requested-With": "XMLHttpRequest",
-            "Content-Type": "application/x-www-form-urlencoded; charset=UTF-8",
-        },
-    )
-    try:
-        with urllib.request.urlopen(req, timeout=30, context=_CTX) as resp:
-            html = resp.read().decode("utf-8", "replace")
-    except Exception as exc:  # noqa: BLE001 - 차단/장애 시 네이버로 폴백
-        print(f"  KIND 접근 실패({exc}) -> 네이버 공시로 전환", file=sys.stderr)
-        return None
-
-    out: list[dict] = []
+    rows: list[dict] = []
     for tr in re.findall(r"<tr[^>]*>(.*?)</tr>", html, re.S):
-        cells = [strip_tags(td) for td in re.findall(r"<td[^>]*>(.*?)</td>", tr, re.S)]
-        if len(cells) < 3:
+        tds = re.findall(r"<td[^>]*>(.*?)</td>", tr, re.S)
+        if len(tds) < 5:
             continue
-        acpt = re.search(r"acptNo=(\d+)", tr, re.I)
-        company = next((c for c in cells if c), "")
-        title = max(cells, key=len)
-        out.append({
-            "company": company,
-            "title": title,
+        when = strip_tags(tds[1])
+        if not re.match(r"\d{4}-\d{2}-\d{2}", when):
+            continue
+        acpt = re.search(r"openDisclsViewer\('(\d+)'", tr)
+        rows.append({
+            "datetime": when,
+            "date": when[:10],
+            "etf_name": strip_tags(tds[2]),
+            "title": strip_tags(tds[3]),
+            "submitter": strip_tags(tds[4]),
             "url": KIND_VIEWER.format(acpt=acpt.group(1)) if acpt else "",
         })
-    if not out:
-        print("  KIND 응답을 해석하지 못함 -> 네이버 공시로 전환", file=sys.stderr)
-        return None
-    # 엔에이치아문디 상품만 남깁니다 (회사명 또는 제목 어느 쪽에 들어와도 잡히도록).
-    return [d for d in out
-            if "아문디" in d["company"] + d["title"] or BRAND_PREFIX in d["company"] + d["title"]]
+    return rows
+
+
+def fetch_kind_etf_disclosures(date_iso: str, max_pages: int = 20) -> list[dict] | None:
+    """KIND의 'ETF 공시' 목록(최신순)에서 **오늘자 엔에이치아문디** 건을 모읍니다.
+
+    목록은 전체 ETF 공시를 최신순으로 보여주므로, 종목을 하나씩 훑을 필요 없이
+    앞에서부터 읽다가 어제 날짜가 나오면 멈춥니다.
+
+    이 실행 환경에서는 kind.krx.co.kr이 403으로 차단돼 요청 파라미터를 실제 응답으로
+    검증하지 못했습니다. 응답을 못 받거나 해석하지 못하면 None을 돌려주고 네이버
+    경로로 넘어갑니다. (KIND가 열려 있는 사내망에서는 이 경로가 그대로 쓰입니다.)
+    """
+    collected: list[dict] = []
+    for page in range(1, max_pages + 1):
+        body = urllib.parse.urlencode({
+            "method": "searchDisclosureByStockTypeSub",
+            "forward": "disclosurebystocktype_sub",
+            "disclosureType": "ETF",
+            "currentPageSize": "100",
+            "pageIndex": str(page),
+            "orderMode": "0",
+            "orderStat": "D",
+        }).encode()
+        req = urllib.request.Request(
+            KIND_ETF_URL,
+            data=body,
+            headers={
+                "User-Agent": UA,
+                "Referer": KIND_ETF_URL + "?method=searchDisclosureByStockTypeEtf",
+                "X-Requested-With": "XMLHttpRequest",
+                "Content-Type": "application/x-www-form-urlencoded; charset=UTF-8",
+            },
+        )
+        try:
+            with urllib.request.urlopen(req, timeout=30, context=_CTX) as resp:
+                html = resp.read().decode("utf-8", "replace")
+        except Exception as exc:  # noqa: BLE001 - 차단/장애 시 네이버로 폴백
+            print(f"  KIND 접근 실패({exc}) -> 네이버 공시로 전환", file=sys.stderr)
+            return None
+
+        rows = parse_kind_rows(html)
+        if not rows:
+            if page == 1:
+                print("  KIND 응답을 해석하지 못함 -> 네이버 공시로 전환", file=sys.stderr)
+                return None
+            break
+
+        collected += [r for r in rows if r["date"] == date_iso]
+        if any(r["date"] < date_iso for r in rows):
+            break  # 최신순이므로 어제 건이 보이면 오늘자는 끝
+    # 제출인(운용사) 기준으로 우리 회사 건만 남깁니다.
+    return [r for r in collected
+            if "아문디" in r["submitter"] or BRAND_PREFIX in r["etf_name"]]
 
 
 def list_hanaro_etfs() -> list[tuple[str, str]]:
@@ -321,7 +342,7 @@ def check(date_kst: datetime, workers: int = 8, source: str = "auto") -> dict:
     kind_rows = None
     if source in ("auto", "kind"):
         print(f"[{date_iso}] KIND ETF 공시(최신순)에서 {MANAGER} 건을 확인합니다...")
-        kind_rows = fetch_kind_etf_disclosures(date_dotted)
+        kind_rows = fetch_kind_etf_disclosures(date_iso)
 
     if kind_rows is not None:
         name_by_ticker = {}
@@ -335,14 +356,15 @@ def check(date_kst: datetime, workers: int = 8, source: str = "auto") -> dict:
             if kind_ is None:
                 continue
             ticker = next(
-                (code for name, code in name_by_ticker.items() if name and name in row["company"] + row["title"]),
+                (code for name, code in name_by_ticker.items()
+                 if name and name in row["etf_name"] + row["title"]),
                 "",
             )
             findings.append({
                 "status": kind_,
                 "ticker": ticker,
-                "etf_name": row["company"],
-                "etf_type": etf_type(row["company"], row["title"]),
+                "etf_name": row["etf_name"],
+                "etf_type": etf_type(row["etf_name"], row["title"]),
                 "title": row["title"],
                 "disclosure_date": date_iso,
                 "url": row["url"],
