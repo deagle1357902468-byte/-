@@ -153,6 +153,62 @@ def parse_kind_rows(html: str) -> list[dict]:
     return rows
 
 
+def kind_request(from_date: str, to_date: str, page: int, report_nm: str = "") -> str:
+    """KIND 'ETF 공시' 목록 한 페이지를 받아옵니다 (날짜 범위 지정 가능)."""
+    body = urllib.parse.urlencode({
+        "method": "searchDisclosureByStockTypeEtfSub",
+        "forward": "disclosurebystocktype_etf_sub",
+        "currentPageSize": "100",
+        "pageIndex": str(page),
+        "orderMode": "1",
+        "orderStat": "D",
+        "etfIsuSrtCd": "",
+        "reportCd": "",
+        "reportTmp": "",
+        "etfIsuSrtNm": "",
+        "reportNm": report_nm,
+        "fromDate": from_date,
+        "toDate": to_date,
+    }).encode()
+    req = urllib.request.Request(
+        KIND_ETF_URL,
+        data=body,
+        headers={
+            "User-Agent": UA,
+            "Referer": KIND_ETF_URL + "?method=searchDisclosureByStockTypeEtf",
+            "Origin": "https://kind.krx.co.kr",
+            "X-Requested-With": "XMLHttpRequest",
+            "Accept": "text/html, */*; q=0.01",
+            "Accept-Language": "ko,en;q=0.9",
+            "Content-Type": "application/x-www-form-urlencoded; charset=UTF-8",
+        },
+    )
+    with urllib.request.urlopen(req, timeout=30, context=_CTX) as resp:
+        return resp.read().decode("utf-8", "replace")
+
+
+def kind_violation_dates(etf_name: str, before: str, max_pages: int = 10) -> list[str]:
+    """KIND에서 이 ETF의 지난 상관계수 미달 공시 날짜를 최근 6개월치 모읍니다.
+
+    연속 일수의 시작점을 잡는 용도입니다. 실패하면 빈 목록을 돌려주고,
+    호출부가 네이버 이력으로 대체합니다.
+    """
+    yesterday = (datetime.strptime(before, "%Y-%m-%d") - timedelta(days=1)).strftime("%Y-%m-%d")
+    dates: set[str] = set()
+    for page in range(1, max_pages + 1):
+        try:
+            html = kind_request(add_months(before, -6), yesterday, page, report_nm=CORRELATION_KW)
+        except Exception:  # noqa: BLE001 - 이력 조회 실패는 치명적이지 않습니다
+            break
+        rows = parse_kind_rows(html)
+        if not rows:
+            break
+        for r in rows:
+            if r["etf_name"] == etf_name and classify(r["title"]) == "violation":
+                dates.add(r["date"])
+    return sorted(dates, reverse=True)
+
+
 def fetch_kind_etf_disclosures(date_iso: str, max_pages: int = 20) -> list[dict] | None:
     """KIND의 'ETF 공시' 목록(최신순)에서 **오늘자 엔에이치아문디** 건을 모읍니다.
 
@@ -165,35 +221,8 @@ def fetch_kind_etf_disclosures(date_iso: str, max_pages: int = 20) -> list[dict]
     """
     collected: list[dict] = []
     for page in range(1, max_pages + 1):
-        body = urllib.parse.urlencode({
-            "method": "searchDisclosureByStockTypeEtfSub",
-            "forward": "disclosurebystocktype_etf_sub",
-            "currentPageSize": "100",
-            "pageIndex": str(page),
-            "orderMode": "1",
-            "orderStat": "D",
-            "etfIsuSrtCd": "",
-            "reportCd": "",
-            "reportTmp": "",
-            "etfIsuSrtNm": "",
-            "reportNm": "",
-            # 목록이 날짜 범위를 받으므로 당일만 조회합니다.
-            "fromDate": date_iso,
-            "toDate": date_iso,
-        }).encode()
-        req = urllib.request.Request(
-            KIND_ETF_URL,
-            data=body,
-            headers={
-                "User-Agent": UA,
-                "Referer": KIND_ETF_URL + "?method=searchDisclosureByStockTypeEtf",
-                "X-Requested-With": "XMLHttpRequest",
-                "Content-Type": "application/x-www-form-urlencoded; charset=UTF-8",
-            },
-        )
         try:
-            with urllib.request.urlopen(req, timeout=30, context=_CTX) as resp:
-                html = resp.read().decode("utf-8", "replace")
+            html = kind_request(date_iso, date_iso, page)
         except Exception as exc:  # noqa: BLE001 - 차단/장애 시 네이버로 폴백
             print(f"  KIND 접근 실패({exc}) -> 네이버 공시로 전환", file=sys.stderr)
             return None
@@ -475,7 +504,9 @@ def check(date_kst: datetime, workers: int = 8, source: str = "auto") -> dict:
     dates, history = load_history()
     for f in findings:
         if f["status"] == "violation":
-            feed = violation_dates_from_feed(f["ticker"], date_iso) if f["ticker"] else []
+            feed = kind_violation_dates(f["etf_name"], date_iso) if used == "kind" else []
+            if not feed and f["ticker"]:
+                feed = violation_dates_from_feed(f["ticker"], date_iso)
             f["streak_days"], f["streak_since"] = streak_for(
                 f["ticker"] or f["etf_name"], date_iso, dates, history, feed
             )
