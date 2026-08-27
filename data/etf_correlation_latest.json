@@ -1,8 +1,24 @@
 {
-  "checked_kst": "2026-08-27T16:58:20+09:00",
+  "checked_kst": "2026-08-27T17:25:51+09:00",
   "check_date": "2026-08-27",
   "manager": "엔에이치아문디자산운용",
-  "etf_count": 50,
-  "disclosures_today": 0,
-  "findings": []
+  "source": "naver",
+  "disclosures_today": 1,
+  "findings": [
+    {
+      "status": "violation",
+      "ticker": "0040S0",
+      "etf_name": "HANARO 글로벌피지컬AI액티브",
+      "etf_type": "active",
+      "title": "NH-Amundi HANARO 글로벌피지컬AI액티브증권상장지수투자신탁(주식) ETF 상관계수 기준 미달 발생",
+      "disclosure_date": "2026-08-27",
+      "url": "https://finance.naver.com/item/news_notice_read.naver?no=114980331&code=0040S0&page_notice=1",
+      "threshold": 0.7,
+      "streak_days": 18,
+      "streak_since": "2026-08-03",
+      "calendar_days": 25,
+      "deadline_3m": "2026-11-03",
+      "days_to_3m": 68
+    }
+  ]
 }

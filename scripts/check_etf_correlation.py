@@ -166,13 +166,20 @@ def fetch_kind_etf_disclosures(date_iso: str, max_pages: int = 20) -> list[dict]
     collected: list[dict] = []
     for page in range(1, max_pages + 1):
         body = urllib.parse.urlencode({
-            "method": "searchDisclosureByStockTypeSub",
-            "forward": "disclosurebystocktype_sub",
-            "disclosureType": "ETF",
+            "method": "searchDisclosureByStockTypeEtfSub",
+            "forward": "disclosurebystocktype_etf_sub",
             "currentPageSize": "100",
             "pageIndex": str(page),
-            "orderMode": "0",
+            "orderMode": "1",
             "orderStat": "D",
+            "etfIsuSrtCd": "",
+            "reportCd": "",
+            "reportTmp": "",
+            "etfIsuSrtNm": "",
+            "reportNm": "",
+            # 목록이 날짜 범위를 받으므로 당일만 조회합니다.
+            "fromDate": date_iso,
+            "toDate": date_iso,
         }).encode()
         req = urllib.request.Request(
             KIND_ETF_URL,
@@ -228,7 +235,7 @@ def todays_notice_links(code: str, date_dotted: str, max_pages: int = 5) -> list
     for page in range(1, max_pages + 1):
         html = fetch(NOTICE_LIST_URL.format(code=code, page=page))
         rows = re.findall(
-            r'href="(/item/news_notice_read\.naver\?no=\d+&code=\d+&page_notice=\d+)"'
+            r'href="(/item/news_notice_read\.naver\?no=\d+&code=[0-9A-Za-z]+&page_notice=\d+)"'
             r'.*?<td class="date">\s*([\d.]+)\s*</td>',
             html,
             re.S,
@@ -313,19 +320,82 @@ def calendar_span(since_iso: str, today_iso: str) -> tuple[int, str, int]:
     return (today - since).days + 1, deadline_iso, (deadline - today).days
 
 
+# 위반 공시가 하루 걸러 이어질 때, 사이에 낀 날이 휴장일인지 판단하는 여유치.
+# 금->월(3일) + 공휴일 1~2일까지는 "끊기지 않았다"로 봅니다.
+MAX_GAP_DAYS = 4
+
+
+def violation_dates_from_feed(ticker: str, before: str, max_pages: int = 4) -> list[str]:
+    """네이버 공시 이력에서 이 종목의 상관계수 미달 공시 날짜를 모읍니다.
+
+    우리 CSV에 기록이 쌓이기 전(첫 실행 등)에도 "며칠째 이어지는지"를 알아야 하므로,
+    공시 피드 자체를 과거로 훑어 시작일을 잡습니다.
+    """
+    dates: list[str] = []
+    for page in range(1, max_pages + 1):
+        try:
+            html = fetch(NOTICE_LIST_URL.format(code=ticker, page=page))
+        except Exception:  # noqa: BLE001 - 이력 조회 실패는 치명적이지 않습니다
+            break
+        rows = re.findall(
+            r'href="(/item/news_notice_read\.naver\?no=\d+&code=[0-9A-Za-z]+&page_notice=\d+)"'
+            r'.*?<td class="date">\s*([\d.]+)\s*</td>',
+            html,
+            re.S,
+        )
+        if not rows:
+            break
+        stop = False
+        for link, dotted in rows:
+            day = dotted.strip().replace(".", "-")
+            if day >= before:
+                continue
+            if day < add_months(before, -6):
+                stop = True  # 6개월보다 오래된 이력은 볼 필요가 없습니다
+                break
+            title = notice_title(link.replace("&amp;", "&"))
+            if classify(title) == "violation":
+                dates.append(day)
+        if stop:
+            break
+    return sorted(set(dates), reverse=True)
+
+
 def streak_for(ticker: str, check_date: str, dates: list[str],
-               violations: dict[str, set[str]]) -> tuple[int, str]:
+               violations: dict[str, set[str]],
+               feed_dates: list[str] | None = None) -> tuple[int, str]:
     """오늘 포함, 이 종목의 위반이 몇 영업일째 이어지는지와 시작일.
 
-    **최신 날짜에서 과거로 거꾸로** 세어 나가다가, 위반이 없던 날을 만나는 순간
-    멈춥니다. 즉 항상 "지금 이어지고 있는 구간"만 세며, 그보다 더 과거에 있던
-    별개의 위반 구간은 (중간에 회복된 적이 있으므로) 합산하지 않습니다.
+    **최신 날짜에서 과거로 거꾸로** 세어 나가다가 위반이 끊긴 지점에서 멈춥니다.
+    즉 항상 "지금 이어지고 있는 구간"만 세며, 그보다 더 과거에 있던 별개의 위반
+    구간은 (중간에 회복된 적이 있으므로) 합산하지 않습니다.
+
+    근거는 두 가지를 함께 씁니다.
+      1) 우리 실행 기록(CSV) — 그날 확인했는데 위반이 없었다면 거기서 확실히 끊깁니다.
+      2) 공시 피드의 과거 이력 — 기록이 없는 구간(첫 실행 등)을 메웁니다.
+         피드에는 "위반이 없던 날"이 남지 않으므로, 위반 공시 사이의 간격이
+         MAX_GAP_DAYS(주말+공휴일) 이내면 이어진 것으로 봅니다.
     """
     days = 1
     since = check_date
+    checked_clean = {d for d in dates if ticker not in violations.get(d, set())}
+
+    # 1) 우리 기록으로 확실히 이어지는 만큼 먼저 셉니다.
     for day in reversed([d for d in dates if d < check_date]):
-        if ticker not in violations.get(day, set()):
+        if day in checked_clean:
+            return days, since  # 확인했는데 위반이 없던 날 -> 여기서 끊김
+        days += 1
+        since = day
+
+    # 2) 기록이 없는 더 과거 구간은 공시 피드로 이어붙입니다.
+    for day in feed_dates or []:
+        if day >= since:
+            continue
+        if day in checked_clean:
             break
+        gap = (datetime.strptime(since, "%Y-%m-%d") - datetime.strptime(day, "%Y-%m-%d")).days
+        if gap > MAX_GAP_DAYS:
+            break  # 사이가 너무 벌어짐 = 중간에 회복된 별개 구간
         days += 1
         since = day
     return days, since
@@ -405,8 +475,9 @@ def check(date_kst: datetime, workers: int = 8, source: str = "auto") -> dict:
     dates, history = load_history()
     for f in findings:
         if f["status"] == "violation":
+            feed = violation_dates_from_feed(f["ticker"], date_iso) if f["ticker"] else []
             f["streak_days"], f["streak_since"] = streak_for(
-                f["ticker"] or f["etf_name"], date_iso, dates, history
+                f["ticker"] or f["etf_name"], date_iso, dates, history, feed
             )
             # 3개월 요건은 영업일이 아니라 달력일 기준입니다.
             f["calendar_days"], f["deadline_3m"], f["days_to_3m"] = calendar_span(
