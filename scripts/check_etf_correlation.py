@@ -32,6 +32,7 @@ import ssl
 import sys
 import time
 import urllib.error
+import urllib.parse
 import urllib.request
 from concurrent.futures import ThreadPoolExecutor
 from datetime import datetime, timedelta, timezone
@@ -42,6 +43,9 @@ REPO_ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 DATA_DIR = os.path.join(REPO_ROOT, "data")
 CSV_PATH = os.path.join(DATA_DIR, "etf_correlation_checks.csv")
 LATEST_PATH = os.path.join(DATA_DIR, "etf_correlation_latest.json")
+
+KIND_ETF_URL = "https://kind.krx.co.kr/disclosure/disclosurebystocktype.do"
+KIND_VIEWER = "https://kind.krx.co.kr/common/disclsviewer.do?method=search&acptNo={acpt}"
 
 ETF_LIST_URL = "https://finance.naver.com/api/sise/etfItemList.nhn"
 NOTICE_LIST_URL = "https://finance.naver.com/item/news_notice.naver?code={code}&page={page}"
@@ -71,6 +75,8 @@ CSV_HEADER = [
     "title",            # 공시 전체 제목
     "disclosure_date",
     "url",
+    "streak_days",      # 위반이 연속된 영업일 수 (오늘 포함), 위반이 아니면 빈 값
+    "streak_since",     # 그 연속 구간이 시작된 날짜
     "manager",
 ]
 
@@ -103,6 +109,64 @@ def fetch(url: str, retries: int = 3) -> str:
 
 def strip_tags(html: str) -> str:
     return re.sub(r"\s+", " ", re.sub(r"<[^>]+>", "", html)).strip()
+
+
+def fetch_kind_etf_disclosures(date_dotted: str) -> list[dict] | None:
+    """KIND의 'ETF 공시' 목록(최신순)을 한 번의 요청으로 읽습니다.
+
+    거래소 원본이므로 이쪽이 1순위입니다. 다만 이 실행 환경에서는 kind.krx.co.kr이
+    403으로 차단돼 있어 실제 응답을 확인할 수 없었습니다. 그래서 응답을 파싱하지
+    못하면 조용히 None을 돌려주고 네이버 경로로 넘어갑니다(사내망처럼 KIND가
+    열려 있는 곳에서는 이 경로가 그대로 동작합니다).
+    """
+    body = urllib.parse.urlencode({
+        "method": "searchDisclosureByStockTypeSub",
+        "forward": "disclosurebystocktype_sub",
+        "currentPageSize": "100",
+        "pageIndex": "1",
+        "orderMode": "0",
+        "orderStat": "D",
+        "disclosureType": "ETF",
+        "searchCorpName": "",
+        "fromDate": date_dotted.replace(".", "-"),
+        "toDate": date_dotted.replace(".", "-"),
+    }).encode()
+    req = urllib.request.Request(
+        KIND_ETF_URL,
+        data=body,
+        headers={
+            "User-Agent": UA,
+            "Referer": KIND_ETF_URL + "?method=searchDisclosureByStockTypeEtf",
+            "X-Requested-With": "XMLHttpRequest",
+            "Content-Type": "application/x-www-form-urlencoded; charset=UTF-8",
+        },
+    )
+    try:
+        with urllib.request.urlopen(req, timeout=30, context=_CTX) as resp:
+            html = resp.read().decode("utf-8", "replace")
+    except Exception as exc:  # noqa: BLE001 - 차단/장애 시 네이버로 폴백
+        print(f"  KIND 접근 실패({exc}) -> 네이버 공시로 전환", file=sys.stderr)
+        return None
+
+    out: list[dict] = []
+    for tr in re.findall(r"<tr[^>]*>(.*?)</tr>", html, re.S):
+        cells = [strip_tags(td) for td in re.findall(r"<td[^>]*>(.*?)</td>", tr, re.S)]
+        if len(cells) < 3:
+            continue
+        acpt = re.search(r"acptNo=(\d+)", tr, re.I)
+        company = next((c for c in cells if c), "")
+        title = max(cells, key=len)
+        out.append({
+            "company": company,
+            "title": title,
+            "url": KIND_VIEWER.format(acpt=acpt.group(1)) if acpt else "",
+        })
+    if not out:
+        print("  KIND 응답을 해석하지 못함 -> 네이버 공시로 전환", file=sys.stderr)
+        return None
+    # 엔에이치아문디 상품만 남깁니다 (회사명 또는 제목 어느 쪽에 들어와도 잡히도록).
+    return [d for d in out
+            if "아문디" in d["company"] + d["title"] or BRAND_PREFIX in d["company"] + d["title"]]
 
 
 def list_hanaro_etfs() -> list[tuple[str, str]]:
@@ -156,44 +220,126 @@ def classify(title: str) -> str | None:
     return None
 
 
-def check(date_kst: datetime, workers: int = 8) -> dict:
+def load_history() -> tuple[list[str], dict[str, set[str]]]:
+    """과거 실행 기록을 읽어 (확인한 날짜 목록, 날짜별 위반 종목코드)를 돌려줍니다.
+
+    "영업일 연속"의 기준은 달력이 아니라 **이 스크립트가 실제로 확인한 날짜**입니다.
+    루틴은 평일에만 도는데다 공휴일에는 공시 자체가 없으므로, 기록에 남은 확인일을
+    영업일 달력으로 삼으면 주말·휴일 때문에 연속이 끊기는 오판을 피할 수 있습니다.
+    (루틴이 하루 걸러 실패해 기록이 비어도 그날은 그냥 건너뛴 것으로 봅니다.)
+    """
+    if not os.path.exists(CSV_PATH):
+        return [], {}
+    dates: list[str] = []
+    seen: set[str] = set()
+    violations: dict[str, set[str]] = {}
+    with open(CSV_PATH, newline="", encoding="utf-8") as fh:
+        for row in csv.DictReader(fh):
+            day = (row.get("check_date") or "").strip()
+            if not day:
+                continue
+            if day not in seen:
+                seen.add(day)
+                dates.append(day)
+            if row.get("status") == "violation":
+                key = (row.get("ticker") or row.get("etf_name") or "").strip()
+                if key:
+                    violations.setdefault(day, set()).add(key)
+    dates.sort()
+    return dates, violations
+
+
+def streak_for(ticker: str, check_date: str, dates: list[str],
+               violations: dict[str, set[str]]) -> tuple[int, str]:
+    """오늘 포함, 이 종목의 위반이 몇 영업일째 이어지는지와 시작일."""
+    days = 1
+    since = check_date
+    for day in reversed([d for d in dates if d < check_date]):
+        if ticker not in violations.get(day, set()):
+            break
+        days += 1
+        since = day
+    return days, since
+
+
+def check(date_kst: datetime, workers: int = 8, source: str = "auto") -> dict:
     date_iso = date_kst.strftime("%Y-%m-%d")
     date_dotted = date_kst.strftime("%Y.%m.%d")
-    etfs = list_hanaro_etfs()
-    if not etfs:
-        raise RuntimeError("HANARO ETF 목록을 가져오지 못했습니다.")
-    print(f"[{date_iso}] {MANAGER} ETF {len(etfs)}종목 당일 공시 확인 중...")
 
-    with ThreadPoolExecutor(workers) as ex:
-        per_ticker = list(
-            ex.map(lambda e: (e, todays_notice_links(e[0], date_dotted)), etfs)
-        )
-        pending = [((code, name), link) for (code, name), links in per_ticker for link in links]
-        titles = list(ex.map(lambda p: notice_title(p[1]), pending))
-
+    used = "kind"
     findings: list[dict] = []
-    for ((code, name), link), title in zip(pending, titles):
-        kind = classify(title)
-        if kind is None:
-            continue  # 분배락/LP 변경 등 상관계수와 무관한 공시는 제외
-        findings.append(
-            {
-                "status": kind,
+    scanned = 0
+
+    kind_rows = None
+    if source in ("auto", "kind"):
+        print(f"[{date_iso}] KIND ETF 공시(최신순)에서 {MANAGER} 건을 확인합니다...")
+        kind_rows = fetch_kind_etf_disclosures(date_dotted)
+
+    if kind_rows is not None:
+        name_by_ticker = {}
+        try:
+            name_by_ticker = {name: code for code, name in list_hanaro_etfs()}
+        except Exception:  # noqa: BLE001 - 티커 매핑 실패는 치명적이지 않습니다
+            pass
+        scanned = len(kind_rows)
+        for row in kind_rows:
+            kind_ = classify(row["title"])
+            if kind_ is None:
+                continue
+            ticker = next(
+                (code for name, code in name_by_ticker.items() if name and name in row["company"] + row["title"]),
+                "",
+            )
+            findings.append({
+                "status": kind_,
+                "ticker": ticker,
+                "etf_name": row["company"],
+                "title": row["title"],
+                "disclosure_date": date_iso,
+                "url": row["url"],
+            })
+    else:
+        if source == "kind":
+            raise RuntimeError("KIND 조회에 실패했습니다 (--source kind).")
+        used = "naver"
+        etfs = list_hanaro_etfs()
+        if not etfs:
+            raise RuntimeError("HANARO ETF 목록을 가져오지 못했습니다.")
+        print(f"[{date_iso}] {MANAGER} ETF {len(etfs)}종목 당일 공시 확인 중...")
+        with ThreadPoolExecutor(workers) as ex:
+            per_ticker = list(ex.map(lambda e: (e, todays_notice_links(e[0], date_dotted)), etfs))
+            pending = [((c, n), l) for (c, n), links in per_ticker for l in links]
+            titles = list(ex.map(lambda p: notice_title(p[1]), pending))
+        scanned = len(pending)
+        for ((code, name), link), title in zip(pending, titles):
+            kind_ = classify(title)
+            if kind_ is None:
+                continue  # 분배락/LP 변경 등 상관계수와 무관한 공시는 제외
+            findings.append({
+                "status": kind_,
                 "ticker": code,
                 "etf_name": name,
                 "title": title,
                 "disclosure_date": date_iso,
                 "url": NOTICE_BASE + link,
-            }
-        )
+            })
+
+    # 연속 영업일 수: 중간에 "위반 없음"으로 확인된 날이 끼면 처음부터 다시 셉니다.
+    # (상관계수가 회복되면 그 이전 구간은 상장폐지 판단에서 의미가 없기 때문)
+    dates, history = load_history()
+    for f in findings:
+        if f["status"] == "violation":
+            f["streak_days"], f["streak_since"] = streak_for(
+                f["ticker"] or f["etf_name"], date_iso, dates, history
+            )
 
     findings.sort(key=lambda f: ({"violation": 0, "resolved": 1, "related": 2}[f["status"]], f["ticker"]))
     return {
         "checked_kst": datetime.now(timezone.utc).astimezone(KST).isoformat(timespec="seconds"),
         "check_date": date_iso,
         "manager": MANAGER,
-        "etf_count": len(etfs),
-        "disclosures_today": len(pending),
+        "source": used,
+        "disclosures_today": scanned,
         "findings": findings,
     }
 
@@ -203,11 +349,13 @@ def report(result: dict) -> None:
     resolved = [f for f in result["findings"] if f["status"] == "resolved"]
     related = [f for f in result["findings"] if f["status"] == "related"]
 
-    print(f"\n당일 공시 총 {result['disclosures_today']}건 (전체 유형 기준)")
+    print(f"\n당일 공시 {result['disclosures_today']}건 확인 (출처: {result.get('source','')})")
     if violations:
         print(f"\n🚨 상관계수 미달(위반) 공시 {len(violations)}건")
         for f in violations:
-            print(f"  - [{f['ticker']}] {f['etf_name']}\n      {f['title']}\n      {f['url']}")
+            days, since = f.get("streak_days", 1), f.get("streak_since", result["check_date"])
+            cont = f"{days}영업일째" + (f" (최초 {since})" if days > 1 else " (오늘 최초)")
+            print(f"  - [{f['ticker']}] {f['etf_name']} — {cont}\n      {f['title']}\n      {f['url']}")
     else:
         print("\n✅ 상관계수 미달(위반) 공시 없음")
     if resolved:
@@ -232,12 +380,13 @@ def persist(result: dict) -> None:
         for f in result["findings"]:
             rows.append({**base, **{k: f.get(k, "") for k in
                                     ("status", "ticker", "etf_name", "title",
-                                     "disclosure_date", "url")}})
+                                     "disclosure_date", "url", "streak_days",
+                                     "streak_since")}})
     else:
         # 위반이 없었다는 사실도 기록으로 남깁니다.
         rows.append({**base, "status": "none", "ticker": "", "etf_name": "",
                      "title": "상관계수 관련 공시 없음", "disclosure_date": result["check_date"],
-                     "url": ""})
+                     "url": "", "streak_days": "", "streak_since": ""})
 
     write_header = not os.path.exists(CSV_PATH) or os.path.getsize(CSV_PATH) == 0
     with open(CSV_PATH, "a", newline="", encoding="utf-8") as fh:
@@ -257,6 +406,8 @@ def main() -> int:
     ap = argparse.ArgumentParser(description=__doc__)
     ap.add_argument("--date", help="확인할 날짜 (YYYY-MM-DD, 기본: 오늘 KST)")
     ap.add_argument("--workers", type=int, default=8, help="동시 요청 수 (기본 8)")
+    ap.add_argument("--source", choices=("auto", "kind", "naver"), default="auto",
+                    help="공시 출처 (기본 auto: KIND 먼저, 실패 시 네이버)")
     ap.add_argument("--no-write", action="store_true", help="파일에 기록하지 않고 출력만")
     args = ap.parse_args()
 
@@ -266,7 +417,7 @@ def main() -> int:
         day = datetime.now(timezone.utc).astimezone(KST)
 
     try:
-        result = check(day, workers=args.workers)
+        result = check(day, workers=args.workers, source=args.source)
     except Exception as exc:  # noqa: BLE001
         print(f"ERROR: 공시 확인 실패: {exc}", file=sys.stderr)
         return 1
