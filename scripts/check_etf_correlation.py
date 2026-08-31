@@ -568,6 +568,94 @@ def report(result: dict) -> None:
             print(f"  - [{f['ticker']}] {f['etf_name']} : {f['title']}")
 
 
+GAUGE_CELLS = 20
+IND = " " * 5  # 알림 본문 들여쓰기
+
+
+def _gauge(done: int, total: int, cells: int = GAUGE_CELLS) -> str:
+    """경과 비율을 블록문자 막대로. 고정폭 폰트가 아니어도 안 깨집니다."""
+    if total <= 0:
+        return "█" * cells
+    filled = max(0, min(cells, round(cells * done / total)))
+    return "█" * filled + "░" * (cells - filled)
+
+
+def notify_text(result: dict) -> str | None:
+    """푸시 알림용 본문. 알릴 것이 없으면 None.
+
+    첫 줄이 폰 배너로 잘려 나가므로 결론(건수/연속일/남은 기한/종목)을 전부 첫 줄에 담고,
+    이후 본문에서 종목별 상세와 공시 링크를 보여줍니다.
+    """
+    violations = [f for f in result["findings"] if f["status"] == "violation"]
+    resolved = [f for f in result["findings"] if f["status"] == "resolved"]
+    related = [f for f in result["findings"] if f["status"] == "related"]
+    if not (violations or resolved):
+        return None
+
+    lines: list[str] = []
+
+    if violations:
+        worst = min(violations, key=lambda f: f.get("days_to_3m", 10**6))
+        left = worst.get("days_to_3m", 0)
+        icon = "⛔" if left <= 0 else "🚨"
+        due = "3개월 요건 도달" if left <= 0 else f"3개월 요건까지 {left}일"
+        head_days = max((f.get("streak_days", 1) for f in violations), default=1)
+        if len(violations) == 1:
+            f = violations[0]
+            lines.append(f"{icon} 위반 {f.get('streak_days', 1)}영업일째 · {due}"
+                         f" — {f['etf_name']} ({f['ticker']})")
+        else:
+            lines.append(f"{icon} 상관계수 위반 {len(violations)}건 · 최장 {head_days}영업일째"
+                         f" · {due} — {worst['etf_name']} 외 {len(violations) - 1}종목")
+
+        for f in violations:
+            days = f.get("streak_days", 1)
+            since = f.get("streak_since", result["check_date"])
+            left = f.get("days_to_3m", 0)
+            kind_ko = "액티브" if f["etf_type"] == "active" else "패시브"
+            state = ("⛔ 3개월 요건 도달" if left <= 0
+                     else "⛔ 위반 지속 중 (기한 임박)" if left <= 30
+                     else "⛔ 위반 지속 중")
+            span = f.get("calendar_days", 0)
+            total = span + max(left, 0)
+
+            lines.append("")
+            if len(violations) > 1:
+                lines.append(f"{IND}{f['etf_name']} ({f['ticker']})")
+            lines.append(f"{IND}상태  {state}")
+            lines.append(f"{IND}연속  {days}영업일  ({since} 최초)")
+            lines.append(f"{IND}달력  {span}일 경과 → 마감 {f['deadline_3m']}")
+            lines.append(f"{IND}여유  {max(left, 0)}일  {_gauge(span, total)}")
+            lines.append("")
+            lines.append(f"{IND}{f['title']} · {kind_ko} 기준 {f['threshold']}")
+            if f.get("url"):
+                lines.append(f"{IND}{f['url']}")
+
+    if resolved:
+        if not violations:
+            # 위반이 없으면 해소 소식이 배너가 됩니다.
+            first = resolved[0]
+            more = f" 외 {len(resolved) - 1}종목" if len(resolved) > 1 else ""
+            lines.append(f"✅ 상관계수 미달 해소 {len(resolved)}건"
+                         f" — {first['etf_name']} ({first['ticker']}){more}")
+        for f in resolved:
+            kind_ko = "액티브" if f["etf_type"] == "active" else "패시브"
+            lines.append("")
+            if violations or len(resolved) > 1:
+                lines.append(f"{IND}✅ {f['etf_name']} ({f['ticker']}) 해소")
+            lines.append(f"{IND}{f['title']} · {kind_ko} 기준 {f.get('threshold', '')}")
+            if f.get("url"):
+                lines.append(f"{IND}{f['url']}")
+
+    if related:
+        lines.append("")
+        lines.append(f"{IND}─────────────────────────")
+        for f in related:
+            lines.append(f"{IND}참고 · {f['ticker']} {f['etf_name']} {f['title']}")
+
+    return "\n".join(lines)
+
+
 def persist(result: dict) -> None:
     os.makedirs(DATA_DIR, exist_ok=True)
     rows = []
@@ -612,6 +700,8 @@ def main() -> int:
     ap.add_argument("--source", choices=("auto", "kind", "naver"), default="auto",
                     help="공시 출처 (기본 auto: KIND 먼저, 실패 시 네이버)")
     ap.add_argument("--no-write", action="store_true", help="파일에 기록하지 않고 출력만")
+    ap.add_argument("--notify", action="store_true",
+                    help="푸시 알림용 본문만 출력 (알릴 것이 없으면 아무것도 출력하지 않음)")
     args = ap.parse_args()
 
     if args.date:
@@ -625,7 +715,12 @@ def main() -> int:
         print(f"ERROR: 공시 확인 실패: {exc}", file=sys.stderr)
         return 1
 
-    report(result)
+    if args.notify:
+        text = notify_text(result)
+        if text:
+            print(text)
+    else:
+        report(result)
     if not args.no_write:
         persist(result)
     return 0
