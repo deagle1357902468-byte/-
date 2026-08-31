@@ -591,8 +591,8 @@ def notify_text(result: dict) -> str | None:
     첫 줄이 폰 배너로 잘려 나가므로 기준일과 결론(건수/연속일/남은 기한/종목)을 전부
     첫 줄에 담고, 이후 본문에서 종목별 상세를 보여줍니다.
 
-    공시 주소는 알림에서 링크로 살아나지 않으므로(받는 앱이 자동 링크를 걸어주지 않음)
-    본문 중간에 끼워 넣지 않고 맨 아래에 일반 텍스트로 모아 둡니다.
+    공시 주소는 알림에 넣지 않습니다. 받는 앱이 자동 링크를 걸어주지 않아 클릭도 안 되는
+    긴 문자열이 본문만 차지하기 때문입니다. 주소가 필요하면 findings 의 ``url`` 을 쓰세요.
     """
     violations = [f for f in result["findings"] if f["status"] == "violation"]
     resolved = [f for f in result["findings"] if f["status"] == "resolved"]
@@ -663,17 +663,6 @@ def notify_text(result: dict) -> str | None:
         lines.append(f"{IND}─────────────────────────")
         for f in related:
             lines.append(f"{IND}참고 · {f['ticker']} {f['etf_name']} {f['title']}")
-
-    # 공시 주소는 링크로 살아나지 않으므로 맨 아래에 일반 텍스트로 모읍니다.
-    linked = [f for f in violations + resolved if f.get("url")]
-    if linked:
-        lines.append("")
-        lines.append(f"{IND}─────────────────────────")
-        lines.append(f"{IND}공시 원문")
-        for f in linked:
-            if len(linked) > 1:
-                lines.append(f"{IND}{f['ticker']}")
-            lines.append(f"{IND}{f['url']}")
 
     return "\n".join(lines)
 
