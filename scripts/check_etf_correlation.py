@@ -454,7 +454,8 @@ def check(date_kst: datetime, workers: int = 8, source: str = "auto") -> dict:
 
     kind_rows = None
     if source in ("auto", "kind"):
-        print(f"[{date_iso}] KIND ETF 공시(최신순)에서 {MANAGER} 건을 확인합니다...")
+        print(f"[{date_iso}] KIND ETF 공시(최신순)에서 {MANAGER} 건을 확인합니다...",
+              file=sys.stderr)
         kind_rows = fetch_kind_etf_disclosures(date_iso)
 
     if kind_rows is not None:
@@ -489,7 +490,8 @@ def check(date_kst: datetime, workers: int = 8, source: str = "auto") -> dict:
         etfs = list_hanaro_etfs()
         if not etfs:
             raise RuntimeError("HANARO ETF 목록을 가져오지 못했습니다.")
-        print(f"[{date_iso}] {MANAGER} ETF {len(etfs)}종목 당일 공시 확인 중...")
+        print(f"[{date_iso}] {MANAGER} ETF {len(etfs)}종목 당일 공시 확인 중...",
+              file=sys.stderr)
         with ThreadPoolExecutor(workers) as ex:
             per_ticker = list(ex.map(lambda e: (e, todays_notice_links(e[0], date_dotted)), etfs))
             pending = [((c, n), l) for (c, n), links in per_ticker for l in links]
@@ -693,7 +695,8 @@ def persist(result: dict) -> None:
         json.dump(result, fh, ensure_ascii=False, indent=2)
         fh.write("\n")
 
-    print(f"\n{len(rows)}행 기록 -> {os.path.relpath(CSV_PATH, REPO_ROOT)}")
+    # stdout은 --notify 결과(알림 본문)만 담아야 하므로 진행 메시지는 stderr로 보냅니다.
+    print(f"\n{len(rows)}행 기록 -> {os.path.relpath(CSV_PATH, REPO_ROOT)}", file=sys.stderr)
 
 
 def main() -> int:
