@@ -588,8 +588,11 @@ def _gauge(done: int, total: int, cells: int = GAUGE_CELLS) -> str:
 def notify_text(result: dict) -> str | None:
     """푸시 알림용 본문. 알릴 것이 없으면 None.
 
-    첫 줄이 폰 배너로 잘려 나가므로 결론(건수/연속일/남은 기한/종목)을 전부 첫 줄에 담고,
-    이후 본문에서 종목별 상세와 공시 링크를 보여줍니다.
+    첫 줄이 폰 배너로 잘려 나가므로 기준일과 결론(건수/연속일/남은 기한/종목)을 전부
+    첫 줄에 담고, 이후 본문에서 종목별 상세를 보여줍니다.
+
+    공시 주소는 알림에서 링크로 살아나지 않으므로(받는 앱이 자동 링크를 걸어주지 않음)
+    본문 중간에 끼워 넣지 않고 맨 아래에 일반 텍스트로 모아 둡니다.
     """
     violations = [f for f in result["findings"] if f["status"] == "violation"]
     resolved = [f for f in result["findings"] if f["status"] == "resolved"]
@@ -597,6 +600,8 @@ def notify_text(result: dict) -> str | None:
     if not (violations or resolved):
         return None
 
+    date_iso = result["check_date"]
+    date_short = date_iso[5:]  # MM-DD, 배너 자리를 아끼려고 연도는 뺍니다.
     lines: list[str] = []
 
     if violations:
@@ -607,11 +612,14 @@ def notify_text(result: dict) -> str | None:
         head_days = max((f.get("streak_days", 1) for f in violations), default=1)
         if len(violations) == 1:
             f = violations[0]
-            lines.append(f"{icon} 위반 {f.get('streak_days', 1)}영업일째 · {due}"
+            lines.append(f"{icon} {date_short} 위반 {f.get('streak_days', 1)}영업일째 · {due}"
                          f" — {f['etf_name']} ({f['ticker']})")
         else:
-            lines.append(f"{icon} 상관계수 위반 {len(violations)}건 · 최장 {head_days}영업일째"
-                         f" · {due} — {worst['etf_name']} 외 {len(violations) - 1}종목")
+            lines.append(f"{icon} {date_short} 상관계수 위반 {len(violations)}건"
+                         f" · 최장 {head_days}영업일째 · {due}"
+                         f" — {worst['etf_name']} 외 {len(violations) - 1}종목")
+        lines.append("")
+        lines.append(f"{IND}{date_iso} (KST) 기준")
 
         for f in violations:
             days = f.get("streak_days", 1)
@@ -633,30 +641,39 @@ def notify_text(result: dict) -> str | None:
             lines.append(f"{IND}여유  {max(left, 0)}일  {_gauge(span, total)}")
             lines.append("")
             lines.append(f"{IND}{f['title']} · {kind_ko} 기준 {f['threshold']}")
-            if f.get("url"):
-                lines.append(f"{IND}{f['url']}")
 
     if resolved:
         if not violations:
             # 위반이 없으면 해소 소식이 배너가 됩니다.
             first = resolved[0]
             more = f" 외 {len(resolved) - 1}종목" if len(resolved) > 1 else ""
-            lines.append(f"✅ 상관계수 미달 해소 {len(resolved)}건"
+            lines.append(f"✅ {date_short} 상관계수 미달 해소 {len(resolved)}건"
                          f" — {first['etf_name']} ({first['ticker']}){more}")
+            lines.append("")
+            lines.append(f"{IND}{date_iso} (KST) 기준")
         for f in resolved:
             kind_ko = "액티브" if f["etf_type"] == "active" else "패시브"
             lines.append("")
             if violations or len(resolved) > 1:
                 lines.append(f"{IND}✅ {f['etf_name']} ({f['ticker']}) 해소")
             lines.append(f"{IND}{f['title']} · {kind_ko} 기준 {f.get('threshold', '')}")
-            if f.get("url"):
-                lines.append(f"{IND}{f['url']}")
 
     if related:
         lines.append("")
         lines.append(f"{IND}─────────────────────────")
         for f in related:
             lines.append(f"{IND}참고 · {f['ticker']} {f['etf_name']} {f['title']}")
+
+    # 공시 주소는 링크로 살아나지 않으므로 맨 아래에 일반 텍스트로 모읍니다.
+    linked = [f for f in violations + resolved if f.get("url")]
+    if linked:
+        lines.append("")
+        lines.append(f"{IND}─────────────────────────")
+        lines.append(f"{IND}공시 원문")
+        for f in linked:
+            if len(linked) > 1:
+                lines.append(f"{IND}{f['ticker']}")
+            lines.append(f"{IND}{f['url']}")
 
     return "\n".join(lines)
 
