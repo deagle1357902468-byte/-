@@ -1,9 +1,9 @@
 {
-  "checked_kst": "2026-08-27T17:35:56+09:00",
-  "check_date": "2026-08-27",
+  "checked_kst": "2026-08-31T10:09:53+09:00",
+  "check_date": "2026-08-31",
   "manager": "엔에이치아문디자산운용",
   "source": "kind",
-  "disclosures_today": 10,
+  "disclosures_today": 2,
   "findings": [
     {
       "status": "violation",
@@ -11,14 +11,24 @@
       "etf_name": "HANARO 글로벌피지컬AI액티브",
       "etf_type": "active",
       "title": "ETF 상관계수 기준 미달 발생",
-      "disclosure_date": "2026-08-27",
-      "url": "https://kind.krx.co.kr/common/disclsviewer.do?method=search&acptno=20260827000036&docno=&viewerhost=&viewerport=",
+      "disclosure_date": "2026-08-31",
+      "url": "https://kind.krx.co.kr/common/disclsviewer.do?method=search&acptno=20260831000061&docno=&viewerhost=&viewerport=",
       "threshold": 0.7,
-      "streak_days": 18,
+      "streak_days": 19,
       "streak_since": "2026-08-03",
-      "calendar_days": 25,
+      "calendar_days": 29,
       "deadline_3m": "2026-11-03",
-      "days_to_3m": 68
+      "days_to_3m": 64
+    },
+    {
+      "status": "related",
+      "ticker": "0215T0",
+      "etf_name": "HANARO 미국AI광통신TOP10",
+      "etf_type": "passive",
+      "title": "ETF 괴리율 초과 발생",
+      "disclosure_date": "2026-08-31",
+      "url": "https://kind.krx.co.kr/common/disclsviewer.do?method=search&acptno=20260831000043&docno=&viewerhost=&viewerport=",
+      "threshold": 0.9
     }
   ]
 }
