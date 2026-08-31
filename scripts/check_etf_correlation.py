@@ -45,7 +45,10 @@ CSV_PATH = os.path.join(DATA_DIR, "etf_correlation_checks.csv")
 LATEST_PATH = os.path.join(DATA_DIR, "etf_correlation_latest.json")
 
 KIND_ETF_URL = "https://kind.krx.co.kr/disclosure/disclosurebystocktype.do"
-KIND_VIEWER = "https://kind.krx.co.kr/common/disclsviewer.do?method=search&acptno={acpt}&docno=&viewerhost=&viewerport="
+# 빈 파라미터(docno/viewerhost/viewerport)는 KIND 사이트가 붙이지만 없어도 공시가 열립니다.
+# 알림은 순수 텍스트라 링크 여부가 받는 앱의 자동 감지에 달려 있는데, 주소가 길면 좁은 화면에서
+# 줄바꿈으로 잘려 링크가 끊깁니다. 110자 -> 80자로 줄여 잘릴 여지를 없앱니다.
+KIND_VIEWER = "https://kind.krx.co.kr/common/disclsviewer.do?method=search&acptno={acpt}"
 
 ETF_LIST_URL = "https://finance.naver.com/api/sise/etfItemList.nhn"
 NOTICE_LIST_URL = "https://finance.naver.com/item/news_notice.naver?code={code}&page={page}"
