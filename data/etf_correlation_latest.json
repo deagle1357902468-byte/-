@@ -1,6 +1,7 @@
 {
   "checked_kst": "2026-09-02T10:10:13+09:00",
   "check_date": "2026-09-02",
+  "basis_date": "2026-09-01",
   "manager": "엔에이치아문디자산운용",
   "source": "kind",
   "disclosures_today": 3,
@@ -16,9 +17,11 @@
       "threshold": 0.7,
       "streak_days": 21,
       "streak_since": "2026-08-03",
-      "calendar_days": 31,
-      "deadline_3m": "2026-11-03",
-      "days_to_3m": 62
+      "calendar_days": 33,
+      "deadline_3m": "2026-10-31",
+      "days_to_3m": 60,
+      "basis_date": "2026-09-01",
+      "basis_since": "2026-07-31"
     },
     {
       "status": "violation",
@@ -32,8 +35,10 @@
       "streak_days": 2,
       "streak_since": "2026-09-01",
       "calendar_days": 2,
-      "deadline_3m": "2026-12-01",
-      "days_to_3m": 90
+      "deadline_3m": "2026-11-30",
+      "days_to_3m": 90,
+      "basis_date": "2026-09-01",
+      "basis_since": "2026-08-31"
     },
     {
       "status": "related",
@@ -43,7 +48,8 @@
       "title": "ETF 괴리율 초과 발생",
       "disclosure_date": "2026-09-02",
       "url": "https://kind.krx.co.kr/common/disclsviewer.do?method=search&acptno=20260902000006",
-      "threshold": 0.9
+      "threshold": 0.9,
+      "basis_date": "2026-09-01"
     }
   ]
 }

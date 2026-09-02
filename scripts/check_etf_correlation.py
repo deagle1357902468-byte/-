@@ -88,15 +88,17 @@ CSV_HEADER = [
     "ticker",
     "etf_name",
     "title",            # 공시 전체 제목
-    "disclosure_date",
+    "disclosure_date",  # 공시가 접수된 날
+    "basis_date",       # 그 공시의 기준일 (= 직전 영업일, T-1)
     "url",
     "etf_type",         # passive(기준 0.9) / active(기준 0.7)
     "threshold",        # 해당 유형의 상관계수 기준값
-    "calendar_days",    # 위반 시작일부터 경과한 달력일 (3개월 요건 기준)
-    "deadline_3m",      # 3개월(달력) 도달일
+    "calendar_days",    # 위반 시작 기준일부터 경과한 달력일 (3개월 요건 기준)
+    "deadline_3m",      # 3개월(달력) 도달일 — 시작 기준일 + 3개월
     "days_to_3m",       # 도달까지 남은 달력일 (음수면 이미 경과)
     "streak_days",      # 위반이 연속된 영업일 수 (오늘 포함), 위반이 아니면 빈 값
-    "streak_since",     # 그 연속 구간이 시작된 날짜
+    "streak_since",     # 그 연속 구간의 첫 **공시일**
+    "basis_since",      # 그 첫 공시의 기준일 — 3개월 요건은 이 날부터 셉니다
     "manager",
 ]
 
@@ -357,8 +359,24 @@ def add_months(date_iso: str, months: int) -> str:
     return datetime(y, m, d).strftime("%Y-%m-%d")
 
 
+def prev_business_day(date_iso: str) -> str:
+    """공시일의 **기준일** = 직전 영업일 (T-1).
+
+    상관계수 미달 공시는 그날의 상태가 아니라 **직전 영업일 기준**으로 산출된 값을
+    알립니다. 따라서 위반이 시작된 날도, 3개월 요건을 세는 시작점도 공시일이 아니라
+    기준일이어야 합니다. (2026-09-01(화) 공시 → 기준일 2026-08-31(월))
+
+    주말만 건너뜁니다. 임시공휴일 등 거래소 휴장일은 반영하지 못하므로, 휴장일 다음
+    영업일의 공시는 기준일이 하루 늦게 잡힐 수 있습니다.
+    """
+    day = datetime.strptime(date_iso, "%Y-%m-%d") - timedelta(days=1)
+    while day.weekday() >= 5:  # 토(5), 일(6)
+        day -= timedelta(days=1)
+    return day.strftime("%Y-%m-%d")
+
+
 def calendar_span(since_iso: str, today_iso: str) -> tuple[int, str, int]:
-    """(경과 달력일, 3개월 도달일, 도달까지 남은 달력일)."""
+    """(경과 달력일, 3개월 도달일, 도달까지 남은 달력일). 둘 다 **기준일**을 넣습니다."""
     since = datetime.strptime(since_iso, "%Y-%m-%d")
     today = datetime.strptime(today_iso, "%Y-%m-%d")
     deadline_iso = add_months(since_iso, WATCH_MONTHS)
@@ -529,7 +547,9 @@ def check(date_kst: datetime, workers: int = 8, source: str = "auto") -> dict:
     # 연속 영업일 수: 중간에 "위반 없음"으로 확인된 날이 끼면 처음부터 다시 셉니다.
     # (상관계수가 회복되면 그 이전 구간은 상장폐지 판단에서 의미가 없기 때문)
     dates, history = load_history()
+    basis_today = prev_business_day(date_iso)
     for f in findings:
+        f["basis_date"] = prev_business_day(f["disclosure_date"])
         if f["status"] == "violation":
             feed = kind_violation_dates(f["etf_name"], date_iso) if used == "kind" else []
             if not feed and f["ticker"]:
@@ -537,15 +557,18 @@ def check(date_kst: datetime, workers: int = 8, source: str = "auto") -> dict:
             f["streak_days"], f["streak_since"] = streak_for(
                 f["ticker"] or f["etf_name"], date_iso, dates, history, feed
             )
-            # 3개월 요건은 영업일이 아니라 달력일 기준입니다.
+            # 3개월 요건은 영업일이 아니라 달력일 기준이고, 시작점은 공시일이 아니라
+            # 그 공시의 기준일(T-1)입니다.
+            f["basis_since"] = prev_business_day(f["streak_since"])
             f["calendar_days"], f["deadline_3m"], f["days_to_3m"] = calendar_span(
-                f["streak_since"], date_iso
+                f["basis_since"], basis_today
             )
 
     findings.sort(key=lambda f: ({"violation": 0, "resolved": 1, "related": 2}[f["status"]], f["ticker"]))
     return {
         "checked_kst": datetime.now(timezone.utc).astimezone(KST).isoformat(timespec="seconds"),
         "check_date": date_iso,
+        "basis_date": basis_today,
         "manager": MANAGER,
         "source": used,
         "disclosures_today": scanned,
@@ -562,8 +585,9 @@ def report(result: dict) -> None:
     if violations:
         print(f"\n🚨 상관계수 미달(위반) 공시 {len(violations)}건")
         for f in violations:
-            days, since = f.get("streak_days", 1), f.get("streak_since", result["check_date"])
-            cont = f"{days}영업일째" + (f" (최초 {since})" if days > 1 else " (오늘 최초)")
+            days = f.get("streak_days", 1)
+            since = f.get("basis_since") or f.get("streak_since", result["check_date"])
+            cont = f"{days}영업일째 (기준일 {since} 최초)"
             kind_ko = "액티브" if f["etf_type"] == "active" else "패시브"
             left = f["days_to_3m"]
             span = (f"달력 {f['calendar_days']}일 경과 / 3개월 요건 "
@@ -630,11 +654,11 @@ def notify_text(result: dict) -> str | None:
                          f" · 최장 {head_days}영업일째 · {due}"
                          f" — {worst['etf_name']} 외 {len(violations) - 1}종목")
         lines.append("")
-        lines.append(f"{IND}{date_iso} (KST) 기준")
+        lines.append(f"{IND}{date_iso} 공시 · 기준일 {prev_business_day(date_iso)}")
 
         for f in violations:
             days = f.get("streak_days", 1)
-            since = f.get("streak_since", result["check_date"])
+            since = f.get("basis_since") or f.get("streak_since", result["check_date"])
             left = f.get("days_to_3m", 0)
             kind_ko = "액티브" if f["etf_type"] == "active" else "패시브"
             state = ("⛔ 3개월 요건 도달" if left <= 0
@@ -649,7 +673,7 @@ def notify_text(result: dict) -> str | None:
                 lines.append(f"{IND}{f['etf_name']}"
                              + (f" ({f['ticker']})" if f["ticker"] else ""))
             lines.append(f"{IND}상태  {state}")
-            lines.append(f"{IND}연속  {days}영업일  ({since} 최초)")
+            lines.append(f"{IND}연속  {days}영업일  ({since} 기준일 최초)")
             lines.append(f"{IND}달력  {span}일 경과 → 마감 {f['deadline_3m']}")
             lines.append(f"{IND}여유  {max(left, 0)}일  {_gauge(span, total)}")
             lines.append("")
@@ -663,7 +687,7 @@ def notify_text(result: dict) -> str | None:
             lines.append(f"✅ {date_short} 상관계수 미달 해소 {len(resolved)}건"
                          f" — {first['etf_name']} ({first['ticker']}){more}")
             lines.append("")
-            lines.append(f"{IND}{date_iso} (KST) 기준")
+            lines.append(f"{IND}{date_iso} 공시 · 기준일 {prev_business_day(date_iso)}")
         for f in resolved:
             kind_ko = "액티브" if f["etf_type"] == "active" else "패시브"
             lines.append("")
@@ -692,16 +716,18 @@ def persist(result: dict) -> None:
         for f in result["findings"]:
             rows.append({**base, **{k: f.get(k, "") for k in
                                     ("status", "ticker", "etf_name", "title",
-                                     "disclosure_date", "url", "etf_type",
+                                     "disclosure_date", "basis_date", "url", "etf_type",
                                      "threshold", "calendar_days", "deadline_3m",
-                                     "days_to_3m", "streak_days", "streak_since")}})
+                                     "days_to_3m", "streak_days", "streak_since",
+                                     "basis_since")}})
     else:
         # 위반이 없었다는 사실도 기록으로 남깁니다.
         rows.append({**base, "status": "none", "ticker": "", "etf_name": "",
                      "title": "상관계수 관련 공시 없음", "disclosure_date": result["check_date"],
+                     "basis_date": prev_business_day(result["check_date"]),
                      "url": "", "etf_type": "", "threshold": "",
                      "calendar_days": "", "deadline_3m": "", "days_to_3m": "",
-                     "streak_days": "", "streak_since": ""})
+                     "streak_days": "", "streak_since": "", "basis_since": ""})
 
     write_header = not os.path.exists(CSV_PATH) or os.path.getsize(CSV_PATH) == 0
     with open(CSV_PATH, "a", newline="", encoding="utf-8") as fh:
