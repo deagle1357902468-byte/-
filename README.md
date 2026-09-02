@@ -214,12 +214,17 @@ python3 scripts/check_etf_correlation.py --source kind                    # KIND
 표로 다시 늘어놓지 않습니다. 링크는 반드시 **클릭되는 하이퍼링크**로 답니다 (코드 블록에
 넣으면 링크가 죽습니다).
 
+**`findings` 의 건수만큼 링크를 답니다.** 위반이 2건이면 `공시 원문` 줄도 2개입니다.
+대표 한 건만 남기고 나머지를 생략하지 마세요.
+
 ```markdown
-2026-08-31 (KST) 자 보고, 알림 보냈습니다.
+2026-09-02 (KST) 자 보고, 알림 보냈습니다.
 
-공시 원문 → **[ETF 상관계수 기준 미달 발생 (0040S0)](https://kind.krx.co.kr/...)**
+공시 원문 → **[ETF 상관계수 기준 미달 발생 (HANARO 미국S&P500액티브)](https://kind.krx.co.kr/...)**
 
-참고 공시 → **[ETF 괴리율 초과 발생 (0215T0 HANARO 미국AI광통신TOP10)](https://kind.krx.co.kr/...)**
+공시 원문 → **[ETF 상관계수 기준 미달 발생 (0040S0 HANARO 글로벌피지컬AI액티브)](https://kind.krx.co.kr/...)**
+
+참고 공시 → **[ETF 괴리율 초과 발생 (407300 HANARO Fn골프테마)](https://kind.krx.co.kr/...)**
 ```
 
 
