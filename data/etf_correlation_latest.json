@@ -8,7 +8,7 @@
     {
       "status": "violation",
       "ticker": "",
-      "etf_name": "HANARO 미국S&amp;P500액티브",
+      "etf_name": "HANARO 미국S&P500액티브",
       "etf_type": "active",
       "title": "ETF 상관계수 기준 미달 발생",
       "disclosure_date": "2026-09-02",

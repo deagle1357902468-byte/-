@@ -36,6 +36,7 @@ import urllib.parse
 import urllib.request
 from concurrent.futures import ThreadPoolExecutor
 from datetime import datetime, timedelta, timezone
+from html import unescape as html_unescape
 
 KST = timezone(timedelta(hours=9))
 
@@ -127,7 +128,9 @@ def fetch(url: str, retries: int = 3) -> str:
 
 
 def strip_tags(html: str) -> str:
-    return re.sub(r"\s+", " ", re.sub(r"<[^>]+>", "", html)).strip()
+    # 종목명에 &amp; 같은 HTML 엔티티가 그대로 남으면 알림 본문에까지 실려 나갑니다
+    # (예: "HANARO 미국S&amp;P500액티브"). 태그를 걷어낸 뒤 엔티티도 풀어줍니다.
+    return html_unescape(re.sub(r"\s+", " ", re.sub(r"<[^>]+>", "", html)).strip())
 
 
 def parse_kind_rows(html: str) -> list[dict]:
@@ -591,8 +594,8 @@ def notify_text(result: dict) -> str | None:
     첫 줄이 폰 배너로 잘려 나가므로 기준일과 결론(건수/연속일/남은 기한/종목)을 전부
     첫 줄에 담고, 이후 본문에서 종목별 상세를 보여줍니다.
 
-    공시 주소는 알림에 넣지 않습니다. 받는 앱이 자동 링크를 걸어주지 않아 클릭도 안 되는
-    긴 문자열이 본문만 차지하기 때문입니다. 주소가 필요하면 findings 의 ``url`` 을 쓰세요.
+    공시 원문 주소는 본문 맨 아래에 종목별로 한 줄씩 모아 붙입니다. 상세 블록 사이에
+    끼워 넣으면 긴 주소가 표를 밀어내므로, 읽는 흐름을 방해하지 않도록 마지막에 둡니다.
     """
     violations = [f for f in result["findings"] if f["status"] == "violation"]
     resolved = [f for f in result["findings"] if f["status"] == "resolved"]
@@ -634,7 +637,9 @@ def notify_text(result: dict) -> str | None:
 
             lines.append("")
             if len(violations) > 1:
-                lines.append(f"{IND}{f['etf_name']} ({f['ticker']})")
+                # 티커 매핑이 안 된 종목(신규 상장 등)은 빈 괄호를 남기지 않습니다.
+                lines.append(f"{IND}{f['etf_name']}"
+                             + (f" ({f['ticker']})" if f["ticker"] else ""))
             lines.append(f"{IND}상태  {state}")
             lines.append(f"{IND}연속  {days}영업일  ({since} 최초)")
             lines.append(f"{IND}달력  {span}일 경과 → 마감 {f['deadline_3m']}")
@@ -663,6 +668,19 @@ def notify_text(result: dict) -> str | None:
         lines.append(f"{IND}─────────────────────────")
         for f in related:
             lines.append(f"{IND}참고 · {f['ticker']} {f['etf_name']} {f['title']}")
+
+    linked = [f for f in result["findings"] if f.get("url")]
+    if linked:
+        lines.append("")
+        lines.append(f"{IND}─────────────────────────")
+        lines.append(f"{IND}공시 원문")
+        for f in linked:
+            label = f["etf_name"] + (f" ({f['ticker']})" if f["ticker"] else "")
+            lines.append("")
+            lines.append(f"{IND}{label}")
+            # 주소는 단독 줄에 둡니다. 앞뒤에 글자가 붙으면 메일/메신저의 자동 링크가
+            # 주소 끝을 잘못 잡아 링크가 깨집니다.
+            lines.append(f"{IND}{f['url']}")
 
     return "\n".join(lines)
 
