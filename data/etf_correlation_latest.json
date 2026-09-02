@@ -21,7 +21,8 @@
       "deadline_3m": "2026-10-31",
       "days_to_3m": 60,
       "basis_date": "2026-09-01",
-      "basis_since": "2026-07-31"
+      "basis_since": "2026-07-31",
+      "basis_estimated": true
     },
     {
       "status": "violation",
@@ -38,7 +39,8 @@
       "deadline_3m": "2026-11-30",
       "days_to_3m": 90,
       "basis_date": "2026-09-01",
-      "basis_since": "2026-08-31"
+      "basis_since": "2026-08-31",
+      "basis_estimated": true
     },
     {
       "status": "related",
@@ -49,7 +51,8 @@
       "disclosure_date": "2026-09-02",
       "url": "https://kind.krx.co.kr/common/disclsviewer.do?method=search&acptno=20260902000006",
       "threshold": 0.9,
-      "basis_date": "2026-09-01"
+      "basis_date": "2026-09-01",
+      "basis_estimated": true
     }
   ]
 }

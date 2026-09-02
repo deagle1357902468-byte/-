@@ -90,6 +90,7 @@ CSV_HEADER = [
     "title",            # 공시 전체 제목
     "disclosure_date",  # 공시가 접수된 날
     "basis_date",       # 그 공시의 기준일 (= 직전 영업일, T-1)
+    "basis_estimated",  # 기준일이 역산 추정치임을 표시 (휴장일 미반영)
     "url",
     "etf_type",         # passive(기준 0.9) / active(기준 0.7)
     "threshold",        # 해당 유형의 상관계수 기준값
@@ -366,13 +367,25 @@ def prev_business_day(date_iso: str) -> str:
     알립니다. 따라서 위반이 시작된 날도, 3개월 요건을 세는 시작점도 공시일이 아니라
     기준일이어야 합니다. (2026-09-01(화) 공시 → 기준일 2026-08-31(월))
 
-    주말만 건너뜁니다. 임시공휴일 등 거래소 휴장일은 반영하지 못하므로, 휴장일 다음
-    영업일의 공시는 기준일이 하루 늦게 잡힐 수 있습니다.
+    주말만 건너뜁니다. 공휴일·임시휴장일은 반영하지 않습니다. 휴장일 표를 들고 다니면
+    매년 갱신해야 하고 임시공휴일이 생기면 또 틀리기 때문에, 대신 **추정치임을 표시**하고
+    (`basis_estimated`) 사람이 공시 원문으로 확인하는 쪽을 택했습니다.
+
+    영향 범위는 좁습니다. 마감일은 달력일로 세므로 휴장일과 무관하고, 어긋날 수 있는
+    것은 **연속 구간의 첫 공시가 연휴 직후일 때의 시작 앵커** 하나뿐입니다. 그때는
+    기준일이 실제보다 1~2일 늦게 잡혀 마감도 그만큼 밀립니다.
     """
     day = datetime.strptime(date_iso, "%Y-%m-%d") - timedelta(days=1)
     while day.weekday() >= 5:  # 토(5), 일(6)
         day -= timedelta(days=1)
     return day.strftime("%Y-%m-%d")
+
+
+# 기준일은 공시일에서 역산한 **추정치**입니다. 날짜만 보고는 휴장일을 알 수 없고
+# (월요일이 공휴일이면 화요일 공시의 T-1 계산이 조용히 틀립니다) 날짜 기반 휴리스틱은
+# 정작 그 경우를 못 잡으면서 평범한 월요일만 전부 걸러냅니다. 그래서 탐지를 흉내내지
+# 않고, 값에 추정 표시를 달아 사람이 공시 원문으로 확인하도록 합니다.
+BASIS_ESTIMATED = True
 
 
 def calendar_span(since_iso: str, today_iso: str) -> tuple[int, str, int]:
@@ -550,6 +563,7 @@ def check(date_kst: datetime, workers: int = 8, source: str = "auto") -> dict:
     basis_today = prev_business_day(date_iso)
     for f in findings:
         f["basis_date"] = prev_business_day(f["disclosure_date"])
+        f["basis_estimated"] = BASIS_ESTIMATED
         if f["status"] == "violation":
             feed = kind_violation_dates(f["etf_name"], date_iso) if used == "kind" else []
             if not feed and f["ticker"]:
@@ -701,6 +715,12 @@ def notify_text(result: dict) -> str | None:
         for f in related:
             lines.append(f"{IND}참고 · {f['ticker']} {f['etf_name']} {f['title']}")
 
+    if violations:
+        # 기준일은 공시일에서 역산한 값이라 연휴가 끼면 어긋날 수 있습니다.
+        # 마감일이 여기서 나오므로, 확인해야 할 값이라는 걸 알림에 한 줄로 남깁니다.
+        lines.append("")
+        lines.append(f"{IND}※ 기준일은 T-1 추정 · 연휴 직후 공시는 원문 확인")
+
     return "\n".join(lines)
 
 
@@ -716,7 +736,8 @@ def persist(result: dict) -> None:
         for f in result["findings"]:
             rows.append({**base, **{k: f.get(k, "") for k in
                                     ("status", "ticker", "etf_name", "title",
-                                     "disclosure_date", "basis_date", "url", "etf_type",
+                                     "disclosure_date", "basis_date", "basis_estimated",
+                                     "url", "etf_type",
                                      "threshold", "calendar_days", "deadline_3m",
                                      "days_to_3m", "streak_days", "streak_since",
                                      "basis_since")}})
@@ -725,6 +746,7 @@ def persist(result: dict) -> None:
         rows.append({**base, "status": "none", "ticker": "", "etf_name": "",
                      "title": "상관계수 관련 공시 없음", "disclosure_date": result["check_date"],
                      "basis_date": prev_business_day(result["check_date"]),
+                     "basis_estimated": BASIS_ESTIMATED,
                      "url": "", "etf_type": "", "threshold": "",
                      "calendar_days": "", "deadline_3m": "", "days_to_3m": "",
                      "streak_days": "", "streak_since": "", "basis_since": ""})
