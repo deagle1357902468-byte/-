@@ -417,14 +417,22 @@ def streak_for(ticker: str, check_date: str, dates: list[str],
     구간은 (중간에 회복된 적이 있으므로) 합산하지 않습니다.
 
     근거는 두 가지를 함께 씁니다.
-      1) 우리 실행 기록(CSV) — 그날 확인했는데 위반이 없었다면 거기서 확실히 끊깁니다.
-      2) 공시 피드의 과거 이력 — 기록이 없는 구간(첫 실행 등)을 메웁니다.
-         피드에는 "위반이 없던 날"이 남지 않으므로, 위반 공시 사이의 간격이
-         MAX_GAP_DAYS(주말+공휴일) 이내면 이어진 것으로 봅니다.
+      1) 공시 피드의 이력 — 그날 위반 공시가 실제로 있었다는 **적극적 증거**입니다.
+      2) 우리 실행 기록(CSV) — 피드에 없는 날은 "확인했는데 위반이 없었다"로 보고 끊습니다.
+         피드에는 "위반이 없던 날"이 남지 않으므로, 기록이 아예 없는 과거 구간에서는
+         위반 공시 사이 간격이 MAX_GAP_DAYS(주말+공휴일) 이내면 이어진 것으로 봅니다.
+
+    둘이 엇갈리면 **피드가 이깁니다.** 우리 기록은 하루 전체가 아니라 루틴이 도는
+    실행 시각(오전 11시 10분) 스냅샷이라, 그 뒤에 접수된 공시는 빠져 있습니다. 그걸 "위반 없음"
+    으로 읽으면 다음 날 연속일이 1로 리셋돼 3개월 요건을 실제보다 늦게 잡습니다.
+    (실제로 2026-09-01 HANARO 미국S&P500액티브 건이 접수번호 …000095로 늦게 올라와
+    그날 기록에서 빠졌고, 다음 날 "오늘 최초"로 잘못 계산됐습니다.)
     """
     days = 1
     since = check_date
-    checked_clean = {d for d in dates if ticker not in violations.get(d, set())}
+    feed_set = set(feed_dates or ())
+    checked_clean = {d for d in dates
+                     if ticker not in violations.get(d, set()) and d not in feed_set}
 
     # 1) 우리 기록으로 확실히 이어지는 만큼 먼저 셉니다.
     for day in reversed([d for d in dates if d < check_date]):
