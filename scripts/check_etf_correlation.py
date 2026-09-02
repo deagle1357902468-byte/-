@@ -594,8 +594,8 @@ def notify_text(result: dict) -> str | None:
     첫 줄이 폰 배너로 잘려 나가므로 기준일과 결론(건수/연속일/남은 기한/종목)을 전부
     첫 줄에 담고, 이후 본문에서 종목별 상세를 보여줍니다.
 
-    공시 원문 주소는 본문 맨 아래에 종목별로 한 줄씩 모아 붙입니다. 상세 블록 사이에
-    끼워 넣으면 긴 주소가 표를 밀어내므로, 읽는 흐름을 방해하지 않도록 마지막에 둡니다.
+    공시 주소는 알림에 넣지 않습니다. 알림은 순수 텍스트라 주소가 클릭되지 않고 본문만
+    차지합니다. 링크는 세션 답변에 마크다운으로 답니다 (주소는 findings 의 ``url``).
     """
     violations = [f for f in result["findings"] if f["status"] == "violation"]
     resolved = [f for f in result["findings"] if f["status"] == "resolved"]
@@ -668,19 +668,6 @@ def notify_text(result: dict) -> str | None:
         lines.append(f"{IND}─────────────────────────")
         for f in related:
             lines.append(f"{IND}참고 · {f['ticker']} {f['etf_name']} {f['title']}")
-
-    linked = [f for f in result["findings"] if f.get("url")]
-    if linked:
-        lines.append("")
-        lines.append(f"{IND}─────────────────────────")
-        lines.append(f"{IND}공시 원문")
-        for f in linked:
-            label = f["etf_name"] + (f" ({f['ticker']})" if f["ticker"] else "")
-            lines.append("")
-            lines.append(f"{IND}{label}")
-            # 주소는 단독 줄에 둡니다. 앞뒤에 글자가 붙으면 메일/메신저의 자동 링크가
-            # 주소 끝을 잘못 잡아 링크가 깨집니다.
-            lines.append(f"{IND}{f['url']}")
 
     return "\n".join(lines)
 
