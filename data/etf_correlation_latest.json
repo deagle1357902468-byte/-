@@ -1,10 +1,10 @@
 {
-  "checked_kst": "2026-09-03T11:11:20+09:00",
-  "check_date": "2026-09-03",
-  "basis_date": "2026-09-02",
+  "checked_kst": "2026-09-04T11:11:19+09:00",
+  "check_date": "2026-09-04",
+  "basis_date": "2026-09-03",
   "manager": "엔에이치아문디자산운용",
   "source": "kind",
-  "disclosures_today": 3,
+  "disclosures_today": 2,
   "findings": [
     {
       "status": "violation",
@@ -12,17 +12,17 @@
       "etf_name": "HANARO 글로벌피지컬AI액티브",
       "etf_type": "active",
       "title": "ETF 상관계수 기준 미달 발생",
-      "disclosure_date": "2026-09-03",
-      "url": "https://kind.krx.co.kr/common/disclsviewer.do?method=search&acptno=20260903000032",
+      "disclosure_date": "2026-09-04",
+      "url": "https://kind.krx.co.kr/common/disclsviewer.do?method=search&acptno=20260904000043",
       "threshold": 0.7,
-      "basis_date": "2026-09-02",
+      "basis_date": "2026-09-03",
       "basis_estimated": true,
-      "streak_days": 22,
+      "streak_days": 23,
       "streak_since": "2026-08-03",
       "basis_since": "2026-07-31",
-      "calendar_days": 34,
+      "calendar_days": 35,
       "deadline_3m": "2026-10-31",
-      "days_to_3m": 59
+      "days_to_3m": 58
     },
     {
       "status": "violation",
@@ -30,29 +30,17 @@
       "etf_name": "HANARO 미국S&P500액티브",
       "etf_type": "active",
       "title": "ETF 상관계수 기준 미달 발생",
-      "disclosure_date": "2026-09-03",
-      "url": "https://kind.krx.co.kr/common/disclsviewer.do?method=search&acptno=20260903000034",
+      "disclosure_date": "2026-09-04",
+      "url": "https://kind.krx.co.kr/common/disclsviewer.do?method=search&acptno=20260904000045",
       "threshold": 0.7,
-      "basis_date": "2026-09-02",
+      "basis_date": "2026-09-03",
       "basis_estimated": true,
-      "streak_days": 3,
+      "streak_days": 4,
       "streak_since": "2026-09-01",
       "basis_since": "2026-08-31",
-      "calendar_days": 3,
+      "calendar_days": 4,
       "deadline_3m": "2026-11-30",
-      "days_to_3m": 89
-    },
-    {
-      "status": "related",
-      "ticker": "407300",
-      "etf_name": "HANARO Fn골프테마",
-      "etf_type": "passive",
-      "title": "ETF 괴리율 초과 발생",
-      "disclosure_date": "2026-09-03",
-      "url": "https://kind.krx.co.kr/common/disclsviewer.do?method=search&acptno=20260903000024",
-      "threshold": 0.9,
-      "basis_date": "2026-09-02",
-      "basis_estimated": true
+      "days_to_3m": 88
     }
   ]
 }
