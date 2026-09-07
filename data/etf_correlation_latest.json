@@ -1,7 +1,7 @@
 {
-  "checked_kst": "2026-09-04T11:11:19+09:00",
-  "check_date": "2026-09-04",
-  "basis_date": "2026-09-03",
+  "checked_kst": "2026-09-07T11:11:41+09:00",
+  "check_date": "2026-09-07",
+  "basis_date": "2026-09-04",
   "manager": "엔에이치아문디자산운용",
   "source": "kind",
   "disclosures_today": 2,
@@ -12,17 +12,17 @@
       "etf_name": "HANARO 글로벌피지컬AI액티브",
       "etf_type": "active",
       "title": "ETF 상관계수 기준 미달 발생",
-      "disclosure_date": "2026-09-04",
-      "url": "https://kind.krx.co.kr/common/disclsviewer.do?method=search&acptno=20260904000043",
+      "disclosure_date": "2026-09-07",
+      "url": "https://kind.krx.co.kr/common/disclsviewer.do?method=search&acptno=20260907000039",
       "threshold": 0.7,
-      "basis_date": "2026-09-03",
+      "basis_date": "2026-09-04",
       "basis_estimated": true,
-      "streak_days": 23,
+      "streak_days": 24,
       "streak_since": "2026-08-03",
       "basis_since": "2026-07-31",
-      "calendar_days": 35,
+      "calendar_days": 36,
       "deadline_3m": "2026-10-31",
-      "days_to_3m": 58
+      "days_to_3m": 57
     },
     {
       "status": "violation",
@@ -30,17 +30,17 @@
       "etf_name": "HANARO 미국S&P500액티브",
       "etf_type": "active",
       "title": "ETF 상관계수 기준 미달 발생",
-      "disclosure_date": "2026-09-04",
-      "url": "https://kind.krx.co.kr/common/disclsviewer.do?method=search&acptno=20260904000045",
+      "disclosure_date": "2026-09-07",
+      "url": "https://kind.krx.co.kr/common/disclsviewer.do?method=search&acptno=20260907000040",
       "threshold": 0.7,
-      "basis_date": "2026-09-03",
+      "basis_date": "2026-09-04",
       "basis_estimated": true,
-      "streak_days": 4,
+      "streak_days": 5,
       "streak_since": "2026-09-01",
       "basis_since": "2026-08-31",
-      "calendar_days": 4,
+      "calendar_days": 5,
       "deadline_3m": "2026-11-30",
-      "days_to_3m": 88
+      "days_to_3m": 87
     }
   ]
 }
